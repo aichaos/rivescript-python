@@ -941,7 +941,7 @@ your Python code is defining it instead. `name` is the name of the object, and
 
 This method is only available if there is a Python handler set up (which there
 is by default, unless you've called set_handler("python", None))."""
-        
+
         # Do we have a Python handler?
         if 'python' in self._handlers:
             self._handlers['python']._objects[name] = code
