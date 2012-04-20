@@ -13,3 +13,8 @@
 	# Shut down.
 	exit(0);
 < object
+
+> object shutdown python
+	# Shut down
+	exit(0)
+< object
