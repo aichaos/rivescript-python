@@ -1,11 +1,18 @@
 # pyRiveScript - A RiveScript interpreter written in Python.
 
+VERSION = 0.01
+
 import os
 import glob
 import re
 import string
 import random
 import pprint
+import copy
+
+import sys
+import getopt
+import json
 
 # Common regular expressions.
 re_equals  = re.compile('\s*=\s*')
@@ -54,6 +61,7 @@ class PyRiveObjects:
 class RiveScript:
     """A RiveScript interpreter for Python 2."""
     _debug    = False # Debug mode
+    _strict   = True  # Strict mode
     _logf     = ''    # Log file for debugging
     _depth    = 50    # Recursion depth limit
     _gvars    = {}    # 'global' variables
@@ -62,6 +70,7 @@ class RiveScript:
     _person   = {}    # 'person' variables
     _arrays   = {}    # 'array' variables
     _users    = {}    # 'user' variables
+    _freeze   = {}    # frozen 'user' variables
     _includes = {}    # included topics
     _lineage  = {}    # inherited topics
     _handlers = {}    # Object handlers
@@ -74,15 +83,17 @@ class RiveScript:
     # Initialization and Utility Methods                                       #
     ############################################################################
 
-    def __init__(self, debug=False, depth=50, log=""):
+    def __init__(self, debug=False, strict=True, depth=50, log=""):
         """Initialize a new RiveScript interpreter.
 
-bool debug: Specify a debug mode.
-str  log:   Specify a log file for debug output to go to (instead of STDOUT).
-int  depth: Specify the recursion depth limit."""
-        self._debug = debug
-        self._depth = depth
-        self._log   = log
+bool debug:  Specify a debug mode.
+bool strict: Strict mode (RS syntax errors are fatal)
+str  log:    Specify a log file for debug output to go to (instead of STDOUT).
+int  depth:  Specify the recursion depth limit."""
+        self._debug  = debug
+        self._strict = strict
+        self._depth  = depth
+        self._log    = log
 
         # Define the default Python language handler.
         self._handlers["python"] = PyRiveObjects()
@@ -92,6 +103,11 @@ int  depth: Specify the recursion depth limit."""
     def _say(self, message):
         if self._debug:
             print "[RS]", message
+        if self._log:
+            # Log it to the file.
+            fh = open(self._log, 'a')
+            fh.write("[RS] " + message + "\n")
+            fh.close()
 
     def _warn(self, message, fname='', lineno=0):
         if self._debug:
@@ -111,6 +127,10 @@ int  depth: Specify the recursion depth limit."""
         """Load RiveScript documents from a directory."""
         self._say("Loading from directory: " + directory + "/*" + ext)
 
+        if not os.path.isdir(directory):
+            self._warn("Error: " + directory + " is not a directory.")
+            return
+
         for item in glob.glob( os.path.join(directory, '*'+ext) ):
             self.load_file( item )
 
@@ -123,13 +143,17 @@ int  depth: Specify the recursion depth limit."""
         fh.close()
 
         self._say("Parsing " + str(len(lines)) + " lines of code from " + filename)
-        self.parse(filename, lines)
+        self._parse(filename, lines)
 
     def stream(self, code):
-        self._say("Streaming code.")
-        self.parse("stream()", code)
+        """Stream in RiveScript source code dynamically.
 
-    def parse(self, fname, code):
+`code` should be an array of lines of RiveScript code."""
+        self._say("Streaming code.")
+        self._parse("stream()", code)
+
+    def _parse(self, fname, code):
+        """Parse RiveScript code into memory."""
         self._say("Parsing code")
 
         # Track temporary variables.
@@ -182,7 +206,7 @@ int  depth: Specify the recursion depth limit."""
             elif line[0] == '#':
                 self._warn("Using the # symbol for comments is deprecated", fname, lineno)
             elif line[:2] == '/*':   # Start of a multi-line comment.
-                if not '*/' in line: # Cancel if the end is here too. TODO fix this in Perl too :)
+                if not '*/' in line: # Cancel if the end is here too.
                     comment = True
                 continue
             elif '*/' in line:
@@ -203,7 +227,17 @@ int  depth: Specify the recursion depth limit."""
             if " // " in line:
                 line = line.split(" // ")[0].strip()
 
-            # Run a syntax check on this line. TODO
+            # Run a syntax check on this line.
+            syntax_error = self.check_syntax(cmd, line)
+            if syntax_error:
+                # There was a syntax error! Are we enforcing strict mode?
+                syntax_error = "Syntax error in " + fname + " line " + str(lineno) + ": " \
+                    + syntax_error + " (near: " + cmd + " " + line + ")"
+                if self._strict:
+                    raise Exception(syntax_error)
+                else:
+                    self._warn(syntax_error)
+                    return # Don't try to continue
 
             # Reset the %Previous state if this is a new +Trigger.
             if cmd == '+':
@@ -266,7 +300,7 @@ int  depth: Specify the recursion depth limit."""
 
                 # Remove 'fake' line breaks unless this is an array.
                 if type != 'array':
-                    value = re.sub(r'<crlf>', '', value) # TODO: /g flag?
+                    value = re.sub(r'<crlf>', '', value)
 
                 # Handle version numbers.
                 if type == 'version':
@@ -277,6 +311,7 @@ int  depth: Specify the recursion depth limit."""
                             return
                     except:
                         self._warn("Error parsing RiveScript version number: not a number", fname, lineno)
+                    continue
 
                 # All other types of defines require a variable and value name.
                 if len(var) == 0:
@@ -311,6 +346,11 @@ int  depth: Specify the recursion depth limit."""
                             self._depth = int(value)
                         except:
                             self._warn("Failed to set 'depth' because the value isn't a number!", fname, lineno)
+                    elif var == 'strict':
+                        if value.lower() == 'true':
+                            self._strict = True
+                        else:
+                            self._strict = False
                 elif type == 'var':
                     # Bot variables
                     self._say("\tSet bot variable " + var + " = " + value)
@@ -498,6 +538,98 @@ int  depth: Specify the recursion depth limit."""
                 self._warn("Unrecognized command \"" + cmd + "\"", fname, lineno)
                 continue
 
+    def check_syntax(self, cmd, line):
+        """Syntax check a RiveScript command and line.
+
+Returns a syntax error string on error; None otherwise."""
+
+        # Run syntax checks based on the type of command.
+        if cmd == '!':
+            # ! Definition
+            #   - Must be formatted like this:
+            #     ! type name = value
+            #     OR
+            #     ! type = value
+            match = re.match(r'^.+(?:\s+.+|)\s*=\s*.+?$', line)
+            if not match:
+                return "Invalid format for !Definition line: must be '! type name = value' OR '! type = value'"
+        elif cmd == '>':
+            # > Label
+            #   - The "begin" label must have only one argument ("begin")
+            #   - "topic" labels must be lowercased but can inherit other topics (a-z0-9_\s)
+            #   - "object" labels must follow the same rules as "topic", but don't need to be lowercase
+            parts = re.split(" ", line, 2)
+            if parts[0] == "begin" and len(parts) > 1:
+                return "The 'begin' label takes no additional arguments, should be verbatim '> begin'"
+            elif parts[0] == "topic":
+                rest = ' '.join(parts)
+                match = re.match(r'[^a-z0-9_\-\s]', line)
+                if match:
+                    return "Topics should be lowercased and contain only numbers and letters"
+            elif parts[0] == "object":
+                rest = ' '.join(parts)
+                match = re.match(r'[^A-Za-z0-9_\-\s]', line)
+                if match:
+                    return "Objects can only contain numbers and letters"
+        elif cmd == '+' or cmd == '%' or cmd == '@':
+            # + Trigger, % Previous, @ Redirect
+            #   This one is strict. The triggers are to be run through the regexp engine,
+            #   therefore it should be acceptable for the regexp engine.
+            #   - Entirely lowercase
+            #   - No symbols except: ( | ) [ ] * _ # @ { } < > =
+            #   - All brackets should be matched
+            parens = 0 # Open parenthesis
+            square = 0 # Open square brackets
+            curly  = 0 # Open curly brackets
+            angle  = 0 # Open angled brackets
+
+            # Look for obvious errors.
+            match = re.match(r'[^a-z0-9(|)\[\]*_#@{}<>=\s]', line)
+            if match:
+                return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > ="
+
+            # Count brackets.
+            for char in line:
+                if char == '(':
+                    parens = parens + 1
+                elif char == ')':
+                    parens = parens - 1
+                elif char == '[':
+                    square = square + 1
+                elif char == ']':
+                    square = square - 1
+                elif char == '{':
+                    curly = curly + 1
+                elif char == '}':
+                    curly = curly - 1
+                elif char == '<':
+                    angle = angle + 1
+                elif char == '>':
+                    angle = angle - 1
+
+            # Any mismatches?
+            if parens != 0:
+                return "Unmatched parenthesis brackets"
+            elif square != 0:
+                return "Unmatched square brackets"
+            elif curly != 0:
+                return "Unmatched curly brackets"
+            elif angle != 0:
+                return "Unmatched angle brackets"
+        elif cmd == '-' or cmd == '^' or cmd == '/':
+            # - Trigger, ^ Continue, / Comment
+            # These commands take verbatim arguments, so their syntax is loose.
+            pass
+        elif cmd == '*':
+            # * Condition
+            #   Syntax for a conditional is as follows:
+            #   * value symbol value => response
+            match = re.match(r'^.+?\s*(?:==|eq|!=|ne|<>|<|<=|>|>=)\s*.+?=>.+?$', line)
+            if not match:
+                return "Invalid format for !Condition: should be like '* value symbol value => response'"
+
+        return None
+
     def _initTT(self, toplevel, topic, trigger, what=''):
         """Initialize a Topic Tree data structure."""
         if toplevel == 'topics':
@@ -534,6 +666,9 @@ int  depth: Specify the recursion depth limit."""
         else:
             triglvl = self._topics
             sortlvl = 'topics'
+
+        # (Re)Initialize the sort cache.
+        self._sorted[sortlvl] = {}
 
         self._say("Sorting triggers...")
 
@@ -633,16 +768,7 @@ int  depth: Specify the recursion depth limit."""
 
             # Loop through and categorize these triggers.
             track = {
-                inherits: {
-                    'atomic': {}, # Sort by number of whole words
-                    'option': {}, # Sort optionals by number of words
-                    'alpha':  {}, # Sort alpha wildcards by no. of words
-                    'number': {}, # Sort number wildcards by no. of words
-                    'wild':   {}, # Sort wildcards by no. of words
-                    'pound':  [], # Triggers of just #
-                    'under':  [], # Triggers of just _
-                    'star':   []  # Triggers of just *
-                }
+                inherits: self._init_sort_track()
             }
 
             for trig in prior[p]:
@@ -662,16 +788,7 @@ int  depth: Specify the recursion depth limit."""
                 # If this is the first time we've seen this inheritence level,
                 # initialize its track structure.
                 if not inherits in track:
-                    track[inherits] = { # TODO: refactor this
-                        'atomic': {}, # Sort by number of whole words
-                        'option': {}, # Sort optionals by number of words
-                        'alpha':  {}, # Sort alpha wildcards by no. of words
-                        'number': {}, # Sort number wildcards by no. of words
-                        'wild':   {}, # Sort wildcards by no. of words
-                        'pound':  [], # Triggers of just #
-                        'under':  [], # Triggers of just _
-                        'star':   []  # Triggers of just *
-                    }
+                    track[inherits] = self._init_sort_track()
 
                 # Start inspecting the trigger's contents.
                 if '_' in trig:
@@ -765,11 +882,209 @@ int  depth: Specify the recursion depth limit."""
 
         self._sorted["lists"][name] = output
 
+    def _init_sort_track(self):
+        """Returns a new dict for keeping track of triggers for sorting."""
+        return {
+            'atomic': {}, # Sort by number of whole words
+            'option': {}, # Sort optionals by number of words
+            'alpha':  {}, # Sort alpha wildcards by no. of words
+            'number': {}, # Sort number wildcards by no. of words
+            'wild':   {}, # Sort wildcards by no. of words
+            'pound':  [], # Triggers of just #
+            'under':  [], # Triggers of just _
+            'star':   []  # Triggers of just *
+        }
+
+
     ############################################################################
     # Public Configuration Methods                                             #
     ############################################################################
 
-    # TODO public config methods
+    def set_handler(self, language, obj):
+        """Define a custom language handler for RiveScript objects.
+
+language: The lowercased name of the programming language,
+          e.g. python, javascript, perl
+obj:      An instance of a class object that provides the following interface:
+
+    class MyObjectHandler:
+        def __init__(self):
+            pass
+        def load(self, name, code):
+            # name = the name of the object from the RiveScript code
+            # code = the source code of the object
+        def call(self, rs, name, fields):
+            # rs     = the current RiveScript interpreter object
+            # name   = the name of the object being called
+            # fields = array of arguments passed to the object
+            return reply
+
+Pass in a None value for the object to delete an existing handler (for example,
+to prevent Python code from being able to be run by default).
+
+Look in the `eg` folder of the rivescript-python distribution for an example
+script that sets up a JavaScript language handler."""
+
+        # Allow them to delete a handler too.
+        if obj == None:
+            if language in self._handlers:
+                del self._handlers[language]
+        else:
+            self._handlers[language] = obj
+
+    def set_subroutine(self, name, code):
+        """Define a Python object from your program.
+
+This is equivalent to having an object defined in the RiveScript code, except
+your Python code is defining it instead. `name` is the name of the object, and
+`code` is a Python function (a `def`) that accepts rs,args as its parameters.
+
+This method is only available if there is a Python handler set up (which there
+is by default, unless you've called set_handler("python", None))."""
+        
+        # Do we have a Python handler?
+        if 'python' in self._handlers:
+            self._handlers['python']._objects[name] = code
+        else:
+            self._warn("Can't set_subroutine: no Python object handler!")
+
+    def set_global(self, name, value):
+        """Set a global variable.
+
+Equivalent to `! global` in RiveScript code. Set to None to delete."""
+        if value == None:
+            # Unset the variable.
+            if name in self._gvars:
+                del self._gvars[name]
+        self._gvars[name] = value
+
+    def set_variable(self, name, value):
+        """Set a bot variable.
+
+Equivalent to `! var` in RiveScript code. Set to None to delete."""
+        if value == None:
+            # Unset the variable.
+            if name in self._bvars:
+                del self._bvars[name]
+        self._bvars[name] = value
+
+    def set_substitution(self, what, rep):
+        """Set a substitution.
+
+Equivalent to `! sub` in RiveScript code. Set to None to delete."""
+        if rep == None:
+            # Unset the variable.
+            if what in self._subs:
+                del self._subs[what]
+        self._subs[what] = rep
+
+    def set_person(self, what, rep):
+        """Set a person substitution.
+
+Equivalent to `! person` in RiveScript code. Set to None to delete."""
+        if rep == None:
+            # Unset the variable.
+            if what in self._person:
+                del self._person[what]
+        self._person[what] = rep
+
+    def set_uservar(self, user, name, value):
+        """Set a variable for a user."""
+
+        if not user in self._users:
+            self._users[user] = {"topic": "random"}
+
+        self._users[user][name] = value
+
+    def get_uservar(self, user, name):
+        """Get a variable about a user.
+
+If the user has no data at all, returns None. If the user doesn't have a value
+set for the variable you want, returns the string 'undefined'."""
+
+        if user in self._users:
+            if name in self._users[user]:
+                return self._users[user][name]
+            else:
+                return "undefined"
+        else:
+            return None
+
+    def get_uservars(self, user=None):
+        """Get all variables about a user (or all users).
+
+If no username is passed, returns the entire user database structure. Otherwise,
+only returns the variables for the given user, or None if none exist."""
+
+        if user == None:
+            # All the users!
+            return self._users
+        elif user in self._users:
+            # Just this one!
+            return self._users[user]
+        else:
+            # No info.
+            return None
+
+    def clear_uservars(self, user=None):
+        """Delete all variables about a user (or all users).
+
+If no username is passed, deletes all variables about all users. Otherwise, only
+deletes all variables for the given user."""
+
+        if user == None:
+            # All the users!
+            self._users = {}
+        elif user in self._users:
+            # Just this one.
+            self._users[user] = {}
+
+    def freeze_uservars(self, user):
+        """Freeze the variable state for a user.
+
+This will clone and preserve a user's entire variable state, so that it can be
+restored later with `thaw_uservars`."""
+
+        if user in self._users:
+            # Clone the user's data.
+            self._freeze[user] = copy.deepcopy(self._users[user])
+        else:
+            self._warn("Can't freeze vars for user " + user + ": not found!")
+
+    def thaw_uservars(self, user, action="thaw"):
+        """Thaw a user's frozen variables.
+
+The `action` can be one of the following options:
+
+    discard: Don't restore the user's variables, just delete the frozen copy.
+    keep:    Keep the frozen copy after restoring the variables.
+    thaw:    Restore the variables, then delete the frozen copy (default)."""
+
+        if user in self._freeze:
+            # What are we doing?
+            if action == "thaw":
+                # Thawing them out.
+                self.clear_uservars(user)
+                self._users[user] = copy.deepcopy(self._freeze[user])
+                del self._freeze[user]
+            elif action == "discard":
+                # Just discard the frozen copy.
+                del self._freeze[user]
+            elif action == "keep":
+                # Keep the frozen copy afterward.
+                self.clear_uservars(user)
+                self._users[user] = copy.deepcopy(self._freeze[user])
+            else:
+                self._warn("Unsupported thaw action")
+        else:
+            self._warn("Can't thaw vars for user " + user + ": not found!")
+
+    def last_match(self, user):
+        """Get the last trigger matched for the user.
+
+This will return the raw trigger text that the user's last message matched. If
+there was no match, this will return None."""
+        return self.get_uservar(user, "__lastmatch__")
 
     ############################################################################
     # Reply Fetching Methods                                                   #
@@ -865,6 +1180,12 @@ int  depth: Specify the recursion depth limit."""
                     'undefined'
                 ]
             }
+
+        # More topic sanity checking.
+        if not topic in self._topics:
+            # This was handled before, which would mean topic=random and
+            # it doesn't exist. Serious issue!
+            return "[ERR: No default topic 'random' was found!]"
 
         # Create a pointer for the matched data when we find it.
         matched        = None
@@ -1595,16 +1916,205 @@ int  depth: Specify the recursion depth limit."""
 # Interactive Mode                                                             #
 ################################################################################
 
-if __name__ == "__main__":
-    print "Entering interactive mode."
+def json_in(bot, buffer, stateful):
+    # Prepare the response.
+    resp = {
+        'status': 'ok',
+        'reply': '',
+        'vars': {}
+    }
 
-    bot = RiveScript(False)
-    bot.load_directory("./brain")
+    # Decode the incoming JSON.
+    try:
+        incoming = json.loads(buffer)
+    except:
+        resp['status'] = 'error'
+        resp['reply'] = 'Failed to decode incoming JSON data.'
+        print json.dumps(resp)
+        if stateful:
+            print "__END__"
+        return
+
+    # Username?
+    username = "json"
+    if 'username' in incoming:
+        username = incoming["username"]
+
+    # Decode their variables.
+    if "vars" in incoming:
+        for var in incoming["vars"]:
+            bot.set_uservar(username, var, incoming["vars"][var])
+
+    # Get a response.
+    if 'message' in incoming:
+        resp['reply'] = bot.reply(username, incoming["message"])
+    else:
+        resp['reply'] = "[ERR: No message provided]"
+
+    # Retrieve vars.
+    resp['vars'] = bot.get_uservars(username)
+
+    print json.dumps(resp)
+    if stateful:
+        print "__END__"
+
+if __name__ == "__main__":
+    # Get command line options.
+    options, remainder = [], []
+    try:
+        options, remainder = getopt.getopt(sys.argv[1:], 'dj', ['debug',
+                                                                'json',
+                                                                'log=',
+                                                                'strict',
+                                                                'nostrict',
+                                                                'depth=',
+                                                                'help'])
+    except:
+        print "Unrecognized options given, try " + sys.argv[0] + " --help"
+        exit()
+
+    # Handle the options.
+    debug, depth, strict, with_json, help, log = False, 50, True, False, False, None
+    for opt in options:
+        if opt[0] == '--debug' or opt[0] == '-d':
+            debug = True
+        elif opt[0] == '--strict':
+            strict = True
+        elif opt[0] == '--nostrict':
+            strict = False
+        elif opt[0] == '--json':
+            with_json = True
+        elif opt[0] == '--help' or opt[0] == '-h':
+            help = True
+        elif opt[0] == '--depth':
+            depth = int(opt[1])
+        elif opt[0] == '--log':
+            log   = opt[1]
+
+    # Help?
+    if help:
+        print """Usage: rivescript.py [options] <directory>
+
+Options:
+
+    --debug, -d
+        Enable debug mode.
+
+    --log FILE
+        Log debug output to a file (instead of the console). Use this instead
+        of --debug.
+
+    --json, -j
+        Communicate using JSON. Useful for third party programs.
+
+    --strict, --nostrict
+        Enable or disable strict mode (enabled by default).
+
+    --depth=50
+        Set the recursion depth limit (default is 50).
+
+    --help
+        Display this help.
+
+JSON Mode:
+
+    In JSON mode, input and output is done using JSON data structures. The
+    format for incoming JSON data is as follows:
+
+    {
+        'username': 'localuser',
+        'message': 'Hello bot!',
+        'vars': {
+            'name': 'Aiden'
+        }
+    }
+
+    The format that would be expected from this script is:
+
+    {
+        'status': 'ok',
+        'reply': 'Hello, human!',
+        'vars': {
+            'name': 'Aiden'
+        }
+    }
+
+    If the calling program sends an EOF signal at the end of their JSON data,
+    this script will print its response and exit. To keep a session going,
+    send the string '__END__' on a line by itself at the end of your message.
+    The script will do the same after its response. The pipe can then be used
+    again for further interactions."""
+        quit()
+
+    # Given a directory?
+    if len(remainder) == 0:
+        print "Usage: rivescript.py [options] <directory>"
+        print "Try rivescript.py --help"
+        quit()
+    root = remainder[0]
+
+    # Make the bot.
+    bot = RiveScript(
+        debug=debug,
+        strict=strict,
+        depth=depth,
+        log=log
+    )
+    bot.load_directory(root)
     bot.sort_replies()
+
+    # Interactive mode?
+    if with_json:
+        # Read from standard input.
+        buffer = ""
+        stateful = False
+        while True:
+            line = ""
+            try:
+                line = raw_input()
+            except EOFError:
+                break
+
+            # Look for the __END__ line.
+            end = re.match(r'^__END__$', line)
+            if end:
+                # Process it.
+                stateful = True # This is a stateful session
+                json_in(bot, buffer, stateful)
+                buffer = ""
+                continue
+            else:
+                buffer += line + "\n"
+
+        # We got the EOF. If the session was stateful, just exit,
+        # otherwise process what we just read.
+        if stateful:
+            quit()
+        json_in(bot, buffer, stateful)
+        quit()
+
+    print "RiveScript Interpreter (Python) -- Interactive Mode"
+    print "---------------------------------------------------"
+    print "rivescript.py version: " + str(VERSION)
+    print "           Reply Root: " + root
+    print ""
+    print "You are now chatting with the RiveScript bot. Type a message and press Return"
+    print "to send it. When finished, type '/quit' to exit the program."
+    print "Type '/help' for other options."
+    print ""
 
     while True:
         msg = raw_input("You> ")
-        reply = bot.reply("localuser", msg)
-        print "Bot>", reply
+
+        # Commands
+        if msg == '/help':
+            print "> Supported Commands:"
+            print "> /help   - Displays this message."
+            print "> /quit   - Exit the program."
+        elif msg == '/quit':
+            exit()
+        else:
+            reply = bot.reply("localuser", msg)
+            print "Bot>", reply
 
 # vim:expandtab

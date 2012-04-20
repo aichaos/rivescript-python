@@ -1,0 +1,123 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: class RiveScript</title>
+</head><body bgcolor="#f0f0f8">
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><strong>rivescript.RiveScript</strong> = <a name="rivescript.RiveScript">class RiveScript</a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;RiveScript&nbsp;interpreter&nbsp;for&nbsp;Python&nbsp;2.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="RiveScript-__init__"><strong>__init__</strong></a>(self, debug<font color="#909090">=False</font>, strict<font color="#909090">=True</font>, depth<font color="#909090">=50</font>, log<font color="#909090">=''</font>)</dt><dd><tt>Initialize&nbsp;a&nbsp;new&nbsp;RiveScript&nbsp;interpreter.<br>
+&nbsp;<br>
+bool&nbsp;debug:&nbsp;&nbsp;Specify&nbsp;a&nbsp;debug&nbsp;mode.<br>
+bool&nbsp;strict:&nbsp;Strict&nbsp;mode&nbsp;(RS&nbsp;syntax&nbsp;errors&nbsp;are&nbsp;fatal)<br>
+str&nbsp;&nbsp;log:&nbsp;&nbsp;&nbsp;&nbsp;Specify&nbsp;a&nbsp;log&nbsp;file&nbsp;for&nbsp;debug&nbsp;output&nbsp;to&nbsp;go&nbsp;to&nbsp;(instead&nbsp;of&nbsp;STDOUT).<br>
+int&nbsp;&nbsp;depth:&nbsp;&nbsp;Specify&nbsp;the&nbsp;recursion&nbsp;depth&nbsp;limit.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-check_syntax"><strong>check_syntax</strong></a>(self, cmd, line)</dt><dd><tt>Syntax&nbsp;check&nbsp;a&nbsp;RiveScript&nbsp;command&nbsp;and&nbsp;line.<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;syntax&nbsp;error&nbsp;string&nbsp;on&nbsp;error;&nbsp;None&nbsp;otherwise.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-clear_uservars"><strong>clear_uservars</strong></a>(self, user<font color="#909090">=None</font>)</dt><dd><tt>Delete&nbsp;all&nbsp;variables&nbsp;about&nbsp;a&nbsp;user&nbsp;(or&nbsp;all&nbsp;users).<br>
+&nbsp;<br>
+If&nbsp;no&nbsp;username&nbsp;is&nbsp;passed,&nbsp;deletes&nbsp;all&nbsp;variables&nbsp;about&nbsp;all&nbsp;users.&nbsp;Otherwise,&nbsp;only<br>
+deletes&nbsp;all&nbsp;variables&nbsp;for&nbsp;the&nbsp;given&nbsp;user.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-freeze_uservars"><strong>freeze_uservars</strong></a>(self, user)</dt><dd><tt>Freeze&nbsp;the&nbsp;variable&nbsp;state&nbsp;for&nbsp;a&nbsp;user.<br>
+&nbsp;<br>
+This&nbsp;will&nbsp;clone&nbsp;and&nbsp;preserve&nbsp;a&nbsp;user's&nbsp;entire&nbsp;variable&nbsp;state,&nbsp;so&nbsp;that&nbsp;it&nbsp;can&nbsp;be<br>
+restored&nbsp;later&nbsp;with&nbsp;`thaw_uservars`.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-get_uservar"><strong>get_uservar</strong></a>(self, user, name)</dt><dd><tt>Get&nbsp;a&nbsp;variable&nbsp;about&nbsp;a&nbsp;user.<br>
+&nbsp;<br>
+If&nbsp;the&nbsp;user&nbsp;has&nbsp;no&nbsp;data&nbsp;at&nbsp;all,&nbsp;returns&nbsp;None.&nbsp;If&nbsp;the&nbsp;user&nbsp;doesn't&nbsp;have&nbsp;a&nbsp;value<br>
+set&nbsp;for&nbsp;the&nbsp;variable&nbsp;you&nbsp;want,&nbsp;returns&nbsp;the&nbsp;string&nbsp;'undefined'.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-get_uservars"><strong>get_uservars</strong></a>(self, user<font color="#909090">=None</font>)</dt><dd><tt>Get&nbsp;all&nbsp;variables&nbsp;about&nbsp;a&nbsp;user&nbsp;(or&nbsp;all&nbsp;users).<br>
+&nbsp;<br>
+If&nbsp;no&nbsp;username&nbsp;is&nbsp;passed,&nbsp;returns&nbsp;the&nbsp;entire&nbsp;user&nbsp;database&nbsp;structure.&nbsp;Otherwise,<br>
+only&nbsp;returns&nbsp;the&nbsp;variables&nbsp;for&nbsp;the&nbsp;given&nbsp;user,&nbsp;or&nbsp;None&nbsp;if&nbsp;none&nbsp;exist.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-last_match"><strong>last_match</strong></a>(self, user)</dt><dd><tt>Get&nbsp;the&nbsp;last&nbsp;trigger&nbsp;matched&nbsp;for&nbsp;the&nbsp;user.<br>
+&nbsp;<br>
+This&nbsp;will&nbsp;return&nbsp;the&nbsp;raw&nbsp;trigger&nbsp;text&nbsp;that&nbsp;the&nbsp;user's&nbsp;last&nbsp;message&nbsp;matched.&nbsp;If<br>
+there&nbsp;was&nbsp;no&nbsp;match,&nbsp;this&nbsp;will&nbsp;return&nbsp;None.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-load_directory"><strong>load_directory</strong></a>(self, directory, ext<font color="#909090">='.rs'</font>)</dt><dd><tt>Load&nbsp;RiveScript&nbsp;documents&nbsp;from&nbsp;a&nbsp;directory.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-load_file"><strong>load_file</strong></a>(self, filename)</dt><dd><tt>Load&nbsp;and&nbsp;parse&nbsp;a&nbsp;RiveScript&nbsp;document.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-reply"><strong>reply</strong></a>(self, user, msg)</dt><dd><tt>Fetch&nbsp;a&nbsp;reply&nbsp;from&nbsp;the&nbsp;RiveScript&nbsp;brain.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-set_global"><strong>set_global</strong></a>(self, name, value)</dt><dd><tt>Set&nbsp;a&nbsp;global&nbsp;variable.<br>
+&nbsp;<br>
+Equivalent&nbsp;to&nbsp;`!&nbsp;global`&nbsp;in&nbsp;RiveScript&nbsp;code.&nbsp;Set&nbsp;to&nbsp;None&nbsp;to&nbsp;delete.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-set_handler"><strong>set_handler</strong></a>(self, language, obj)</dt><dd><tt>Define&nbsp;a&nbsp;custom&nbsp;language&nbsp;handler&nbsp;for&nbsp;RiveScript&nbsp;objects.<br>
+&nbsp;<br>
+language:&nbsp;The&nbsp;lowercased&nbsp;name&nbsp;of&nbsp;the&nbsp;programming&nbsp;language,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.g.&nbsp;python,&nbsp;javascript,&nbsp;perl<br>
+obj:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;An&nbsp;instance&nbsp;of&nbsp;a&nbsp;class&nbsp;object&nbsp;that&nbsp;provides&nbsp;the&nbsp;following&nbsp;interface:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;class&nbsp;MyObjectHandler:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def&nbsp;<a href="#rivescript.RiveScript-__init__">__init__</a>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pass<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def&nbsp;load(self,&nbsp;name,&nbsp;code):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;name&nbsp;=&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;object&nbsp;from&nbsp;the&nbsp;RiveScript&nbsp;code<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;code&nbsp;=&nbsp;the&nbsp;source&nbsp;code&nbsp;of&nbsp;the&nbsp;object<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def&nbsp;call(self,&nbsp;rs,&nbsp;name,&nbsp;fields):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;rs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;the&nbsp;current&nbsp;RiveScript&nbsp;interpreter&nbsp;object<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;name&nbsp;&nbsp;&nbsp;=&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;object&nbsp;being&nbsp;called<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;fields&nbsp;=&nbsp;array&nbsp;of&nbsp;arguments&nbsp;passed&nbsp;to&nbsp;the&nbsp;object<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;reply<br>
+&nbsp;<br>
+Pass&nbsp;in&nbsp;a&nbsp;None&nbsp;value&nbsp;for&nbsp;the&nbsp;object&nbsp;to&nbsp;delete&nbsp;an&nbsp;existing&nbsp;handler&nbsp;(for&nbsp;example,<br>
+to&nbsp;prevent&nbsp;Python&nbsp;code&nbsp;from&nbsp;being&nbsp;able&nbsp;to&nbsp;be&nbsp;run&nbsp;by&nbsp;default).<br>
+&nbsp;<br>
+Look&nbsp;in&nbsp;the&nbsp;`eg`&nbsp;folder&nbsp;of&nbsp;the&nbsp;rivescript-python&nbsp;distribution&nbsp;for&nbsp;an&nbsp;example<br>
+script&nbsp;that&nbsp;sets&nbsp;up&nbsp;a&nbsp;JavaScript&nbsp;language&nbsp;handler.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-set_person"><strong>set_person</strong></a>(self, what, rep)</dt><dd><tt>Set&nbsp;a&nbsp;person&nbsp;substitution.<br>
+&nbsp;<br>
+Equivalent&nbsp;to&nbsp;`!&nbsp;person`&nbsp;in&nbsp;RiveScript&nbsp;code.&nbsp;Set&nbsp;to&nbsp;None&nbsp;to&nbsp;delete.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-set_subroutine"><strong>set_subroutine</strong></a>(self, name, code)</dt><dd><tt>Define&nbsp;a&nbsp;Python&nbsp;object&nbsp;from&nbsp;your&nbsp;program.<br>
+&nbsp;<br>
+This&nbsp;is&nbsp;equivalent&nbsp;to&nbsp;having&nbsp;an&nbsp;object&nbsp;defined&nbsp;in&nbsp;the&nbsp;RiveScript&nbsp;code,&nbsp;except<br>
+your&nbsp;Python&nbsp;code&nbsp;is&nbsp;defining&nbsp;it&nbsp;instead.&nbsp;`name`&nbsp;is&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;object,&nbsp;and<br>
+`code`&nbsp;is&nbsp;a&nbsp;Python&nbsp;function&nbsp;(a&nbsp;`def`)&nbsp;that&nbsp;accepts&nbsp;rs,args&nbsp;as&nbsp;its&nbsp;parameters.<br>
+&nbsp;<br>
+This&nbsp;method&nbsp;is&nbsp;only&nbsp;available&nbsp;if&nbsp;there&nbsp;is&nbsp;a&nbsp;Python&nbsp;handler&nbsp;set&nbsp;up&nbsp;(which&nbsp;there<br>
+is&nbsp;by&nbsp;default,&nbsp;unless&nbsp;you've&nbsp;called&nbsp;<a href="#rivescript.RiveScript-set_handler">set_handler</a>("python",&nbsp;None)).</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-set_substitution"><strong>set_substitution</strong></a>(self, what, rep)</dt><dd><tt>Set&nbsp;a&nbsp;substitution.<br>
+&nbsp;<br>
+Equivalent&nbsp;to&nbsp;`!&nbsp;sub`&nbsp;in&nbsp;RiveScript&nbsp;code.&nbsp;Set&nbsp;to&nbsp;None&nbsp;to&nbsp;delete.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-set_uservar"><strong>set_uservar</strong></a>(self, user, name, value)</dt><dd><tt>Set&nbsp;a&nbsp;variable&nbsp;for&nbsp;a&nbsp;user.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-set_variable"><strong>set_variable</strong></a>(self, name, value)</dt><dd><tt>Set&nbsp;a&nbsp;bot&nbsp;variable.<br>
+&nbsp;<br>
+Equivalent&nbsp;to&nbsp;`!&nbsp;var`&nbsp;in&nbsp;RiveScript&nbsp;code.&nbsp;Set&nbsp;to&nbsp;None&nbsp;to&nbsp;delete.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-sort_replies"><strong>sort_replies</strong></a>(self, thats<font color="#909090">=False</font>)</dt><dd><tt>Sort&nbsp;the&nbsp;loaded&nbsp;triggers.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-stream"><strong>stream</strong></a>(self, code)</dt><dd><tt>Stream&nbsp;in&nbsp;RiveScript&nbsp;source&nbsp;code&nbsp;dynamically.<br>
+&nbsp;<br>
+`code`&nbsp;should&nbsp;be&nbsp;an&nbsp;array&nbsp;of&nbsp;lines&nbsp;of&nbsp;RiveScript&nbsp;code.</tt></dd></dl>
+
+<dl><dt><a name="RiveScript-thaw_uservars"><strong>thaw_uservars</strong></a>(self, user, action<font color="#909090">='thaw'</font>)</dt><dd><tt>Thaw&nbsp;a&nbsp;user's&nbsp;frozen&nbsp;variables.<br>
+&nbsp;<br>
+The&nbsp;`action`&nbsp;can&nbsp;be&nbsp;one&nbsp;of&nbsp;the&nbsp;following&nbsp;options:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;discard:&nbsp;Don't&nbsp;restore&nbsp;the&nbsp;user's&nbsp;variables,&nbsp;just&nbsp;delete&nbsp;the&nbsp;frozen&nbsp;copy.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;keep:&nbsp;&nbsp;&nbsp;&nbsp;Keep&nbsp;the&nbsp;frozen&nbsp;copy&nbsp;after&nbsp;restoring&nbsp;the&nbsp;variables.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;thaw:&nbsp;&nbsp;&nbsp;&nbsp;Restore&nbsp;the&nbsp;variables,&nbsp;then&nbsp;delete&nbsp;the&nbsp;frozen&nbsp;copy&nbsp;(default).</tt></dd></dl>
+
+</td></tr></table>
+</body></html>
