@@ -148,16 +148,16 @@
 - What does wanting <star2> have to do with this discussion?
 
 + i am (sad|unhappy|mad|angry|pissed|depressed) [*]
-- I am sorry to hear that you are <star2>.
-- Do you think coming here will help you not to be <star2>?
-- I'm sure it's not pleasant to be <star2>.
-- Can you explain what made you <star2>?
+- I am sorry to hear that you are <star>.
+- Do you think coming here will help you not to be <star>?
+- I'm sure it's not pleasant to be <star>.
+- Can you explain what made you <star>?
 
 + i am (happy|excited|glad) [*]
-- How have I helped you to be <star2>?
-- Has your treatment made you <star2>?
-- What makes you <star2> just now?
-- Can you explain why you are <star2>?
+- How have I helped you to be <star>?
+- Has your treatment made you <star>?
+- What makes you <star> just now?
+- Can you explain why you are <star>?
 
 + i (believe|think) *
 - Do you really think so?
@@ -239,8 +239,8 @@
 + [*] my (mom|dad|mother|father|bro|brother|sis|sister|cousin|aunt|uncle) *
 - Tell me more about your family.
 - Who else in your family <star2>?
-- Your <star2>?
-- What else comes to mind when you think of your <star2>?
+- Your <star>?
+- What else comes to mind when you think of your <star>?
 
 + can you *
 - You believe I can <star> don't you?
