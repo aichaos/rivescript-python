@@ -846,10 +846,9 @@ Returns a syntax error string on error; None otherwise."""
                 for kind in [ 'atomic', 'option', 'alpha', 'number', 'wild' ]:
                     for i in sorted(track[ip][kind], reverse=True):
                         running.extend( track[ip][kind][i] )
-                running.extend( track[ip]['under'] )
-                running.extend( track[ip]['pound'] )
-                running.extend( track[ip]['star'] )
-
+                running.extend( sorted(track[ip]['under'], key=len, reverse=True) )
+                running.extend( sorted(track[ip]['pound'], key=len, reverse=True) )
+                running.extend( sorted(track[ip]['star'], key=len, reverse=True) )
         return running
 
     def _sort_list(self, name, items):
@@ -1865,10 +1864,18 @@ there was no match, this will return None."""
 
     def _word_count(self, trigger, all=False):
         """Count the words that aren't wildcards in a trigger."""
+        words = []
         if all:
-            return len(re.split(re_ws, trigger))
+            words = re.split(re_ws, trigger)
         else:
-            return len(re.split(re_wilds, trigger))
+            words = re.split(re_wilds, trigger)
+
+        wc = 0 # Word count
+        for word in words:
+            if len(word) > 0:
+                wc += 1
+
+        return wc
 
     def _rot13(self, n):
         """Encode and decode a string into ROT13."""
