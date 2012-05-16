@@ -1256,8 +1256,26 @@ there was no match, this will return None."""
                 regexp = self._reply_regexp(user, trig)
                 self._say("Try to match \"" + msg + "\" against " + trig + " (" + regexp + ")")
 
-                match = re.match(r'^' + regexp + r'$', msg)
-                if match:
+                # Python's regular expression engine is slow. Try a verbatim
+                # match if this is an atomic trigger.
+                isAtomic = self._is_atomic(trig)
+                isMatch = False
+                if isAtomic:
+                    # Only look for exact matches, no sense running atomic triggers
+                    # through the regexp engine.
+                    if msg == trig:
+                        isMatch = True
+                else:
+                    # Non-atomic triggers always need the regexp.
+                    match = re.match(r'^' + regexp + r'$', msg)
+                    if match:
+                        # The regexp matched!
+                        isMatch = True
+
+                        # Collect the stars.
+                        stars = match.groups()
+
+                if isMatch:
                     self._say("Found a match!")
 
                     # We found a match, but what if the trigger we've matched
@@ -1271,9 +1289,6 @@ there was no match, this will return None."""
 
                     foundMatch = True
                     matchedTrigger = trig
-
-                    # Get the stars.
-                    stars = match.groups()
                     break
 
         # Store what trigger they matched on. If their matched trigger is None,
@@ -1560,9 +1575,9 @@ there was no match, this will return None."""
         for match in reRandom:
             output = ''
             if '|' in match:
-                output = random.choose(match.split('|'))
+                output = random.choice(match.split(' '))
             else:
-                output = random.choose(match.split(' '))
+                output = random.choice(match.split(' '))
             reply = re.sub(r'\{random\}' + re.escape(match) + r'\{/random\}', output, reply)
 
         # Person Substitutions and String Formatting.
@@ -1861,6 +1876,19 @@ there was no match, this will return None."""
     ############################################################################
     # Miscellaneous Private Methods                                            #
     ############################################################################
+
+    def _is_atomic(self, trigger):
+        """Determine if a trigger is atomic or not."""
+
+        # Atomic triggers don't contain any wildcards or parenthesis or anything
+        # of the sort. We don't need to test the full character set, just left
+        # brackets will do.
+        special = [ '*', '#', '_', '(', '[', '<' ]
+        for char in special:
+            if char in trigger:
+                return False
+
+        return True
 
     def _word_count(self, trigger, all=False):
         """Count the words that aren't wildcards in a trigger."""
