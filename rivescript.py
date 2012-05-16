@@ -1575,7 +1575,7 @@ there was no match, this will return None."""
         for match in reRandom:
             output = ''
             if '|' in match:
-                output = random.choice(match.split(' '))
+                output = random.choice(match.split('|'))
             else:
                 output = random.choice(match.split(' '))
             reply = re.sub(r'\{random\}' + re.escape(match) + r'\{/random\}', output, reply)
