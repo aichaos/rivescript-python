@@ -1,6 +1,6 @@
 # pyRiveScript - A RiveScript interpreter written in Python.
 
-VERSION = 0.01
+VERSION = '1.00'
 
 import os
 import glob

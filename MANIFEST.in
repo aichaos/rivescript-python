@@ -1,0 +1,7 @@
+include setup.py
+include rivescript.py
+include README.md
+include LICENSE
+recursive-include brain *.rs
+include rivescript.RiveScript.html
+recursive-include eg *.py *.rs
