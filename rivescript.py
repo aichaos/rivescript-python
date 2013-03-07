@@ -1,6 +1,6 @@
 # pyRiveScript - A RiveScript interpreter written in Python.
 
-VERSION = '1.00'
+VERSION = '1.01'
 
 import os
 import glob
@@ -1910,7 +1910,7 @@ there was no match, this will return None."""
         trans = string.maketrans(
             "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
             "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm")
-        return string.translate(n, trans)
+        return string.translate(str(n), trans)
 
     def _strip_nasties(self, s):
         """Formats a string for ASCII regex matching."""

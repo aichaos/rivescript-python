@@ -1,0 +1,7 @@
+Revision history for the Python package RiveScript.
+
+1.01  Mar  6 2013
+	- Small bugfix in _rot13 that caused crashes under certain circumstances.
+
+1.00  Apr 22 2012
+	- Initial version of rivescript.py
