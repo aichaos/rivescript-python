@@ -22,7 +22,7 @@ re_weight  = re.compile('\{weight=(\d+)\}')
 re_inherit = re.compile('\{inherits=(\d+)\}')
 re_wilds   = re.compile('[\s\*\#\_]+')
 re_rot13   = re.compile('<rot13sub>(.+?)<bus31tor>')
-re_nasties = re.compile('[^A-Za-z0-9 ]')
+re_nasties = re.compile('[\*\#\_\?]+', re.UNICODE)
 
 # Version of RiveScript we support.
 rs_version = 2.0
