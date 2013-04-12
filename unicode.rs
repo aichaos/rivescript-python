@@ -11,3 +11,6 @@
 
 + comment ça va
 - Je vais très bien, merci.
+
++ mon prénom est *
+- <set name=<formal>>Je suis enchantée de faire votre connaissance.

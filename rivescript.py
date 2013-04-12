@@ -62,6 +62,7 @@ class PyRiveObjects:
 class RiveScript:
     """A RiveScript interpreter for Python 2."""
     _debug    = False # Debug mode
+    _utf8     = False # UTF-8 mode
     _strict   = True  # Strict mode
     _logf     = ''    # Log file for debugging
     _depth    = 50    # Recursion depth limit
@@ -84,7 +85,7 @@ class RiveScript:
     # Initialization and Utility Methods                                       #
     ############################################################################
 
-    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=True):
+    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=False):
         """Initialize a new RiveScript interpreter.
 
 bool debug:  Specify a debug mode.
@@ -621,14 +622,12 @@ Returns a syntax error string on error; None otherwise."""
                 return "Unmatched angle brackets"
 
             # In UTF-8 mode, most symbols are allowed.
-            print "Line:", line, "; utf8 mode:", self._utf8
             if self._utf8:
                 match = re.match(r'[A-Z\\.]', line)
                 if match:
                     return "Triggers can't contain uppercase letters, backslashes or dots in UTF-8 mode."
             else:
                 match = re.match(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]', line)
-                print "match:", match
                 if match:
                     return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > =";
         elif cmd == '-' or cmd == '^' or cmd == '/':
@@ -1276,16 +1275,13 @@ there was no match, this will return None."""
             for trig in self._sorted["topics"][topic]:
                 # Process the triggers.
                 regexp = self._reply_regexp(user, trig)
-                print "msg:", msg
-                print "trig:", trig
-                print "re:", regexp
                 if not self._utf8:
+                    # This line currently breaks with Unicode strings (bug/TODO), so don't print it
                     self._say("Try to match \"" + msg + "\" against " + trig + " (" + regexp + ")")
 
                 # Python's regular expression engine is slow. Try a verbatim
                 # match if this is an atomic trigger.
                 isAtomic = self._is_atomic(trig)
-                print "isAtomic:", isAtomic
                 isMatch = False
                 if isAtomic:
                     # Only look for exact matches, no sense running atomic triggers
@@ -2024,7 +2020,8 @@ if __name__ == "__main__":
     # Get command line options.
     options, remainder = [], []
     try:
-        options, remainder = getopt.getopt(sys.argv[1:], 'dj', ['debug',
+        options, remainder = getopt.getopt(sys.argv[1:], 'dju', ['debug',
+                                                                'utf8',
                                                                 'json',
                                                                 'log=',
                                                                 'strict',
@@ -2036,10 +2033,14 @@ if __name__ == "__main__":
         exit()
 
     # Handle the options.
-    debug, depth, strict, with_json, help, log = False, 50, True, False, False, None
+    debug, depth, strict = False, 50, True
+    with_json, help, log = False, False, None
+    utf8 = False
     for opt in options:
         if opt[0] == '--debug' or opt[0] == '-d':
             debug = True
+        elif opt[0] == '--utf8' or opt[0] == '-u':
+            utf8 = True
         elif opt[0] == '--strict':
             strict = True
         elif opt[0] == '--nostrict':
@@ -2118,6 +2119,7 @@ JSON Mode:
     # Make the bot.
     bot = RiveScript(
         debug=debug,
+        utf8=utf8,
         strict=strict,
         depth=depth,
         log=log
@@ -2134,6 +2136,10 @@ JSON Mode:
             line = ""
             try:
                 line = raw_input()
+
+                # Support UTF-8 inputs.
+                if utf8:
+                    line = line.decode('utf-8')
             except EOFError:
                 break
 
@@ -2167,6 +2173,10 @@ JSON Mode:
 
     while True:
         msg = raw_input("You> ")
+
+        # Support UTF-8 inputs.
+        if utf8:
+            msg = msg.decode('utf-8')
 
         # Commands
         if msg == '/help':
