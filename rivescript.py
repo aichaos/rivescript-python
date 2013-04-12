@@ -9,6 +9,7 @@ import string
 import random
 import pprint
 import copy
+import codecs
 
 import sys
 import getopt
@@ -83,17 +84,19 @@ class RiveScript:
     # Initialization and Utility Methods                                       #
     ############################################################################
 
-    def __init__(self, debug=False, strict=True, depth=50, log=""):
+    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=True):
         """Initialize a new RiveScript interpreter.
 
 bool debug:  Specify a debug mode.
 bool strict: Strict mode (RS syntax errors are fatal)
 str  log:    Specify a log file for debug output to go to (instead of STDOUT).
-int  depth:  Specify the recursion depth limit."""
+int  depth:  Specify the recursion depth limit.
+bool utf8:   Enable UTF-8 support."""
         self._debug  = debug
         self._strict = strict
         self._depth  = depth
         self._log    = log
+        self._utf8   = utf8
 
         # Define the default Python language handler.
         self._handlers["python"] = PyRiveObjects()
@@ -138,7 +141,7 @@ int  depth:  Specify the recursion depth limit."""
         """Load and parse a RiveScript document."""
         self._say("Loading file: " + filename)
 
-        fh    = open(filename, 'r')
+        fh    = codecs.open(filename, 'r', 'utf-8')
         lines = fh.readlines()
         fh.close()
 
@@ -616,6 +619,18 @@ Returns a syntax error string on error; None otherwise."""
                 return "Unmatched curly brackets"
             elif angle != 0:
                 return "Unmatched angle brackets"
+
+            # In UTF-8 mode, most symbols are allowed.
+            print "Line:", line, "; utf8 mode:", self._utf8
+            if self._utf8:
+                match = re.match(r'[A-Z\\.]', line)
+                if match:
+                    return "Triggers can't contain uppercase letters, backslashes or dots in UTF-8 mode."
+            else:
+                match = re.match(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]', line)
+                print "match:", match
+                if match:
+                    return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > =";
         elif cmd == '-' or cmd == '^' or cmd == '/':
             # - Trigger, ^ Continue, / Comment
             # These commands take verbatim arguments, so their syntax is loose.
@@ -1133,7 +1148,14 @@ there was no match, this will return None."""
 
         # Run substitutions on it.
         msg = self._substitute(msg, "subs")
-        msg = self._strip_nasties(msg)
+
+        # In UTF-8 mode, only strip metacharacters and HTML brackets
+        # (to protect from obvious XSS attacks).
+        if self._utf8:
+            msg = re.sub(r'[\\<>]', '', msg)
+        else:
+            # For everything else, strip all non-alphanumerics.
+            msg = self._strip_nasties(msg)
 
         return msg
 
@@ -1254,11 +1276,16 @@ there was no match, this will return None."""
             for trig in self._sorted["topics"][topic]:
                 # Process the triggers.
                 regexp = self._reply_regexp(user, trig)
-                self._say("Try to match \"" + msg + "\" against " + trig + " (" + regexp + ")")
+                print "msg:", msg
+                print "trig:", trig
+                print "re:", regexp
+                if not self._utf8:
+                    self._say("Try to match \"" + msg + "\" against " + trig + " (" + regexp + ")")
 
                 # Python's regular expression engine is slow. Try a verbatim
                 # match if this is an atomic trigger.
                 isAtomic = self._is_atomic(trig)
+                print "isAtomic:", isAtomic
                 isMatch = False
                 if isAtomic:
                     # Only look for exact matches, no sense running atomic triggers
