@@ -1263,7 +1263,7 @@ there was no match, this will return None."""
                 if isAtomic:
                     # Only look for exact matches, no sense running atomic triggers
                     # through the regexp engine.
-                    if msg == trig:
+                    if msg == regexp:
                         isMatch = True
                 else:
                     # Non-atomic triggers always need the regexp.
