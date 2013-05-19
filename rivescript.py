@@ -54,6 +54,8 @@ class PyRiveObjects:
         reply = ''
         try:
             reply = func(rs, fields)
+            if reply == None:
+                reply = ''
         except:
             reply = '[ERR: Error when executing Python object]'
         return reply
