@@ -1,6 +1,19 @@
+#!/usr/bin/env python
 # pyRiveScript - A RiveScript interpreter written in Python.
 
-VERSION = '1.01'
+__author__     = 'Noah Petherbridge'
+__copyright__  = 'Copyright 2013, Noah Petherbridge'
+__credits__    = [
+    'Noah Petherbridge',
+    'dinever'
+]
+__license__    = 'GPL'
+__maintainer__ = 'Noah Petherbridge'
+__status__     = 'Production'
+__docformat__  = 'plaintext'
+
+__all__      = ['rivescript']
+__version__  = '1.02'
 
 import os
 import glob
@@ -10,9 +23,7 @@ import random
 import pprint
 import copy
 
-import sys
-import getopt
-import json
+from python import PyRiveObjects
 
 # Common regular expressions.
 re_equals  = re.compile('\s*=\s*')
@@ -26,39 +37,6 @@ re_nasties = re.compile('[^A-Za-z0-9 ]')
 
 # Version of RiveScript we support.
 rs_version = 2.0
-
-class PyRiveObjects:
-    """A RiveScript object handler for Python code."""
-    _objects = {} # The cache of objects loaded
-
-    def __init__(self):
-        pass
-
-    def load(self, name, code):
-        """Prepare a Python code object given by the RiveScript interpreter."""
-        # We need to make a dynamic Python method.
-        source = "def RSOBJ(rs, args):\n"
-        for line in code:
-            source = source + "\t" + line + "\n"
-
-        try:
-            exec source
-            self._objects[name] = RSOBJ
-        except:
-            print "Failed to load code from object " + name
-
-    def call(self, rs, name, fields):
-        """Invoke a previously loaded object."""
-        # Call the dynamic method.
-        func  = self._objects[name]
-        reply = ''
-        try:
-            reply = func(rs, fields)
-            if reply == None:
-                reply = ''
-        except:
-            reply = '[ERR: Error when executing Python object]'
-        return reply
 
 class RiveScript:
     """A RiveScript interpreter for Python 2."""
@@ -101,6 +79,13 @@ int  depth:  Specify the recursion depth limit."""
         self._handlers["python"] = PyRiveObjects()
 
         self._say("Interpreter initialized.")
+
+    @classmethod
+    def VERSION(self=None):
+        """Return the version number of the RiveScript library.
+
+This may be called as either a class method of a method of a RiveScript object."""
+        return __version__
 
     def _say(self, message):
         if self._debug:
@@ -1953,205 +1938,8 @@ there was no match, this will return None."""
 # Interactive Mode                                                             #
 ################################################################################
 
-def json_in(bot, buffer, stateful):
-    # Prepare the response.
-    resp = {
-        'status': 'ok',
-        'reply': '',
-        'vars': {}
-    }
-
-    # Decode the incoming JSON.
-    try:
-        incoming = json.loads(buffer)
-    except:
-        resp['status'] = 'error'
-        resp['reply'] = 'Failed to decode incoming JSON data.'
-        print json.dumps(resp)
-        if stateful:
-            print "__END__"
-        return
-
-    # Username?
-    username = "json"
-    if 'username' in incoming:
-        username = incoming["username"]
-
-    # Decode their variables.
-    if "vars" in incoming:
-        for var in incoming["vars"]:
-            bot.set_uservar(username, var, incoming["vars"][var])
-
-    # Get a response.
-    if 'message' in incoming:
-        resp['reply'] = bot.reply(username, incoming["message"])
-    else:
-        resp['reply'] = "[ERR: No message provided]"
-
-    # Retrieve vars.
-    resp['vars'] = bot.get_uservars(username)
-
-    print json.dumps(resp)
-    if stateful:
-        print "__END__"
-
 if __name__ == "__main__":
-    # Get command line options.
-    options, remainder = [], []
-    try:
-        options, remainder = getopt.getopt(sys.argv[1:], 'dj', ['debug',
-                                                                'json',
-                                                                'log=',
-                                                                'strict',
-                                                                'nostrict',
-                                                                'depth=',
-                                                                'help'])
-    except:
-        print "Unrecognized options given, try " + sys.argv[0] + " --help"
-        exit()
-
-    # Handle the options.
-    debug, depth, strict, with_json, help, log = False, 50, True, False, False, None
-    for opt in options:
-        if opt[0] == '--debug' or opt[0] == '-d':
-            debug = True
-        elif opt[0] == '--strict':
-            strict = True
-        elif opt[0] == '--nostrict':
-            strict = False
-        elif opt[0] == '--json':
-            with_json = True
-        elif opt[0] == '--help' or opt[0] == '-h':
-            help = True
-        elif opt[0] == '--depth':
-            depth = int(opt[1])
-        elif opt[0] == '--log':
-            log   = opt[1]
-
-    # Help?
-    if help:
-        print """Usage: rivescript.py [options] <directory>
-
-Options:
-
-    --debug, -d
-        Enable debug mode.
-
-    --log FILE
-        Log debug output to a file (instead of the console). Use this instead
-        of --debug.
-
-    --json, -j
-        Communicate using JSON. Useful for third party programs.
-
-    --strict, --nostrict
-        Enable or disable strict mode (enabled by default).
-
-    --depth=50
-        Set the recursion depth limit (default is 50).
-
-    --help
-        Display this help.
-
-JSON Mode:
-
-    In JSON mode, input and output is done using JSON data structures. The
-    format for incoming JSON data is as follows:
-
-    {
-        'username': 'localuser',
-        'message': 'Hello bot!',
-        'vars': {
-            'name': 'Aiden'
-        }
-    }
-
-    The format that would be expected from this script is:
-
-    {
-        'status': 'ok',
-        'reply': 'Hello, human!',
-        'vars': {
-            'name': 'Aiden'
-        }
-    }
-
-    If the calling program sends an EOF signal at the end of their JSON data,
-    this script will print its response and exit. To keep a session going,
-    send the string '__END__' on a line by itself at the end of your message.
-    The script will do the same after its response. The pipe can then be used
-    again for further interactions."""
-        quit()
-
-    # Given a directory?
-    if len(remainder) == 0:
-        print "Usage: rivescript.py [options] <directory>"
-        print "Try rivescript.py --help"
-        quit()
-    root = remainder[0]
-
-    # Make the bot.
-    bot = RiveScript(
-        debug=debug,
-        strict=strict,
-        depth=depth,
-        log=log
-    )
-    bot.load_directory(root)
-    bot.sort_replies()
-
-    # Interactive mode?
-    if with_json:
-        # Read from standard input.
-        buffer = ""
-        stateful = False
-        while True:
-            line = ""
-            try:
-                line = raw_input()
-            except EOFError:
-                break
-
-            # Look for the __END__ line.
-            end = re.match(r'^__END__$', line)
-            if end:
-                # Process it.
-                stateful = True # This is a stateful session
-                json_in(bot, buffer, stateful)
-                buffer = ""
-                continue
-            else:
-                buffer += line + "\n"
-
-        # We got the EOF. If the session was stateful, just exit,
-        # otherwise process what we just read.
-        if stateful:
-            quit()
-        json_in(bot, buffer, stateful)
-        quit()
-
-    print "RiveScript Interpreter (Python) -- Interactive Mode"
-    print "---------------------------------------------------"
-    print "rivescript.py version: " + str(VERSION)
-    print "           Reply Root: " + root
-    print ""
-    print "You are now chatting with the RiveScript bot. Type a message and press Return"
-    print "to send it. When finished, type '/quit' to exit the program."
-    print "Type '/help' for other options."
-    print ""
-
-    while True:
-        msg = raw_input("You> ")
-
-        # Commands
-        if msg == '/help':
-            print "> Supported Commands:"
-            print "> /help   - Displays this message."
-            print "> /quit   - Exit the program."
-        elif msg == '/quit':
-            exit()
-        else:
-            reply = bot.reply("localuser", msg)
-            print "Bot>", reply
+    from interactive import interactive_mode
+    interactive_mode()
 
 # vim:expandtab

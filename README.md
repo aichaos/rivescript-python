@@ -11,29 +11,37 @@ trigger/response pairs for building up a bot's intelligence.
 USAGE
 -----
 
-The `rivescript.py` module can be executed as a stand-alone Python script, or
+The `rivescript` module can be executed as a stand-alone Python script, or
 included in other Python code. When executed directly, it launches an
-interactive chat session.
+interactive chat session:
+
+	python rivescript ./brain
 
 When used as a library, the synopsis is as follows:
 
-	import rivescript
+	from rivescript import RiveScript
 
 	bot = RiveScript()
 	bot.load_directory("./brain")
 	bot.sort_replies()
 
-	reply = bot.reply("localuser", "Hello, bot!")
+	while True:
+		msg = raw_input('You> ')
+		if msg == '/quit':
+			quit()
+
+		reply = bot.reply("localuser", msg)
+		print 'Bot>', reply
 
 JSON MODE
 ---------
 
-The `rivescript.py` module, when run stand-alone, supports "JSON Mode", where
+The `rivescript` package, when run stand-alone, supports "JSON Mode", where
 you communicate with the bot using JSON. This is useful for third-party
 programs that want to use RiveScript but don't have an interpreter in their
 native language.
 
-Just run it like: `python rivescript.py --json /path/to/brain`
+Just run it like: `python rivescript --json /path/to/brain`
 
 Print a JSON encoded data structure into the standard input. The format should
 look like this:

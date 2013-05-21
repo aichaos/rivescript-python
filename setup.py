@@ -4,8 +4,8 @@ import rivescript
 from distutils.core import setup
 
 setup(
-    name             = 'python-rivescript',
-    version          = rivescript.VERSION,
+    name             = 'rivescript',
+    version          = rivescript.__version__,
     description      = 'A Chatterbot Scripting Language',
     long_description = 'A scripting language to make it easy to write responses for a chatterbot.',
     author           = 'Noah Petherbridge',
