@@ -1,7 +1,7 @@
 # rivescript-python setup.py
 
 import rivescript
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name             = 'python-rivescript',
@@ -13,6 +13,15 @@ setup(
     url              = 'https://github.com/kirsle/rivescript-python',
     license          = 'Dual licensed; GPLv2',
     packages         = ['rivescript'],
+    keywords         = 'bot chatbot chatterbot ai aiml chatscript buddyscript',
+    classifiers      = [
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Programming Language :: Python',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    ],
+    install_requires = [ 'setuptools' ],
 )
 
 # vim:expandtab
