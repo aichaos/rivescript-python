@@ -4,7 +4,7 @@ import rivescript
 from distutils.core import setup
 
 setup(
-    name             = 'rivescript',
+    name             = 'python-rivescript',
     version          = rivescript.__version__,
     description      = 'A Chatterbot Scripting Language',
     long_description = 'A scripting language to make it easy to write responses for a chatterbot.',
@@ -12,7 +12,7 @@ setup(
     author_email     = 'root@kirsle.net',
     url              = 'https://github.com/kirsle/rivescript-python',
     license          = 'Dual licensed; GPLv2',
-    py_modules       = ['rivescript'],
+    packages         = ['rivescript'],
 )
 
 # vim:expandtab
