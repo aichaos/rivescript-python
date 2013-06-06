@@ -178,7 +178,7 @@ JSON Mode:
         while True:
             line = ""
             try:
-                line = raw_input().encode('utf8')
+                line = raw_input().decode('utf8')
             except EOFError:
                 break
 
@@ -211,7 +211,7 @@ JSON Mode:
     print ""
 
     while True:
-        msg = raw_input("You> ")
+        msg = raw_input("You> ").decode('utf8')
 
         # Commands
         if msg == '/help':
