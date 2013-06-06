@@ -1,7 +1,11 @@
 Revision history for the Python package RiveScript.
 
-1.01  Mar  6 2013
+1.01  May 20 2013
 	- Small bugfix in _rot13 that caused crashes under certain circumstances.
+	- Small bugfix regarding the {weight} tag and atomic triggers.
+	- Restructure the RiveScript library (move rivescript.py into a package
+	  folder named 'rivescript', separate the interactive mode code into
+	  interactive.py)
 
 1.00  Apr 22 2012
 	- Initial version of rivescript.py
