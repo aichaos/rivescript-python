@@ -61,8 +61,9 @@ def interactive_mode():
     # Get command line options.
     options, remainder = [], []
     try:
-        options, remainder = getopt.getopt(sys.argv[1:], 'dj', ['debug',
+        options, remainder = getopt.getopt(sys.argv[1:], 'dju', ['debug',
                                                                 'json',
+                                                                'utf8',
                                                                 'log=',
                                                                 'strict',
                                                                 'nostrict',
@@ -73,7 +74,9 @@ def interactive_mode():
         exit()
 
     # Handle the options.
-    debug, depth, strict, with_json, help, log = False, 50, True, False, False, None
+    debug, depth, strict = False, 50, True
+    with_json, help, log = False, False, None
+    utf8 = False
     for opt in options:
         if opt[0] == '--debug' or opt[0] == '-d':
             debug = True
@@ -83,6 +86,8 @@ def interactive_mode():
             strict = False
         elif opt[0] == '--json':
             with_json = True
+        elif opt[0] == '--utf8' or opt[0] == '-u':
+            utf8 = True
         elif opt[0] == '--help' or opt[0] == '-h':
             help = True
         elif opt[0] == '--depth':
@@ -152,11 +157,14 @@ JSON Mode:
         quit()
     root = remainder[0]
 
+    print "UTF8:", utf8
+
     # Make the bot.
     bot = RiveScript(
         debug=debug,
         strict=strict,
         depth=depth,
+        utf8=utf8,
         log=log
     )
     bot.load_directory(root)
@@ -170,7 +178,7 @@ JSON Mode:
         while True:
             line = ""
             try:
-                line = raw_input()
+                line = raw_input().encode('utf8')
             except EOFError:
                 break
 

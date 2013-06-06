@@ -1262,9 +1262,7 @@ there was no match, this will return None."""
             for trig in self._sorted["topics"][topic]:
                 # Process the triggers.
                 regexp = self._reply_regexp(user, trig)
-                if not self._utf8:
-                    # This line currently breaks with Unicode strings (bug/TODO), so don't print it
-                    self._say("Try to match \"" + msg + "\" against " + trig + " (" + regexp + ")")
+                self._say("Try to match %r against %r (%r)" % (msg, trig, regexp))
 
                 # Python's regular expression engine is slow. Try a verbatim
                 # match if this is an atomic trigger.
