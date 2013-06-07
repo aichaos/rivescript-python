@@ -157,8 +157,6 @@ JSON Mode:
         quit()
     root = remainder[0]
 
-    print "UTF8:", utf8
-
     # Make the bot.
     bot = RiveScript(
         debug=debug,

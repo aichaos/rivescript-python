@@ -1129,6 +1129,10 @@ there was no match, this will return None."""
     def _format_message(self, msg):
         """Format a user's message for safe processing."""
 
+        # Make sure the string is Unicode.
+        if isinstance(msg, str):
+            msg = msg.decode('utf8')
+
         # Lowercase it.
         msg = msg.lower()
 
