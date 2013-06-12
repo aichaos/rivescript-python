@@ -8,6 +8,8 @@ This is a RiveScript interpreter for the Python programming language. RiveScript
 is a scripting language for chatterbots, making it easy to write
 trigger/response pairs for building up a bot's intelligence.
 
+This library is compatible with both Python 2 and Python 3.
+
 USAGE
 -----
 
@@ -15,7 +17,7 @@ The `rivescript` module can be executed as a stand-alone Python script, or
 included in other Python code. When executed directly, it launches an
 interactive chat session:
 
-    python rivescript ./brain
+    python -m rivescript ./brain
 
 When used as a library, the synopsis is as follows:
 
@@ -34,6 +36,9 @@ while True:
     reply = bot.reply("localuser", msg)
     print 'Bot>', reply
 ```
+
+The scripts `example.py` and `example3.py` provide simple examples for using
+RiveScript as a library for Python 2 and 3, respectively.
 
 UTF-8 SUPPORT
 -------------

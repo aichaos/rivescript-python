@@ -28,7 +28,7 @@ import pprint
 import copy
 import codecs
 
-from rivescript.python import PyRiveObjects
+from . import python
 
 # Common regular expressions.
 re_equals  = re.compile('\s*=\s*')
@@ -83,7 +83,7 @@ bool utf8:   Enable UTF-8 support."""
         self._utf8   = utf8
 
         # Define the default Python language handler.
-        self._handlers["python"] = PyRiveObjects()
+        self._handlers["python"] = python.PyRiveObjects()
 
         self._say("Interpreter initialized.")
 

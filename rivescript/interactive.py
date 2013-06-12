@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 """interactive.py: RiveScript's built-in interactive mode.
 
 To run this, run: python rivescript
@@ -13,7 +15,14 @@ import sys
 import getopt
 import json
 
-from __init__ import RiveScript
+from rivescript import RiveScript
+
+# Compatible wrapper for inputs.
+def _input(prompt=None):
+    if sys.version_info[0] < 3:
+        return raw_input(prompt)
+    else:
+        return input(prompt)
 
 def json_in(bot, buffer, stateful):
     # Prepare the response.
@@ -29,9 +38,9 @@ def json_in(bot, buffer, stateful):
     except:
         resp['status'] = 'error'
         resp['reply'] = 'Failed to decode incoming JSON data.'
-        print json.dumps(resp)
+        print(json.dumps(resp))
         if stateful:
-            print "__END__"
+            print("__END__")
         return
 
     # Username?
@@ -53,9 +62,9 @@ def json_in(bot, buffer, stateful):
     # Retrieve vars.
     resp['vars'] = bot.get_uservars(username)
 
-    print json.dumps(resp)
+    print(json.dumps(resp))
     if stateful:
-        print "__END__"
+        print("__END__")
 
 def interactive_mode():
     # Get command line options.
@@ -70,7 +79,7 @@ def interactive_mode():
                                                                 'depth=',
                                                                 'help'])
     except:
-        print "Unrecognized options given, try " + sys.argv[0] + " --help"
+        print("Unrecognized options given, try " + sys.argv[0] + " --help")
         exit()
 
     # Handle the options.
@@ -97,7 +106,7 @@ def interactive_mode():
 
     # Help?
     if help:
-        print """Usage: rivescript [options] <directory>
+        print("""Usage: rivescript [options] <directory>
 
 Options:
 
@@ -147,13 +156,13 @@ JSON Mode:
     this script will print its response and exit. To keep a session going,
     send the string '__END__' on a line by itself at the end of your message.
     The script will do the same after its response. The pipe can then be used
-    again for further interactions."""
+    again for further interactions.""")
         quit()
 
     # Given a directory?
     if len(remainder) == 0:
-        print "Usage: rivescript [options] <directory>"
-        print "Try rivescript --help"
+        print("Usage: rivescript [options] <directory>")
+        print("Try rivescript --help")
         quit()
     root = remainder[0]
 
@@ -176,7 +185,7 @@ JSON Mode:
         while True:
             line = ""
             try:
-                line = raw_input().decode('utf8')
+                line = _input()
             except EOFError:
                 break
 
@@ -198,26 +207,26 @@ JSON Mode:
         json_in(bot, buffer, stateful)
         quit()
 
-    print "RiveScript Interpreter (Python) -- Interactive Mode"
-    print "---------------------------------------------------"
-    print "rivescript version: " + str(bot.VERSION())
-    print "        Reply Root: " + root
-    print ""
-    print "You are now chatting with the RiveScript bot. Type a message and press Return"
-    print "to send it. When finished, type '/quit' to exit the program."
-    print "Type '/help' for other options."
-    print ""
+    print("""RiveScript Interpreter (Python) -- Interactive Mode"
+---------------------------------------------------"
+rivescript version: %s
+        Reply Root: %s
+
+You are now chatting with the RiveScript bot. Type a message and press Return"
+to send it. When finished, type '/quit' to exit the program."
+Type '/help' for other options."
+""" % (str(bot.VERSION()), root))
 
     while True:
-        msg = raw_input("You> ").decode('utf8')
+        msg = _input("You> ")
 
         # Commands
         if msg == '/help':
-            print "> Supported Commands:"
-            print "> /help   - Displays this message."
-            print "> /quit   - Exit the program."
+            print("> Supported Commands:")
+            print("> /help   - Displays this message.")
+            print("> /quit   - Exit the program.")
         elif msg == '/quit':
             exit()
         else:
             reply = bot.reply("localuser", msg)
-            print "Bot>", reply
+            print("Bot>", reply)
