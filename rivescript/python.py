@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Python3 compat
+from __future__ import print_function
+
 """Python object macro support for RiveScript.
 
 This class provides built-in support for your RiveScript documents to include
@@ -34,11 +37,14 @@ class PyRiveObjects:
         for line in code:
             source = source + "\t" + line + "\n"
 
+        source += "self._objects[name] = RSOBJ\n"
+
         try:
-            exec source
-            self._objects[name] = RSOBJ
-        except:
-            print "Failed to load code from object " + name
+            exec(source)
+            #self._objects[name] = RSOBJ
+        except Exception as e:
+            print("Failed to load code from object", name)
+            print("The error given was: ", e)
 
     def call(self, rs, name, fields):
         """Invoke a previously loaded object."""
@@ -49,6 +55,7 @@ class PyRiveObjects:
             reply = func(rs, fields)
             if reply == None:
                 reply = ''
-        except:
+        except Exception as e:
+            print("Error executing Python object:", e)
             reply = '[ERR: Error when executing Python object]'
-        return reply
+        return str(reply)

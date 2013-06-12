@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # pyRiveScript - A RiveScript interpreter written in Python.
 
+# Python 3 compat
+from __future__ import print_function
+
 __author__     = 'Noah Petherbridge'
 __copyright__  = 'Copyright 2013, Noah Petherbridge'
 __credits__    = [
@@ -15,6 +18,7 @@ __docformat__  = 'plaintext'
 __all__      = ['rivescript']
 __version__  = '1.05'
 
+import sys
 import os
 import glob
 import re
@@ -24,7 +28,7 @@ import pprint
 import copy
 import codecs
 
-from python import PyRiveObjects
+from rivescript.python import PyRiveObjects
 
 # Common regular expressions.
 re_equals  = re.compile('\s*=\s*')
@@ -33,7 +37,6 @@ re_objend  = re.compile('<\s*object')
 re_weight  = re.compile('\{weight=(\d+)\}')
 re_inherit = re.compile('\{inherits=(\d+)\}')
 re_wilds   = re.compile('[\s\*\#\_]+')
-re_rot13   = re.compile('<rot13sub>(.+?)<bus31tor>')
 re_nasties = re.compile('[^A-Za-z0-9 ]')
 
 # Version of RiveScript we support.
@@ -93,7 +96,7 @@ This may be called as either a class method of a method of a RiveScript object."
 
     def _say(self, message):
         if self._debug:
-            print "[RS]", message
+            print("[RS]", message)
         if self._log:
             # Log it to the file.
             fh = open(self._log, 'a')
@@ -102,13 +105,13 @@ This may be called as either a class method of a method of a RiveScript object."
 
     def _warn(self, message, fname='', lineno=0):
         if self._debug:
-            print "[RS::Warning]",
+            print("[RS::Warning]"),
         else:
-            print "[RS]",
+            print("[RS]"),
         if len(fname) and lineno > 0:
-            print message, "at", fname, "line", lineno
+            print(message, "at", fname, "line", lineno)
         else:
-            print message
+            print(message)
 
     ############################################################################
     # Loading and Parsing Methods                                              #
@@ -877,7 +880,7 @@ Returns a syntax error string on error; None otherwise."""
         # Sort them.
         output = []
         for count in sorted(track.keys(), reverse=True):
-            sort = sorted(track[count], cmp=by_length)
+            sort = sorted(track[count], key=len, reverse=True)
             output.extend(sort)
 
         self._sorted["lists"][name] = output
@@ -1129,8 +1132,8 @@ there was no match, this will return None."""
     def _format_message(self, msg):
         """Format a user's message for safe processing."""
 
-        # Make sure the string is Unicode.
-        if isinstance(msg, str):
+        # Make sure the string is Unicode for Python 2.
+        if sys.version_info[0] < 3 and isinstance(msg, str):
             msg = msg.decode('utf8')
 
         # Lowercase it.
@@ -1440,19 +1443,29 @@ there was no match, this will return None."""
         else:
             subs = self._person
 
+        # Make placeholders each time we substitute something.
+        ph = []
+        i  = 0
+
         for pattern in self._sorted["lists"][list]:
-            result = "<rot13sub>" + self._rot13(subs[pattern]) + "<bus31tor>"
+            result = subs[pattern]
+
+            # Make a placeholder.
+            ph.append(result)
+            placeholder = "\x00%d\x00" % i
+            i += 1
+
             qm     = re.escape(pattern)
             msg    = re.sub(r'^' + qm + "$", result, msg)
             msg    = re.sub(r'^' + qm + r'(\W+)', result+r'\1', msg)
             msg    = re.sub(r'(\W+)' + qm + r'(\W+)', r'\1'+result+r'\2', msg)
             msg    = re.sub(r'(\W+)' + qm + r'$', r'\1'+result, msg)
 
-        placeholders = re.findall(re_rot13, msg)
+        placeholders = re.findall(r'\x00(\d+)\x00', msg)
         for match in placeholders:
-            rot13   = match
-            decoded = self._rot13(match)
-            msg     = re.sub('<rot13sub>' + re.escape(rot13) + '<bus31tor>', decoded, msg)
+            i = match
+            result = ph[i]
+            msg = re.sub(r'\x00' + i + r'\x00', result, msg)
 
         # Strip & return.
         return msg.strip()
@@ -1917,13 +1930,6 @@ there was no match, this will return None."""
 
         return wc
 
-    def _rot13(self, n):
-        """Encode and decode a string into ROT13."""
-        trans = string.maketrans(
-            "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
-            "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm")
-        return string.translate(str(n), trans)
-
     def _strip_nasties(self, s):
         """Formats a string for ASCII regex matching."""
         s = re.sub(re_nasties, '', s)
@@ -1933,30 +1939,30 @@ there was no match, this will return None."""
         """For debugging, dump the entire data structure."""
         pp = pprint.PrettyPrinter(indent=4)
 
-        print "=== Variables ==="
-        print "-- Globals --"
+        print("=== Variables ===")
+        print("-- Globals --")
         pp.pprint(self._gvars)
-        print "-- Bot vars --"
+        print("-- Bot vars --")
         pp.pprint(self._bvars)
-        print "-- Substitutions --"
+        print("-- Substitutions --")
         pp.pprint(self._subs)
-        print "-- Person Substitutions --"
+        print("-- Person Substitutions --")
         pp.pprint(self._person)
-        print "-- Arrays --"
+        print("-- Arrays --")
         pp.pprint(self._arrays)
 
-        print "=== Topic Structure ==="
+        print("=== Topic Structure ===")
         pp.pprint(self._topics)
-        print "=== %Previous Structure ==="
+        print("=== %Previous Structure ===")
         pp.pprint(self._thats)
 
-        print "=== Includes ==="
+        print("=== Includes ===")
         pp.pprint(self._includes)
 
-        print "=== Inherits ==="
+        print("=== Inherits ===")
         pp.pprint(self._lineage)
 
-        print "=== Sort Buffer ==="
+        print("=== Sort Buffer ===")
         pp.pprint(self._sorted)
 
 ################################################################################
