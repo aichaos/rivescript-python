@@ -63,6 +63,7 @@ class RiveScript:
     _topics   = {}    # Main reply structure
     _thats    = {}    # %Previous reply structure
     _sorted   = {}    # Sorted buffers
+    _syntax   = {}    # Syntax tracking (filenames & line no.'s)
 
     ############################################################################
     # Initialization and Utility Methods                                       #
@@ -491,8 +492,12 @@ This may be called as either a class method of a method of a RiveScript object."
                 self._say("\tTrigger pattern: " + line)
                 if len(isThat):
                     self._initTT('thats', topic, isThat, line)
+                    self._initTT('syntax', topic, line, 'thats')
+                    self._syntax['thats'][topic][line]['trigger'] = (fname, lineno)
                 else:
                     self._initTT('topics', topic, line)
+                    self._initTT('syntax', topic, line, 'topic')
+                    self._syntax['topic'][topic][line]['trigger'] = (fname, lineno)
                 ontrig = line
                 repcnt = 0
                 concnt = 0
@@ -504,8 +509,10 @@ This may be called as either a class method of a method of a RiveScript object."
                 self._say("\tResponse: " + line)
                 if len(isThat):
                     self._thats[topic][isThat][ontrig]['reply'][repcnt] = line
+                    self._syntax['thats'][topic][ontrig]['reply'][repcnt] = (fname, lineno)
                 else:
                     self._topics[topic][ontrig]['reply'][repcnt] = line
+                    self._syntax['topic'][topic][ontrig]['reply'][repcnt] = (fname, lineno)
                 repcnt = repcnt + 1
             elif cmd == '%':
                 # % PREVIOUS
@@ -518,15 +525,19 @@ This may be called as either a class method of a method of a RiveScript object."
                 self._say("\tRedirect response to " + line)
                 if len(isThat):
                     self._thats[topic][isThat][ontrig]['redirect'] = line
+                    self._syntax['thats'][topic][ontrig]['redirect'] = (fname, lineno)
                 else:
                     self._topics[topic][ontrig]['redirect'] = line
+                    self._syntax['topic'][topic][ontrig]['redirect'] = (fname, lineno)
             elif cmd == '*':
                 # * CONDITION
                 self._say("\tAdding condition: " + line)
                 if len(isThat):
                     self._thats[topic][isThat][ontrig]['condition'][concnt] = line
+                    self._syntax['thats'][topic][ontrig]['condition'][concnt] = (fname, lineno)
                 else:
                     self._topics[topic][ontrig]['condition'][concnt] = line
+                    self._syntax['topic'][topic][ontrig]['condition'][concnt] = (fname, lineno)
                 concnt = concnt + 1
             else:
                 self._warn("Unrecognized command \"" + cmd + "\"", fname, lineno)
@@ -654,6 +665,16 @@ Returns a syntax error string on error; None otherwise."""
                 self._thats[topic][trigger][what]['reply']     = {}
                 self._thats[topic][trigger][what]['condition'] = {}
                 self._thats[topic][trigger][what]['redirect']  = {}
+        elif toplevel == 'syntax':
+            if not what in self._syntax:
+                self._syntax[what] = {}
+            if not topic in self._syntax[what]:
+                self._syntax[what][topic] = {}
+            if not trigger in self._syntax[what][topic]:
+                self._syntax[what][topic][trigger]              = {}
+                self._syntax[what][topic][trigger]['reply']     = {}
+                self._syntax[what][topic][trigger]['condition'] = {}
+                self._syntax[what][topic][trigger]['redirect']  = {}
 
     ############################################################################
     # Sorting Methods                                                          #
@@ -1089,6 +1110,48 @@ This will return the raw trigger text that the user's last message matched. If
 there was no match, this will return None."""
         return self.get_uservar(user, "__lastmatch__")
 
+    def trigger_info(self, trigger=None, dump=False):
+        """Get information about a trigger.
+
+Pass in a raw trigger to find out what file name and line number it appeared at.
+This is useful for e.g. tracking down the location of the trigger last matched
+by the user via last_match(). Returns a list of matching triggers, containing
+their topics, filenames and line numbers. Returns None if there weren't
+any matches found.
+
+The keys in the trigger info is as follows:
+
+* category: Either 'topic' (for normal) or 'thats' (for %Previous triggers)
+* topic: The topic name
+* trigger: The raw trigger text
+* filename: The filename the trigger was found in.
+* lineno: The line number the trigger was found on.
+
+Pass in a true value for `dump`, and the entire syntax tracking
+tree is returned."""
+        if dump:
+            return self._syntax
+
+        response = None
+
+        # Search the syntax tree for the trigger.
+        for category in self._syntax:
+            for topic in self._syntax[category]:
+                if trigger in self._syntax[category][topic]:
+                    # We got a match!
+                    if response == None:
+                        response = list()
+                    fname, lineno = self._syntax[category][topic][trigger]['trigger']
+                    response.append(dict(
+                        category=category,
+                        topic=topic,
+                        trigger=trigger,
+                        filename=fname,
+                        line=lineno,
+                    ))
+
+        return response
+
     ############################################################################
     # Reply Fetching Methods                                                   #
     ############################################################################
@@ -1250,7 +1313,7 @@ there was no match, this will return None."""
                                 if match:
                                     self._say("Found a match!")
                                     matched = self._thats[top][trig][subtrig]
-                                    matchedTrigger = top
+                                    matchedTrigger = subtrig
                                     foundMatch = True
 
                                     # Get the stars!
@@ -1964,6 +2027,9 @@ there was no match, this will return None."""
 
         print("=== Sort Buffer ===")
         pp.pprint(self._sorted)
+
+        print("=== Syntax Tree ===")
+        pp.pprint(self._syntax)
 
 ################################################################################
 # Interactive Mode                                                             #
