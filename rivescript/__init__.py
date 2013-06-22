@@ -1796,7 +1796,7 @@ tree is returned."""
                 lang = self._objlangs[obj]
                 if lang in self._handlers:
                     # We do.
-                    output = self._handlers[lang].call(self, obj, args)
+                    output = self._handlers[lang].call(self, obj, user, args)
                 else:
                     output = '[ERR: No Object Handler]'
             else:

@@ -14,7 +14,7 @@ class JSObject:
         source = "function RSOBJ_" + name + "(args) {\n" + "\n".join(code) + "}\n"
         self._objects[name] = source
 
-    def call(self, rs, name, fields):
+    def call(self, rs, name, user, fields):
         if not name in self._objects:
             return "[Object Not Found]"
 

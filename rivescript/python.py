@@ -46,7 +46,7 @@ class PyRiveObjects:
             print("Failed to load code from object", name)
             print("The error given was: ", e)
 
-    def call(self, rs, name, fields):
+    def call(self, rs, name, user, fields):
         """Invoke a previously loaded object."""
         # Call the dynamic method.
         func  = self._objects[name]
