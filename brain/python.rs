@@ -28,8 +28,20 @@
     return int(a) + int(b)
 < object
 
+> object setvar python
+    # This function demonstrates using rs.current_user() to get
+    # the current user ID, to set a variable for them.
+    uid   = rs.current_user()
+    var   = args[0]
+    value = " ".join(args[1:])
+    rs.set_uservar(uid, var, value)
+< object
+
 + encode * in base64
 - OK: <call>base64 <star></call>
 
 + what is # plus #
 - <star1> + <star2> = <call>add <star1> <star2></call>
+
++ python set * to *
+- Setting user variable <star1> to <star2>.<call>setvar <star1> <star2></call>

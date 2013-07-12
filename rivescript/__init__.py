@@ -44,26 +44,6 @@ rs_version = 2.0
 
 class RiveScript:
     """A RiveScript interpreter for Python 2."""
-    _debug    = False # Debug mode
-    _utf8     = False # UTF-8 mode
-    _strict   = True  # Strict mode
-    _logf     = ''    # Log file for debugging
-    _depth    = 50    # Recursion depth limit
-    _gvars    = {}    # 'global' variables
-    _bvars    = {}    # 'bot' variables
-    _subs     = {}    # 'sub' variables
-    _person   = {}    # 'person' variables
-    _arrays   = {}    # 'array' variables
-    _users    = {}    # 'user' variables
-    _freeze   = {}    # frozen 'user' variables
-    _includes = {}    # included topics
-    _lineage  = {}    # inherited topics
-    _handlers = {}    # Object handlers
-    _objlangs = {}    # Languages of objects used
-    _topics   = {}    # Main reply structure
-    _thats    = {}    # %Previous reply structure
-    _sorted   = {}    # Sorted buffers
-    _syntax   = {}    # Syntax tracking (filenames & line no.'s)
 
     ############################################################################
     # Initialization and Utility Methods                                       #
@@ -77,11 +57,30 @@ bool strict: Strict mode (RS syntax errors are fatal)
 str  log:    Specify a log file for debug output to go to (instead of STDOUT).
 int  depth:  Specify the recursion depth limit.
 bool utf8:   Enable UTF-8 support."""
-        self._debug  = debug
-        self._strict = strict
-        self._depth  = depth
-        self._log    = log
-        self._utf8   = utf8
+        # Instance variables.
+        self._debug    = debug  # Debug mode
+        self._log      = log    # Debug log file
+        self._utf8     = utf8   # UTF-8 mode
+        self._strict   = strict # Strict mode
+        self._depth    = depth  # Recursion depth limit
+        self._gvars    = {}     # 'global' variables
+        self._bvars    = {}     # 'bot' variables
+        self._subs     = {}     # 'sub' variables
+        self._person   = {}     # 'person' variables
+        self._arrays   = {}     # 'array' variables
+        self._users    = {}     # 'user' variables
+        self._freeze   = {}     # frozen 'user' variables
+        self._includes = {}     # included topics
+        self._lineage  = {}     # inherited topics
+        self._handlers = {}     # Object handlers
+        self._objlangs = {}     # Languages of objects used
+        self._topics   = {}     # Main reply structure
+        self._thats    = {}     # %Previous reply structure
+        self._sorted   = {}     # Sorted buffers
+        self._syntax   = {}     # Syntax tracking (filenames & line no.'s)
+
+        # "Current request" variables.
+        self._current_user = None # The current user ID.
 
         # Define the default Python language handler.
         self._handlers["python"] = python.PyRiveObjects()
@@ -105,14 +104,13 @@ This may be called as either a class method of a method of a RiveScript object."
             fh.close()
 
     def _warn(self, message, fname='', lineno=0):
+        header = "[RS]"
         if self._debug:
-            print("[RS::Warning]"),
-        else:
-            print("[RS]"),
+            header = "[RS::Warning]"
         if len(fname) and lineno > 0:
-            print(message, "at", fname, "line", lineno)
+            print(header, message, "at", fname, "line", lineno)
         else:
-            print(message)
+            print(header, message)
 
     ############################################################################
     # Loading and Parsing Methods                                              #
@@ -1152,6 +1150,20 @@ tree is returned."""
 
         return response
 
+    def current_user(self):
+        """Retrieve the user ID of the current user talking to your bot.
+
+This is mostly useful inside of a Python object macro to get the user ID of the
+person who caused the object macro to be invoked (i.e. to set a variable for
+that user from within the object).
+
+This will return None if used outside of the context of getting a reply (i.e.
+the value is unset at the end of the `reply()` method)."""
+        if self._current_user == None:
+            # They're doing it wrong.
+            self._warn("current_user() is meant to be used from within a Python object macro!")
+        return self._current_user
+
     ############################################################################
     # Reply Fetching Methods                                                   #
     ############################################################################
@@ -1159,6 +1171,9 @@ tree is returned."""
     def reply(self, user, msg):
         """Fetch a reply from the RiveScript brain."""
         self._say("Get reply to [" + user + "] " + msg)
+
+        # Store the current user in case an object macro needs it.
+        self._current_user = user
 
         # Format their message.
         msg = self._format_message(msg)
@@ -1189,6 +1204,9 @@ tree is returned."""
         oldReply = self._users[user]['__history__']['reply'][:8]
         self._users[user]['__history__']['reply'] = [ reply ]
         self._users[user]['__history__']['reply'].extend(oldReply)
+
+        # Unset the current user.
+        self._current_user = None
 
         return reply
 
