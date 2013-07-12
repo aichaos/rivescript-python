@@ -3,7 +3,10 @@
 # Python3 compat
 from __future__ import print_function
 
-"""Python object macro support for RiveScript.
+__docformat__ = 'plaintext'
+
+class PyRiveObjects:
+    """A RiveScript object handler for Python code.
 
 This class provides built-in support for your RiveScript documents to include
 and execute object macros written in Python. For example:
@@ -16,15 +19,15 @@ and execute object macros written in Python. For example:
     + encode * in base64
     - OK: <call>base64 <star></call>
 
+Python object macros receive these two parameters:
+
+    rs:   The reference to the parent RiveScript instance
+    args: A list of argument words passed to your object macro
+
 Python support is on by default. To turn it off, just unset the Python language
 handler on your RiveScript object:
 
     rs.set_handler("python", None)"""
-
-__docformat__ = 'plaintext'
-
-class PyRiveObjects:
-    """A RiveScript object handler for Python code."""
     _objects = {} # The cache of objects loaded
 
     def __init__(self):

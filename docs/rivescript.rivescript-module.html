@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>rivescript.interactive</title>
+  <title>rivescript.rivescript</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rivescript-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -42,8 +39,8 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="rivescript-module.html">Package&nbsp;rivescript</a> ::
-        Module&nbsp;interactive
+        Package&nbsp;rivescript ::
+        Module&nbsp;rivescript
       </span>
     </td>
     <td>
@@ -53,35 +50,29 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="rivescript.interactive-module.html"
+            >]&nbsp;|&nbsp;<a href="rivescript.rivescript-module.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
-<h1 class="epydoc">Module interactive</h1><p class="nomargin-top"><span class="codelink"><a href="rivescript.interactive-pysrc.html">source&nbsp;code</a></span></p>
-<pre class="literalblock">
-interactive.py: RiveScript's built-in interactive mode.
-
-To run this, run: python rivescript
-              or: python __init__.py
-              or: python __main__.py
-The preferred method is the former.
-
-</pre>
-
-<!-- ==================== FUNCTIONS ==================== -->
-<a name="section-Functions"></a>
+<h1 class="epydoc">Module rivescript</h1><p class="nomargin-top"><span class="codelink"><a href="rivescript.rivescript-pysrc.html">source&nbsp;code</a></span></p>
+<hr />
+<div class="fields">      <p><strong>Version:</strong>
+        1.05
+      </p>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr bgcolor="#70b0f0" class="table-header">
   <td colspan="2" class="table-header">
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr valign="top">
-        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="left"><span class="table-header">Classes</span></td>
         <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Functions"
+         ><span class="options">[<a href="#section-Classes"
          class="privatelink" onclick="toggle_private();"
          >hide private</a>]</span></td>
       </tr>
@@ -92,34 +83,8 @@ The preferred method is the former.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="json_in"></a><span class="summary-sig-name">json_in</span>(<span class="summary-sig-arg">bot</span>,
-        <span class="summary-sig-arg">buffer</span>,
-        <span class="summary-sig-arg">stateful</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rivescript.interactive-pysrc.html#json_in">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="interactive_mode"></a><span class="summary-sig-name">interactive_mode</span>()</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rivescript.interactive-pysrc.html#interactive_mode">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a href="rivescript.rivescript.RiveScript-class.html" class="summary-name">RiveScript</a><br />
+      A RiveScript interpreter for Python 2 and 3.
     </td>
   </tr>
 </table>
@@ -147,14 +112,67 @@ The preferred method is the former.
         <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rivescript'"><code class="variable-quote">'</code><code class="variable-string">rivescript</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="re_equals"></a><span class="summary-name">re_equals</span> = <code title="re.compile(r'\s*=\s*')">re.compile(r'\s<code class="re-op">*</code>=\s<code class="re-op">*</code>')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="re_inherit"></a><span class="summary-name">re_inherit</span> = <code title="re.compile(r'\{inherits=(\d+)\}')">re.compile(r'\{inherits=<code class="re-group">(</code>\d<code class="re-op">+</code><code class="re-group">)</code>\}')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="re_nasties"></a><span class="summary-name">re_nasties</span> = <code title="re.compile(r'[^A-Za-z0-9 ]')">re.compile(r'<code class="re-group">[</code><code class="re-op">^</code>A<code class="re-op">-</code>Za<code class="re-op">-</code>z0<code class="re-op">-</code>9 <code class="re-group">]</code>')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="re_objend"></a><span class="summary-name">re_objend</span> = <code title="re.compile(r'&lt;\s*object')">re.compile(r'&lt;\s<code class="re-op">*</code>object')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="re_weight"></a><span class="summary-name">re_weight</span> = <code title="re.compile(r'\{weight=(\d+)\}')">re.compile(r'\{weight=<code class="re-group">(</code>\d<code class="re-op">+</code><code class="re-group">)</code>\}')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="re_wilds"></a><span class="summary-name">re_wilds</span> = <code title="re.compile(r'[\s\*#_]+')">re.compile(r'<code class="re-group">[</code>\s\*#_<code class="re-group">]</code><code class="re-op">+</code>')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="re_ws"></a><span class="summary-name">re_ws</span> = <code title="re.compile(r'\s+')">re.compile(r'\s<code class="re-op">+</code>')</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="rs_version"></a><span class="summary-name">rs_version</span> = <code title="2.0">2.0</code>
+    </td>
+  </tr>
 </table>
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rivescript-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -179,7 +197,7 @@ The preferred method is the former.
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 20 17:19:45 2013
+    Generated by Epydoc 3.0.1 on Fri Jul 12 13:57:06 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
