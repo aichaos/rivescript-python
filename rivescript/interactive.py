@@ -11,6 +11,7 @@ The preferred method is the former."""
 
 __docformat__ = 'plaintext'
 
+import re
 import sys
 import getopt
 import json
