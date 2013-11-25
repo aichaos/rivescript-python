@@ -4,6 +4,6 @@ recursive-include docs *.*
 include Changes
 include README.md
 include LICENSE
-recursive-include brain *.rs
-recursive-include eg *.py *.rs
+recursive-include brain *.rive
+recursive-include eg *.py *.rive
 include example.py

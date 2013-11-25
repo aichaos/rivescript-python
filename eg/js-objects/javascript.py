@@ -31,7 +31,7 @@ class JSObject:
 
 bot = rivescript.RiveScript()
 bot.set_handler("javascript", JSObject())
-bot.load_file("javascript.rs")
+bot.load_file("javascript.rive")
 bot.sort_replies()
 while True:
     msg = raw_input("You> ")

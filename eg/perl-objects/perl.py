@@ -61,7 +61,7 @@ class PerlObject:
 
 bot = rivescript.RiveScript()
 bot.set_handler("perl", PerlObject())
-bot.load_file("perl.rs")
+bot.load_file("perl.rive")
 bot.sort_replies()
 while True:
     msg = raw_input("You> ")

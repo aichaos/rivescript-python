@@ -100,16 +100,30 @@ This may be called as either a class method of a method of a RiveScript object."
     # Loading and Parsing Methods                                              #
     ############################################################################
 
-    def load_directory(self, directory, ext='.rs'):
-        """Load RiveScript documents from a directory."""
-        self._say("Loading from directory: " + directory + "/*" + ext)
+    def load_directory(self, directory, ext=None):
+        """Load RiveScript documents from a directory.
+
+        Provide `ext` as a list of extensions to search for. The default list
+        is `.rive`, `.rs`"""
+        self._say("Loading from directory: " + directory)
+
+        if ext is None:
+            # Use the default extensions - .rive is preferable.
+            ext = ['.rive', '.rs']
+        elif type(ext) == str:
+            # Backwards compatibility for ext being a string value.
+            ext = [ext]
 
         if not os.path.isdir(directory):
             self._warn("Error: " + directory + " is not a directory.")
             return
 
-        for item in glob.glob(os.path.join(directory, '*' + ext)):
-            self.load_file(item)
+        for item in os.listdir(directory):
+            for extension in ext:
+                if item.lower().endswith(extension):
+                    # Load this file.
+                    self.load_file(os.path.join(directory, item))
+                    break
 
     def load_file(self, filename):
         """Load and parse a RiveScript document."""
