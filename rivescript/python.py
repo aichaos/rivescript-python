@@ -5,6 +5,7 @@ from __future__ import print_function
 
 __docformat__ = 'plaintext'
 
+
 class PyRiveObjects:
     """A RiveScript object handler for Python code.
 
@@ -28,7 +29,7 @@ Python support is on by default. To turn it off, just unset the Python language
 handler on your RiveScript object:
 
     rs.set_handler("python", None)"""
-    _objects = {} # The cache of objects loaded
+    _objects = {}  # The cache of objects loaded
 
     def __init__(self):
         pass
@@ -52,11 +53,11 @@ handler on your RiveScript object:
     def call(self, rs, name, user, fields):
         """Invoke a previously loaded object."""
         # Call the dynamic method.
-        func  = self._objects[name]
+        func = self._objects[name]
         reply = ''
         try:
             reply = func(rs, fields)
-            if reply == None:
+            if reply is None:
                 reply = ''
         except Exception as e:
             print("Error executing Python object:", e)

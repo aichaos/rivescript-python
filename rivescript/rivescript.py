@@ -25,6 +25,7 @@ re_nasties = re.compile('[^A-Za-z0-9 ]')
 # Version of RiveScript we support.
 rs_version = 2.0
 
+
 class RiveScript:
     """A RiveScript interpreter for Python 2 and 3."""
 
@@ -63,7 +64,7 @@ bool utf8:   Enable UTF-8 support."""
         self._syntax   = {}     # Syntax tracking (filenames & line no.'s)
 
         # "Current request" variables.
-        self._current_user = None # The current user ID.
+        self._current_user = None  # The current user ID.
 
         # Define the default Python language handler.
         self._handlers["python"] = python.PyRiveObjects()
@@ -107,8 +108,8 @@ This may be called as either a class method of a method of a RiveScript object."
             self._warn("Error: " + directory + " is not a directory.")
             return
 
-        for item in glob.glob( os.path.join(directory, '*'+ext) ):
-            self.load_file( item )
+        for item in glob.glob(os.path.join(directory, '*' + ext)):
+            self.load_file(item)
 
     def load_file(self, filename):
         """Load and parse a RiveScript document."""
@@ -151,7 +152,7 @@ This may be called as either a class method of a method of a RiveScript object."
             lineno = lineno + 1
 
             self._say("Line: " + line + " (topic: " + topic + ") incomment: " + str(inobj))
-            if len(line.strip()) == 0: # Skip blank lines
+            if len(line.strip()) == 0:  # Skip blank lines
                 continue
 
             # In an object?
@@ -161,7 +162,7 @@ This may be called as either a class method of a method of a RiveScript object."
                     if len(objname):
                         # Call the object's handler.
                         if objlang in self._handlers:
-                            self._objlangs[objname] = objlang;
+                            self._objlangs[objname] = objlang
                             self._handlers[objlang].load(objname, objbuf)
                         else:
                             self._warn("Object creation failed: no handler for " + objlang, fname, lineno)
@@ -173,16 +174,16 @@ This may be called as either a class method of a method of a RiveScript object."
                     objbuf.append(line)
                 continue
 
-            line   = line.strip() # Trim excess space. We do it down here so we
-                                  # don't mess up python objects!
+            line = line.strip()  # Trim excess space. We do it down here so we
+                                 # don't mess up python objects!
 
             # Look for comments.
-            if line[:2] == '//': # A single-line comment.
+            if line[:2] == '//':  # A single-line comment.
                 continue
             elif line[0] == '#':
                 self._warn("Using the # symbol for comments is deprecated", fname, lineno)
-            elif line[:2] == '/*':   # Start of a multi-line comment.
-                if not '*/' in line: # Cancel if the end is here too.
+            elif line[:2] == '/*':  # Start of a multi-line comment.
+                if not '*/' in line:  # Cancel if the end is here too.
                     comment = True
                 continue
             elif '*/' in line:
@@ -195,7 +196,7 @@ This may be called as either a class method of a method of a RiveScript object."
             if len(line) < 2:
                 self._warn("Weird single-character line '" + line + "' found.", fname, lineno)
                 continue
-            cmd  = line[0]
+            cmd = line[0]
             line = line[1:].strip()
 
             # Ignore inline comments if there's a space before and after
@@ -213,7 +214,7 @@ This may be called as either a class method of a method of a RiveScript object."
                     raise Exception(syntax_error)
                 else:
                     self._warn(syntax_error)
-                    return # Don't try to continue
+                    return  # Don't try to continue
 
             # Reset the %Previous state if this is a new +Trigger.
             if cmd == '+':
@@ -224,7 +225,7 @@ This may be called as either a class method of a method of a RiveScript object."
                 lookahead = code[i].strip()
                 if len(lookahead) < 2:
                     continue
-                lookCmd   = lookahead[0]
+                lookCmd = lookahead[0]
                 lookahead = lookahead[1:].strip()
 
                 # Only continue if the lookahead line has any data.
@@ -356,9 +357,9 @@ This may be called as either a class method of a method of a RiveScript object."
                     fields = []
                     for val in parts:
                         if '|' in val:
-                            fields.extend( val.split('|') )
+                            fields.extend(val.split('|'))
                         else:
-                            fields.extend( re.split(re_ws, val) )
+                            fields.extend(re.split(re_ws, val))
 
                     # Convert any remaining '\s' escape codes into spaces.
                     for f in fields:
@@ -413,7 +414,7 @@ This may be called as either a class method of a method of a RiveScript object."
                     topic  = name
 
                     # Does this topic include or inherit another one?
-                    mode = '' # or 'inherits' or 'includes'
+                    mode = ''  # or 'inherits' or 'includes'
                     if len(fields) >= 2:
                         for field in fields:
                             if field == 'includes':
@@ -439,9 +440,9 @@ This may be called as either a class method of a method of a RiveScript object."
 
                     # Only try to parse a language we support.
                     ontrig = ''
-                    if lang == None:
+                    if lang is None:
                         self._warn("Trying to parse unknown programming language", fname, fileno)
-                        lang = 'python' # Assume it's Python.
+                        lang = 'python'  # Assume it's Python.
 
                     # See if we have a defined handler for this language.
                     if lang in self._handlers:
@@ -497,10 +498,10 @@ This may be called as either a class method of a method of a RiveScript object."
                 repcnt = repcnt + 1
             elif cmd == '%':
                 # % PREVIOUS
-                pass # This was handled above.
+                pass  # This was handled above.
             elif cmd == '^':
                 # ^ CONTINUE
-                pass # This was handled above.
+                pass  # This was handled above.
             elif cmd == '@':
                 # @ REDIRECT
                 self._say("\tRedirect response to " + line)
@@ -564,10 +565,10 @@ Returns a syntax error string on error; None otherwise."""
             #   - Entirely lowercase
             #   - No symbols except: ( | ) [ ] * _ # @ { } < > =
             #   - All brackets should be matched
-            parens = 0 # Open parenthesis
-            square = 0 # Open square brackets
-            curly  = 0 # Open curly brackets
-            angle  = 0 # Open angled brackets
+            parens = 0  # Open parenthesis
+            square = 0  # Open square brackets
+            curly  = 0  # Open curly brackets
+            angle  = 0  # Open angled brackets
 
             # Look for obvious errors.
             match = re.match(r'[^a-z0-9(|)\[\]*_#@{}<>=\s]', line)
@@ -611,7 +612,7 @@ Returns a syntax error string on error; None otherwise."""
             else:
                 match = re.match(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]', line)
                 if match:
-                    return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > =";
+                    return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > ="
         elif cmd == '-' or cmd == '^' or cmd == '/':
             # - Trigger, ^ Continue, / Comment
             # These commands take verbatim arguments, so their syntax is loose.
@@ -712,7 +713,7 @@ Returns a syntax error string on error; None otherwise."""
             self._sorted[sortlvl][topic] = running
 
         # And do it all again for %Previous!
-        if thats != True:
+        if not thats:
             # This will sort the %Previous lines to best match the bot's last reply.
             self.sort_replies(True)
 
@@ -747,7 +748,7 @@ Returns a syntax error string on error; None otherwise."""
 
         # Create a priority map.
         prior = {
-            0: [] # Default priority=0
+            0: []  # Default priority=0
         }
 
         for trig in triggers:
@@ -769,8 +770,8 @@ Returns a syntax error string on error; None otherwise."""
             # So, some of these triggers may include {inherits} tags, if they
             # came form a topic which inherits another topic. Lower inherits
             # values mean higher priority on the stack.
-            inherits = -1         # -1 means no {inherits} tag
-            highest_inherits = -1 # highest inheritence number seen
+            inherits = -1          # -1 means no {inherits} tag
+            highest_inherits = -1  # highest inheritence number seen
 
             # Loop through and categorize these triggers.
             track = {
@@ -843,25 +844,25 @@ Returns a syntax error string on error; None otherwise."""
                     track[inherits]['atomic'][cnt].append(trig)
 
             # Move the no-{inherits} triggers to the bottom of the stack.
-            track[ (highest_inherits + 1) ] = track[-1]
+            track[highest_inherits + 1] = track[-1]
             del(track[-1])
 
             # Add this group to the sort list.
             for ip in sorted(track.keys()):
                 self._say("ip=" + str(ip))
-                for kind in [ 'atomic', 'option', 'alpha', 'number', 'wild' ]:
+                for kind in ['atomic', 'option', 'alpha', 'number', 'wild']:
                     for i in sorted(track[ip][kind], reverse=True):
-                        running.extend( track[ip][kind][i] )
-                running.extend( sorted(track[ip]['under'], key=len, reverse=True) )
-                running.extend( sorted(track[ip]['pound'], key=len, reverse=True) )
-                running.extend( sorted(track[ip]['star'], key=len, reverse=True) )
+                        running.extend(track[ip][kind][i])
+                running.extend(sorted(track[ip]['under'], key=len, reverse=True))
+                running.extend(sorted(track[ip]['pound'], key=len, reverse=True))
+                running.extend(sorted(track[ip]['star'], key=len, reverse=True))
         return running
 
     def _sort_list(self, name, items):
         """Sort a simple list by number of words and length."""
 
         def by_length(word1, word2):
-            return len(word2)-len(word1)
+            return len(word2) - len(word1)
 
         # Initialize the list sort buffer.
         if not "lists" in self._sorted:
@@ -931,7 +932,7 @@ Look in the `eg` folder of the rivescript-python distribution for an example
 script that sets up a JavaScript language handler."""
 
         # Allow them to delete a handler too.
-        if obj == None:
+        if obj is None:
             if language in self._handlers:
                 del self._handlers[language]
         else:
@@ -957,7 +958,7 @@ is by default, unless you've called set_handler("python", None))."""
         """Set a global variable.
 
 Equivalent to `! global` in RiveScript code. Set to None to delete."""
-        if value == None:
+        if value is None:
             # Unset the variable.
             if name in self._gvars:
                 del self._gvars[name]
@@ -967,7 +968,7 @@ Equivalent to `! global` in RiveScript code. Set to None to delete."""
         """Set a bot variable.
 
 Equivalent to `! var` in RiveScript code. Set to None to delete."""
-        if value == None:
+        if value is None:
             # Unset the variable.
             if name in self._bvars:
                 del self._bvars[name]
@@ -977,7 +978,7 @@ Equivalent to `! var` in RiveScript code. Set to None to delete."""
         """Set a substitution.
 
 Equivalent to `! sub` in RiveScript code. Set to None to delete."""
-        if rep == None:
+        if rep is None:
             # Unset the variable.
             if what in self._subs:
                 del self._subs[what]
@@ -987,7 +988,7 @@ Equivalent to `! sub` in RiveScript code. Set to None to delete."""
         """Set a person substitution.
 
 Equivalent to `! person` in RiveScript code. Set to None to delete."""
-        if rep == None:
+        if rep is None:
             # Unset the variable.
             if what in self._person:
                 del self._person[what]
@@ -1021,7 +1022,7 @@ set for the variable you want, returns the string 'undefined'."""
 If no username is passed, returns the entire user database structure. Otherwise,
 only returns the variables for the given user, or None if none exist."""
 
-        if user == None:
+        if user is None:
             # All the users!
             return self._users
         elif user in self._users:
@@ -1037,7 +1038,7 @@ only returns the variables for the given user, or None if none exist."""
 If no username is passed, deletes all variables about all users. Otherwise, only
 deletes all variables for the given user."""
 
-        if user == None:
+        if user is None:
             # All the users!
             self._users = {}
         elif user in self._users:
@@ -1120,7 +1121,7 @@ tree is returned."""
             for topic in self._syntax[category]:
                 if trigger in self._syntax[category][topic]:
                     # We got a match!
-                    if response == None:
+                    if response is None:
                         response = list()
                     fname, lineno = self._syntax[category][topic][trigger]['trigger']
                     response.append(dict(
@@ -1142,7 +1143,7 @@ that user from within the object).
 
 This will return None if used outside of the context of getting a reply (i.e.
 the value is unset at the end of the `reply()` method)."""
-        if self._current_user == None:
+        if self._current_user is None:
             # They're doing it wrong.
             self._warn("current_user() is meant to be used from within a Python object macro!")
         return self._current_user
@@ -1182,10 +1183,10 @@ the value is unset at the end of the `reply()` method)."""
 
         # Save their reply history.
         oldInput = self._users[user]['__history__']['input'][:8]
-        self._users[user]['__history__']['input'] = [ msg ]
+        self._users[user]['__history__']['input'] = [msg]
         self._users[user]['__history__']['input'].extend(oldInput)
         oldReply = self._users[user]['__history__']['reply'][:8]
-        self._users[user]['__history__']['reply'] = [ reply ]
+        self._users[user]['__history__']['reply'] = [reply]
         self._users[user]['__history__']['reply'].extend(oldReply)
 
         # Unset the current user.
@@ -1228,7 +1229,7 @@ the value is unset at the end of the `reply()` method)."""
         # Collect data on the user.
         topic     = self._users[user]['topic']
         stars     = []
-        thatstars = [] # For %Previous's.
+        thatstars = []  # For %Previous's.
         reply     = ''
 
         # Avoid letting them fall into a missing topic.
@@ -1276,7 +1277,7 @@ the value is unset at the end of the `reply()` method)."""
         # is still gonna be the same as it was the first time, causing an
         # infinite loop!
         if step == 0:
-            allTopics = [ topic ]
+            allTopics = [topic]
             if topic in self._includes or topic in self._lineage:
                 # Get all the topics!
                 allTopics = self._get_topic_tree(topic)
@@ -1381,7 +1382,7 @@ the value is unset at the end of the `reply()` method)."""
                     self._say("Redirecting us to " + matched["redirect"])
                     redirect = self._process_tags(user, msg, matched["redirect"], stars, thatstars, step)
                     self._say("Pretend user said: " + redirect)
-                    reply = self._getreply(user, redirect, step=(step+1))
+                    reply = self._getreply(user, redirect, step=(step + 1))
                     break
 
                 # Check the conditionals.
@@ -1483,7 +1484,7 @@ the value is unset at the end of the `reply()` method)."""
             reSet = re.findall('<set (.+?)=(.+?)>', reply)
             for match in reSet:
                 self._say("Set uservar " + str(match[0]) + "=" + str(match[1]))
-                self._users[user][ match[0] ] = match[1]
+                self._users[user][match[0]] = match[1]
                 reply = re.sub('<set ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
         else:
             # Process more tags if not in BEGIN.
@@ -1519,11 +1520,11 @@ the value is unset at the end of the `reply()` method)."""
             placeholder = "\x00%d\x00" % i
             i += 1
 
-            qm     = re.escape(pattern)
-            msg    = re.sub(r'^' + qm + "$", result, msg)
-            msg    = re.sub(r'^' + qm + r'(\W+)', result+r'\1', msg)
-            msg    = re.sub(r'(\W+)' + qm + r'(\W+)', r'\1'+result+r'\2', msg)
-            msg    = re.sub(r'(\W+)' + qm + r'$', r'\1'+result, msg)
+            qm = re.escape(pattern)
+            msg = re.sub(r'^' + qm + "$", result, msg)
+            msg = re.sub(r'^' + qm + r'(\W+)', result + r'\1', msg)
+            msg = re.sub(r'(\W+)' + qm + r'(\W+)', r'\1' + result + r'\2', msg)
+            msg = re.sub(r'(\W+)' + qm + r'$', r'\1' + result, msg)
 
         placeholders = re.findall(r'\x00(\d+)\x00', msg)
         for match in placeholders:
@@ -1542,9 +1543,9 @@ the value is unset at the end of the `reply()` method)."""
         regexp = re.sub(r'^\*$', r'<zerowidthstar>', regexp)
 
         # Simple replacements.
-        regexp = re.sub(r'\*', r'(.+?)', regexp) # Convert * into (.+?)
-        regexp = re.sub(r'#', r'(\d+?)', regexp) # Convert # into (\d+?)
-        regexp = re.sub(r'_', r'([A-Za-z]+?)', regexp) # Convert _ into (\w+?)
+        regexp = re.sub(r'\*', r'(.+?)', regexp)  # Convert * into (.+?)
+        regexp = re.sub(r'#', r'(\d+?)', regexp)  # Convert # into (\d+?)
+        regexp = re.sub(r'_', r'([A-Za-z]+?)', regexp)  # Convert _ into (\w+?)
         regexp = re.sub(r'\{weight=\d+\}', '', regexp) # Remove {weight} tags
         regexp = re.sub(r'<zerowidthstar>', r'(.*?)', regexp)
 
@@ -1552,7 +1553,7 @@ the value is unset at the end of the `reply()` method)."""
         optionals = re.findall(r'\[(.+?)\]', regexp)
         for match in optionals:
             parts = match.split("|")
-            new   = []
+            new = []
             for p in parts:
                 p = r'\s*' + p + r'\s*'
                 new.append(p)
@@ -1594,7 +1595,7 @@ the value is unset at the end of the `reply()` method)."""
         # Filter in <input> and <reply> tags. This is a slow process, so only
         # do it if we have to!
         if '<input' in regexp or '<reply' in regexp:
-            for type in ['input','reply']:
+            for type in ['input', 'reply']:
                 tags = re.findall(r'<' + type + r'([0-9])>', regexp)
                 for index in tags:
                     index = int(index) - 1
@@ -1611,7 +1612,7 @@ the value is unset at the end of the `reply()` method)."""
 
     def _process_tags(self, user, msg, reply, st=[], bst=[], depth=0):
         """Post process tags in a message."""
-        stars    = ['']
+        stars = ['']
         stars.extend(st)
         botstars = ['']
         botstars.extend(bst)
@@ -1629,7 +1630,7 @@ the value is unset at the end of the `reply()` method)."""
         reply = re.sub('<lowercase>', '{lowercase}<star>{/lowercase}', reply)
 
         # Weight and <star> tags.
-        reply = re.sub(r'\{weight=\d+\}', '', reply) # Leftover {weight}s
+        reply = re.sub(r'\{weight=\d+\}', '', reply)  # Leftover {weight}s
         if len(stars) > 0:
             reply = re.sub('<star>', stars[1], reply)
             reStars = re.findall(r'<star(\d+)>', reply)
@@ -1670,7 +1671,7 @@ the value is unset at the end of the `reply()` method)."""
             reply = re.sub(r'\{random\}' + re.escape(match) + r'\{/random\}', output, reply)
 
         # Person Substitutions and String Formatting.
-        for item in ['person','formal','sentence','uppercase','lowercase']:
+        for item in ['person', 'formal', 'sentence', 'uppercase',  'lowercase']:
             matcher = re.findall(r'\{' + item + r'\}(.+?)\{/' + item + r'\}', reply)
             for match in matcher:
                 output = None
@@ -1685,7 +1686,7 @@ the value is unset at the end of the `reply()` method)."""
         reBotSet = re.findall(r'<bot (.+?)=(.+?)>', reply)
         for match in reBotSet:
             self._say("Set bot variable " + str(match[0]) + "=" + str(match[1]))
-            self._bvars[ match[0] ] = match[1]
+            self._bvars[match[0]] = match[1]
             reply = re.sub(r'<bot ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
 
         # Bot variables: get
@@ -1700,7 +1701,7 @@ the value is unset at the end of the `reply()` method)."""
         reEnvSet = re.findall(r'<env (.+?)=(.+?)>', reply)
         for match in reEnvSet:
             self._say("Set global variable " + str(match[0]) + "=" + str(match[1]))
-            self._gvars[ match[0] ] = match[1]
+            self._gvars[match[0]] = match[1]
             reply = re.sub(r'<env ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
 
         # Global vars
@@ -1719,11 +1720,11 @@ the value is unset at the end of the `reply()` method)."""
         reSet = re.findall('<set (.+?)=(.+?)>', reply)
         for match in reSet:
             self._say("Set uservar " + str(match[0]) + "=" + str(match[1]))
-            self._users[user][ match[0] ] = match[1]
+            self._users[user][match[0]] = match[1]
             reply = re.sub('<set ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
 
         # Math tags.
-        for item in ['add','sub','mult','div']:
+        for item in ['add', 'sub', 'mult', 'div']:
             matcher = re.findall('<' + item + r' (.+?)=(.+?)>', reply)
             for match in matcher:
                 var    = match[0]
@@ -1844,8 +1845,8 @@ the value is unset at the end of the `reply()` method)."""
         # that inherits other topics. This forces the {inherits} tag to be added
         # to the triggers. This only applies when the top topic 'includes'
         # another topic.
-        self._say("\tCollecting trigger list for topic " + topic + "(depth=" \
-            + str(depth) + "; inheritence=" + str(inheritence) + "; " \
+        self._say("\tCollecting trigger list for topic " + topic + "(depth="
+            + str(depth) + "; inheritence=" + str(inheritence) + "; "
             + "inherited=" + str(inherited) + ")")
 
         # topic:   the name of the topic
@@ -1911,7 +1912,7 @@ the value is unset at the end of the `reply()` method)."""
                 else:
                     # Check what THAT topic inherits from.
                     match = self._find_trigger_by_inheritence(
-                        inherits, trig, (depth+1)
+                        inherits, trig, (depth + 1)
                     )
                     if match:
                         # Found it!
@@ -1927,7 +1928,7 @@ the value is unset at the end of the `reply()` method)."""
                 else:
                     # Check what THAT topic inherits from.
                     match = self._find_trigger_by_inheritence(
-                        includes, trig, (depth+1)
+                        includes, trig, (depth + 1)
                     )
                     if match:
                         # Found it!
@@ -1946,19 +1947,19 @@ the value is unset at the end of the `reply()` method)."""
             return []
 
         # Collect an array of all topics.
-        topics = [ topic ]
+        topics = [topic]
 
         # Does this topic include others?
         if topic in self._includes:
             # Try each of these.
             for includes in sorted(self._includes[topic]):
-                topics.extend( self._get_topic_tree(includes, depth+1) )
+                topics.extend(self._get_topic_tree(includes, depth + 1))
 
         # Does this topic inherit others?
         if topic in self._lineage:
             # Try each of these.
             for inherits in sorted(self._lineage[topic]):
-                topics.extend( self._get_topic_tree(inherits, depth+1) )
+                topics.extend(self._get_topic_tree(inherits, depth + 1))
 
         return topics
 
@@ -1972,7 +1973,7 @@ the value is unset at the end of the `reply()` method)."""
         # Atomic triggers don't contain any wildcards or parenthesis or anything
         # of the sort. We don't need to test the full character set, just left
         # brackets will do.
-        special = [ '*', '#', '_', '(', '[', '<' ]
+        special = ['*', '#', '_', '(', '[', '<']
         for char in special:
             if char in trigger:
                 return False
@@ -1987,7 +1988,7 @@ the value is unset at the end of the `reply()` method)."""
         else:
             words = re.split(re_wilds, trigger)
 
-        wc = 0 # Word count
+        wc = 0  # Word count
         for word in words:
             if len(word) > 0:
                 wc += 1

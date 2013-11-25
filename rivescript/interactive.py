@@ -18,12 +18,14 @@ import json
 
 from rivescript import RiveScript
 
+
 # Compatible wrapper for inputs.
 def _input(prompt=None):
     if sys.version_info[0] < 3:
         return raw_input(prompt)
     else:
         return input(prompt)
+
 
 def json_in(bot, buffer, stateful):
     # Prepare the response.
@@ -67,6 +69,7 @@ def json_in(bot, buffer, stateful):
     if stateful:
         print("__END__")
 
+
 def interactive_mode():
     # Get command line options.
     options, remainder = [], []
@@ -103,7 +106,7 @@ def interactive_mode():
         elif opt[0] == '--depth':
             depth = int(opt[1])
         elif opt[0] == '--log':
-            log   = opt[1]
+            log = opt[1]
 
     # Help?
     if help:
@@ -194,7 +197,7 @@ JSON Mode:
             end = re.match(r'^__END__$', line)
             if end:
                 # Process it.
-                stateful = True # This is a stateful session
+                stateful = True  # This is a stateful session
                 json_in(bot, buffer, stateful)
                 buffer = ""
                 continue
