@@ -584,11 +584,6 @@ Returns a syntax error string on error; None otherwise."""
             curly  = 0  # Open curly brackets
             angle  = 0  # Open angled brackets
 
-            # Look for obvious errors.
-            match = re.match(r'[^a-z0-9(|)\[\]*_#@{}<>=\s]', line)
-            if match:
-                return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > ="
-
             # Count brackets.
             for char in line:
                 if char == '(':
