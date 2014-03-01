@@ -1530,16 +1530,16 @@ the value is unset at the end of the `reply()` method)."""
             i += 1
 
             qm = re.escape(pattern)
-            msg = re.sub(r'^' + qm + "$", result, msg)
-            msg = re.sub(r'^' + qm + r'(\W+)', result + r'\1', msg)
-            msg = re.sub(r'(\W+)' + qm + r'(\W+)', r'\1' + result + r'\2', msg)
-            msg = re.sub(r'(\W+)' + qm + r'$', r'\1' + result, msg)
+            msg = re.sub(r'^' + qm + "$", placeholder, msg)
+            msg = re.sub(r'^' + qm + r'(\W+)', placeholder + r'\1', msg)
+            msg = re.sub(r'(\W+)' + qm + r'(\W+)', r'\1' + placeholder + r'\2', msg)
+            msg = re.sub(r'(\W+)' + qm + r'$', r'\1' + placeholder, msg)
 
         placeholders = re.findall(r'\x00(\d+)\x00', msg)
         for match in placeholders:
-            i = match
+            i = int(match)
             result = ph[i]
-            msg = re.sub(r'\x00' + i + r'\x00', result, msg)
+            msg = re.sub(r'\x00' + match + r'\x00', result, msg)
 
         # Strip & return.
         return msg.strip()
