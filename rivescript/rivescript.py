@@ -1607,8 +1607,7 @@ the value is unset at the end of the `reply()` method)."""
             for type in ['input', 'reply']:
                 tags = re.findall(r'<' + type + r'([0-9])>', regexp)
                 for index in tags:
-                    index = int(index) - 1
-                    rep = self._format_message(self._users[user]['__history__'][type][index])
+                    rep = self._format_message(self._users[user]['__history__'][type][int(index) - 1])
                     regexp = re.sub(r'<' + type + str(index) + r'>', rep, regexp)
                 regexp = re.sub(
                     '<' + type + '>',
@@ -1656,12 +1655,12 @@ the value is unset at the end of the `reply()` method)."""
         # <input> and <reply>
         reply = re.sub('<input>', self._users[user]['__history__']['input'][0], reply)
         reply = re.sub('<reply>', self._users[user]['__history__']['reply'][0], reply)
-        reInput = re.findall(r'<input([0-9])>', reply)
+        reInput = re.findall(r'<input([1-9])>', reply)
         for match in reInput:
-            reply = re.sub(r'<input' + match + r'>', self._users[user]['__history__']['input'][int(match)], reply)
-        reReply = re.findall(r'<reply([0-9])>', reply)
+            reply = re.sub(r'<input' + match + r'>', self._users[user]['__history__']['input'][int(match) - 1], reply)
+        reReply = re.findall(r'<reply([1-9])>', reply)
         for match in reReply:
-            reply = re.sub(r'<reply' + match + r'>', self._users[user]['__history__']['reply'][int(match)], reply)
+            reply = re.sub(r'<reply' + match + r'>', self._users[user]['__history__']['reply'][int(match) - 1], reply)
 
         # <id> and escape codes.
         reply = re.sub(r'<id>', user, reply)
