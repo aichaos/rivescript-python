@@ -16,7 +16,7 @@ from . import python
 # Common regular expressions.
 re_equals  = re.compile('\s*=\s*')
 re_ws      = re.compile('\s+')
-re_objend  = re.compile('<\s*object')
+re_objend  = re.compile('^\s*<\s*object')
 re_weight  = re.compile('\{weight=(\d+)\}')
 re_inherit = re.compile('\{inherits=(\d+)\}')
 re_wilds   = re.compile('[\s\*\#\_]+')
@@ -24,6 +24,10 @@ re_nasties = re.compile('[^A-Za-z0-9 ]')
 
 # Version of RiveScript we support.
 rs_version = 2.0
+
+# Exportable constants.
+RS_ERR_MATCH = "ERR: No Reply Matched"
+RS_ERR_REPLY = "ERR: No Reply Found"
 
 
 class RiveScript:
@@ -80,7 +84,7 @@ This may be called as either a class method of a method of a RiveScript object."
 
     def _say(self, message):
         if self._debug:
-            print("[RS]", message)
+            print("[RS] {}".format(message))
         if self._log:
             # Log it to the file.
             fh = open(self._log, 'a')
@@ -455,7 +459,7 @@ This may be called as either a class method of a method of a RiveScript object."
                     # Only try to parse a language we support.
                     ontrig = ''
                     if lang is None:
-                        self._warn("Trying to parse unknown programming language", fname, fileno)
+                        self._warn("Trying to parse unknown programming language", fname, lineno)
                         lang = 'python'  # Assume it's Python.
 
                     # See if we have a defined handler for this language.
@@ -1203,7 +1207,7 @@ the value is unset at the end of the `reply()` method)."""
 
         return reply
 
-    def _format_message(self, msg):
+    def _format_message(self, msg, botreply=False):
         """Format a user's message for safe processing."""
 
         # Make sure the string is Unicode for Python 2.
@@ -1220,6 +1224,10 @@ the value is unset at the end of the `reply()` method)."""
         # (to protect from obvious XSS attacks).
         if self._utf8:
             msg = re.sub(r'[\\<>]', '', msg)
+
+            # For the bot's reply, also strip common punctuation.
+            if botreply:
+                msg = re.sub(r'[.?,!;:@#$%^&*()]', '', msg)
         else:
             # For everything else, strip all non-alphanumerics.
             msg = self._strip_nasties(msg)
@@ -1301,7 +1309,7 @@ the value is unset at the end of the `reply()` method)."""
                     lastReply = self._users[user]["__history__"]["reply"][0]
 
                     # Format the bot's last reply the same way as the human's.
-                    lastReply = self._format_message(lastReply)
+                    lastReply = self._format_message(lastReply, botreply=True)
 
                     self._say("lastReply: " + lastReply)
 
@@ -1474,9 +1482,9 @@ the value is unset at the end of the `reply()` method)."""
 
         # Still no reply?
         if not foundMatch:
-            reply = "ERR: No Reply Matched"
+            reply = RS_ERR_MATCH
         elif len(reply) == 0:
-            reply = "ERR: No Reply Found"
+            reply = RS_ERR_FOUND
 
         self._say("Reply: " + reply)
 
@@ -1554,7 +1562,7 @@ the value is unset at the end of the `reply()` method)."""
         # Simple replacements.
         regexp = re.sub(r'\*', r'(.+?)', regexp)  # Convert * into (.+?)
         regexp = re.sub(r'#', r'(\d+?)', regexp)  # Convert # into (\d+?)
-        regexp = re.sub(r'_', r'([A-Za-z]+?)', regexp)  # Convert _ into (\w+?)
+        regexp = re.sub(r'_', r'(\w+?)', regexp)  # Convert _ into (\w+?)
         regexp = re.sub(r'\{weight=\d+\}', '', regexp) # Remove {weight} tags
         regexp = re.sub(r'<zerowidthstar>', r'(.*?)', regexp)
 
@@ -1576,6 +1584,9 @@ the value is unset at the end of the `reply()` method)."""
             pipes = re.sub(re.escape('([A-Za-z]+?)'), '(?:[A-Za-z]+?)', pipes)
 
             regexp = re.sub(r'\s*\[' + re.escape(match) + '\]\s*', '(?:' + pipes + ')', regexp)
+
+        # _ wildcards can't match numbers!
+        regexp = re.sub(r'\\w', r'[A-Za-z]', regexp)
 
         # Filter in arrays.
         arrays = re.findall(r'\@(.+?)\b', regexp)
@@ -1943,7 +1954,6 @@ the value is unset at the end of the `reply()` method)."""
                         return match
 
         # Don't know what else to do!
-        self._warn("User matched a trigger, " + trig + ", but I can't find out what topic it belongs to!")
         return None
 
     def _get_topic_tree(self, topic, depth=0):

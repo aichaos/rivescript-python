@@ -53,6 +53,8 @@ handler on your RiveScript object:
     def call(self, rs, name, user, fields):
         """Invoke a previously loaded object."""
         # Call the dynamic method.
+        if not name in self._objects:
+            return '[ERR: Object Not Found]'
         func = self._objects[name]
         reply = ''
         try:
