@@ -640,6 +640,268 @@ Returns a syntax error string on error; None otherwise."""
 
         return None
 
+    def deparse(self):
+        """Return the in-memory RiveScript document as a Python data structure.
+
+        This would be useful for developing a user interface for editing
+        RiveScript replies without having to edit the RiveScript code
+        manually."""
+
+        # Data to return.
+        result = {
+            "begin": {
+                "global":   {},
+                "var":      {},
+                "sub":      {},
+                "person":   {},
+                "array":    {},
+                "triggers": {},
+                "that": {},
+            },
+            "topic":   {},
+            "that":    {},
+            "inherit": {},
+            "include": {},
+        }
+
+        # Populate the config fields.
+        if self._debug:
+            result["begin"]["global"]["debug"] = self._debug
+        if self._depth != 50:
+            result["begin"]["global"]["depth"] = 50
+
+        # Definitions
+        result["begin"]["var"]    = self._bvars.copy()
+        result["begin"]["sub"]    = self._subs.copy()
+        result["begin"]["person"] = self._person.copy()
+        result["begin"]["array"]  = self._arrays.copy()
+        result["begin"]["global"].update(self._gvars.copy())
+
+        # Topic Triggers.
+        for topic in self._topics:
+            dest = {} # Where to place the topic info
+
+            if topic == "__begin__":
+                # Begin block.
+                dest = result["begin"]["triggers"]
+            else:
+                # Normal topic.
+                if not topic in result["topic"]:
+                    result["topic"][topic] = {}
+                dest = result["topic"][topic]
+
+            # Copy the triggers.
+            for trig, data in self._topics[topic].iteritems():
+                dest[trig] = self._copy_trigger(trig, data)
+
+        # %Previous's.
+        for topic in self._thats:
+            dest = {} # Where to place the topic info
+
+            if topic == "__begin__":
+                # Begin block.
+                dest = result["begin"]["that"]
+            else:
+                # Normal topic.
+                if not topic in result["that"]:
+                    result["that"][topic] = {}
+                dest = result["that"][topic]
+
+            # The "that" structure is backwards: bot reply, then trigger, then info.
+            for previous, pdata in self._thats[topic].iteritems():
+                for trig, data in pdata.iteritems():
+                    dest[trig] = self._copy_trigger(trig, data, previous)
+
+        # Inherits/Includes.
+        for topic, data in self._lineage.iteritems():
+            result["inherit"][topic] = []
+            for inherit in data:
+                result["inherit"][topic].append(inherit)
+        for topic, data in self._includes.iteritems():
+            result["include"][topic] = []
+            for include in data:
+                result["include"][topic].append(include)
+
+        return result
+
+    def write(self, fh, deparsed=None):
+        """Write the currently parsed RiveScript data into a file.
+
+        Pass either a file name (string) or a file handle object.
+
+        This uses `deparse()` to dump a representation of the loaded data and
+        writes it to the destination file. If you provide your own data as the
+        `deparsed` argument, it will use that data instead of calling
+        `deparse()` itself. This way you can use `deparse()`, edit the data,
+        and use that to write the RiveScript document (for example, to be used
+        by a user interface for editing RiveScript without writing the code
+        directly)."""
+
+        # Passed a string instead of a file handle?
+        if type(fh) is str:
+            fh = codecs.open(fh, "w", "utf-8")
+
+        # Deparse the loaded data.
+        if deparsed is None:
+            deparsed = self.deparse()
+
+        # Start at the beginning.
+        fh.write("// Written by rivescript.deparse()\n")
+        fh.write("! version = 2.0\n\n")
+
+        # Variables of all sorts!
+        for kind in ["global", "var", "sub", "person", "array"]:
+            if len(deparsed["begin"][kind].keys()) == 0:
+                continue
+
+            for var in sorted(deparsed["begin"][kind].keys()):
+                # Array types need to be separated by either spaces or pipes.
+                data = deparsed["begin"][kind][var]
+                if type(data) not in [str, unicode]:
+                    needs_pipes = False
+                    for test in data:
+                        if " " in test:
+                            needs_pipes = True
+                            break
+
+                    # Word-wrap the result, target width is 78 chars minus the
+                    # kind, var, and spaces and equals sign.
+                    width = 78 - len(kind) - len(var) - 4
+
+                    if needs_pipes:
+                        data = self._write_wrapped("|".join(data), sep="|")
+                    else:
+                        data = " ".join(data)
+
+                fh.write("! {kind} {var} = {data}\n".format(
+                    kind=kind,
+                    var=var,
+                    data=data,
+                ))
+            fh.write("\n")
+
+        # Begin block.
+        if len(deparsed["begin"]["triggers"].keys()):
+            fh.write("> begin\n\n")
+            self._write_triggers(fh, deparsed["begin"]["triggers"], indent="\t")
+            fh.write("< begin\n\n")
+
+        # The topics. Random first!
+        topics = ["random"]
+        topics.extend(sorted(deparsed["topic"].keys()))
+        done_random = False
+        for topic in topics:
+            if not topic in deparsed["topic"]: continue
+            if topic == "random" and done_random: continue
+            if topic == "random": done_random = True
+
+            tagged = False # Used > topic tag
+
+            if topic != "random" or topic in deparsed["include"] or topic in deparsed["inherit"]:
+                tagged = True
+                fh.write("> topic " + topic)
+
+                if topic in deparsed["inherit"]:
+                    fh.write(" inherits " + " ".join(deparsed["inherit"][topic]))
+                if topic in deparsed["include"]:
+                    fh.write(" includes " + " ".join(deparsed["include"][topic]))
+
+                fh.write("\n\n")
+
+            indent = "\t" if tagged else ""
+            self._write_triggers(fh, deparsed["topic"][topic], indent=indent)
+
+            # Any %Previous's?
+            if topic in deparsed["that"]:
+                self._write_triggers(fh, deparsed["that"][topic], indent=indent)
+
+            if tagged:
+                fh.write("< topic\n\n")
+
+        return True
+
+    def _copy_trigger(self, trig, data, previous=None):
+        """Make copies of all data below a trigger."""
+        # Copied data.
+        dest = {}
+
+        if previous:
+            dest["previous"] = previous
+
+        if "redirect" in data and data["redirect"]:
+            # @Redirect
+            dest["redirect"] = data["redirect"]
+
+        if "condition" in data and len(data["condition"].keys()):
+            # *Condition
+            dest["condition"] = []
+            for i in sorted(data["condition"].keys()):
+                dest["condition"].append(data["condition"][i])
+
+        if "reply" in data and len(data["reply"].keys()):
+            # -Reply
+            dest["reply"] = []
+            for i in sorted(data["reply"].keys()):
+                dest["reply"].append(data["reply"][i])
+
+        return dest
+
+    def _write_triggers(self, fh, triggers, indent=""):
+        """Write triggers to a file handle."""
+
+        for trig in sorted(triggers.keys()):
+            fh.write(indent + "+ " + self._write_wrapped(trig, indent=indent) + "\n")
+            d = triggers[trig]
+
+            if "previous" in d:
+                fh.write(indent + "% " + self._write_wrapped(d["previous"], indent=indent) + "\n")
+
+            if "condition" in d:
+                for cond in d["condition"]:
+                    fh.write(indent + "* " + self._write_wrapped(cond, indent=indent) + "\n")
+
+            if "redirect" in d:
+                fh.write(indent + "@ " + self._write_wrapped(d["redirect"], indent=indent) + "\n")
+
+            if "reply" in d:
+                for reply in d["reply"]:
+                    fh.write(indent + "- " + self._write_wrapped(reply, indent=indent) + "\n")
+
+            fh.write("\n")
+
+    def _write_wrapped(self, line, sep=" ", indent="", width=78):
+        """Word-wrap a line of RiveScript code for being written to a file."""
+
+        words = line.split(sep)
+        lines = []
+        line  = ""
+        buf   = []
+
+        while len(words):
+            buf.append(words.pop(0))
+            line = sep.join(buf)
+            if len(line) > width:
+                # Need to word wrap!
+                words.insert(0, buf.pop()) # Undo
+                lines.append(sep.join(buf))
+                buf = []
+                line = ""
+
+        # Straggler?
+        if line:
+            lines.append(line)
+
+        # Returned output
+        result = lines.pop(0)
+        if len(lines):
+            eol = ""
+            if sep == " ":
+                eol = "\s"
+            for item in lines:
+                result += eol + "\n" + indent + "^ " + item
+
+        return result
+
     def _initTT(self, toplevel, topic, trigger, what=''):
         """Initialize a Topic Tree data structure."""
         if toplevel == 'topics':
