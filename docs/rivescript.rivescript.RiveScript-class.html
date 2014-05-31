@@ -106,6 +106,26 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="_copy_trigger"></a><span class="summary-sig-name">_copy_trigger</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">trig</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">previous</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Make copies of all data below a trigger.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript._copy_trigger">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="_dump"></a><span class="summary-sig-name">_dump</span>(<span class="summary-sig-arg">self</span>)</span><br />
       For debugging, dump the entire data structure.</td>
           <td align="right" valign="top">
@@ -144,7 +164,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="_format_message"></a><span class="summary-sig-name">_format_message</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">msg</span>)</span><br />
+        <span class="summary-sig-arg">msg</span>,
+        <span class="summary-sig-arg">botreply</span>=<span class="summary-sig-default">False</span>)</span><br />
       Format a user's message for safe processing.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript._format_message">source&nbsp;code</a></span>
@@ -498,6 +519,47 @@
       
     </td>
   </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_write_triggers"></a><span class="summary-sig-name">_write_triggers</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">fh</span>,
+        <span class="summary-sig-arg">triggers</span>,
+        <span class="summary-sig-arg">indent</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>)</span><br />
+      Write triggers to a file handle.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript._write_triggers">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_write_wrapped"></a><span class="summary-sig-name">_write_wrapped</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">line</span>,
+        <span class="summary-sig-arg">sep</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"> </code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">indent</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">78</span>)</span><br />
+      Word-wrap a line of RiveScript code for being written to a file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript._write_wrapped">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -545,6 +607,23 @@
       Retrieve the user ID of the current user talking to your bot.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript.current_user">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rivescript.rivescript.RiveScript-class.html#deparse" class="summary-sig-name">deparse</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the in-memory RiveScript document as a Python data structure.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript.deparse">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -889,6 +968,25 @@
       
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rivescript.rivescript.RiveScript-class.html#write" class="summary-sig-name">write</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">fh</span>,
+        <span class="summary-sig-arg">deparsed</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Write the currently parsed RiveScript data into a file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript.write">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 </table>
 <!-- ==================== CLASS METHODS ==================== -->
 <a name="section-ClassMethods"></a>
@@ -1058,6 +1156,29 @@
   variable for that user from within the object).</p>
   <p>This will return None if used outside of the context of getting a 
   reply (i.e. the value is unset at the end of the `reply()` method).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="deparse"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">deparse</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript.deparse">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the in-memory RiveScript document as a Python data 
+  structure.</p>
+  <p>This would be useful for developing a user interface for editing 
+  RiveScript replies without having to edit the RiveScript code 
+  manually.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1424,6 +1545,34 @@ The `action` can be one of the following options:
   </dl>
 </td></tr></table>
 </div>
+<a name="write"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">write</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">fh</span>,
+        <span class="sig-arg">deparsed</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rivescript.rivescript-pysrc.html#RiveScript.write">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Write the currently parsed RiveScript data into a file.</p>
+  <p>Pass either a file name (string) or a file handle object.</p>
+  <p>This uses `deparse()` to dump a representation of the loaded data and 
+  writes it to the destination file. If you provide your own data as the 
+  `deparsed` argument, it will use that data instead of calling `deparse()`
+  itself. This way you can use `deparse()`, edit the data, and use that to 
+  write the RiveScript document (for example, to be used by a user 
+  interface for editing RiveScript without writing the code directly).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -1453,7 +1602,7 @@ The `action` can be one of the following options:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov 25 14:26:50 2013
+    Generated by Epydoc 3.0.1 on Fri May 30 18:21:11 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
