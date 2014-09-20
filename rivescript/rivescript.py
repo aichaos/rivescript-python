@@ -12,6 +12,7 @@ import codecs
 
 from . import __version__
 from . import python
+import rivescript_pb2 as proto
 
 # Common regular expressions.
 re_equals  = re.compile('\s*=\s*')
@@ -129,16 +130,41 @@ This may be called as either a class method of a method of a RiveScript object."
                     self.load_file(os.path.join(directory, item))
                     break
 
-    def load_file(self, filename):
+    def load_file(self, filename, force_compile=False):
         """Load and parse a RiveScript document."""
         self._say("Loading file: " + filename)
 
-        fh    = codecs.open(filename, 'r', 'utf-8')
-        lines = fh.readlines()
-        fh.close()
+        # Do we have a compiled file?
+        binary = False
+        rivec = filename + ".rivec"
+        parts = filename.split(".")
+        if len(parts) > 1:
+            parts[-1] = "rivec"
+            rivec = ".".join(parts)
+            if os.path.isfile(rivec):
+                # Do we need to recompile? If the compiled file is newer, we
+                # do not recompile.
+                if os.path.getmtime(rivec) > os.path.getmtime(filename) and not force_compile:
+                    self._say("Using compiled version {}".format(rivec))
+                    binary = True
+                    filename = rivec
 
-        self._say("Parsing " + str(len(lines)) + " lines of code from " + filename)
-        self._parse(filename, lines)
+        # Are we parsing text, or binary?
+        if binary:
+            document = proto.Document()
+            fh = codecs.open(filename, 'rb')
+            document.ParseFromString(fh.read())
+            fh.close()
+            return self._parse(document, rivec)
+        else:
+            fh    = codecs.open(filename, 'r', 'utf-8')
+            lines = fh.readlines()
+            fh.close()
+
+            self._say("Parsing " + str(len(lines)) + " lines of code from " + filename)
+            self._debug = True
+            self._compile(filename, rivec, lines)
+            self._debug = False
 
     def stream(self, code):
         """Stream in RiveScript source code dynamically.
@@ -147,8 +173,8 @@ This may be called as either a class method of a method of a RiveScript object."
         self._say("Streaming code.")
         self._parse("stream()", code)
 
-    def _parse(self, fname, code):
-        """Parse RiveScript code into memory."""
+    def _compile(self, fname, outfile, code):
+        """Compile RiveScript text into the Protocol Buffers binary format."""
         self._say("Parsing code")
 
         # Track temporary variables.
@@ -163,7 +189,13 @@ This may be called as either a class method of a method of a RiveScript object."
         repcnt  = 0        # Reply counter
         concnt  = 0        # Condition counter
         lastcmd = ''       # Last command code
-        isThat  = ''       # Is a %Previous trigger
+        isThat = '' # DEPRECATED
+
+        # Prepare protocol buffers containers.
+        binDocument = proto.Document(version="2.0")
+        binTopics   = dict() # Map of Topics
+        binMacros   = dict() # Map of Macros
+        binTriggers = dict() # Map of topic_name -> Trigger
 
         # Read each line.
         for lp, line in enumerate(code):
@@ -178,12 +210,7 @@ This may be called as either a class method of a method of a RiveScript object."
                 if re.match(re_objend, line):
                     # End the object.
                     if len(objname):
-                        # Call the object's handler.
-                        if objlang in self._handlers:
-                            self._objlangs[objname] = objlang
-                            self._handlers[objlang].load(objname, objbuf)
-                        else:
-                            self._warn("Object creation failed: no handler for " + objlang, fname, lineno)
+                        binMacros[objname].code = "\n".join(objbuf)
                     objname = ''
                     objlang = ''
                     objbuf  = []
@@ -234,11 +261,7 @@ This may be called as either a class method of a method of a RiveScript object."
                     self._warn(syntax_error)
                     return  # Don't try to continue
 
-            # Reset the %Previous state if this is a new +Trigger.
-            if cmd == '+':
-                isThat = ''
-
-            # Do a lookahead for ^Continue and %Previous commands.
+            # Do a lookahead for ^Continue commands.
             for i in range(lp + 1, len(code)):
                 lookahead = code[i].strip()
                 if len(lookahead) < 2:
@@ -248,18 +271,9 @@ This may be called as either a class method of a method of a RiveScript object."
 
                 # Only continue if the lookahead line has any data.
                 if len(lookahead) != 0:
-                    # The lookahead command has to be either a % or a ^.
-                    if lookCmd != '^' and lookCmd != '%':
+                    # The lookahead command has to be a ^Continue.
+                    if lookCmd != '^':
                         break
-
-                    # If the current command is a +, see if the following is
-                    # a %.
-                    if cmd == '+':
-                        if lookCmd == '%':
-                            isThat = lookahead
-                            break
-                        else:
-                            isThat = ''
 
                     # If the current command is a ! and the next command(s) are
                     # ^, we'll tack each extension on as a line break (which is
@@ -272,11 +286,8 @@ This may be called as either a class method of a method of a RiveScript object."
                     # If the current command is not a ^ and the line after is
                     # not a %, but the line after IS a ^, then tack it on to the
                     # end of the current line.
-                    if cmd != '^' and lookCmd != '%':
-                        if lookCmd == '^':
-                            line += lookahead
-                        else:
-                            break
+                    if cmd != '^' and lookCmd == '^':
+                        line += lookahead
 
             self._say("Command: " + cmd + "; line: " + line)
 
@@ -316,58 +327,10 @@ This may be called as either a class method of a method of a RiveScript object."
                     self._warn("Undefined variable value", fname, lineno)
                     continue
 
-                # Handle the rest of the types.
-                if type == 'global':
-                    # 'Global' variables
-                    self._say("\tSet global " + var + " = " + value)
-
-                    if value == '<undef>':
-                        try:
-                            del(self._gvars[var])
-                        except:
-                            self._warn("Failed to delete missing global variable", fname, lineno)
-                    else:
-                        self._gvars[var] = value
-
-                    # Handle flipping debug and depth vars.
-                    if var == 'debug':
-                        if value.lower() == 'true':
-                            value = True
-                        else:
-                            value = False
-                        self._debug = value
-                    elif var == 'depth':
-                        try:
-                            self._depth = int(value)
-                        except:
-                            self._warn("Failed to set 'depth' because the value isn't a number!", fname, lineno)
-                    elif var == 'strict':
-                        if value.lower() == 'true':
-                            self._strict = True
-                        else:
-                            self._strict = False
-                elif type == 'var':
-                    # Bot variables
-                    self._say("\tSet bot variable " + var + " = " + value)
-
-                    if value == '<undef>':
-                        try:
-                            del(self._bvars[var])
-                        except:
-                            self._warn("Failed to delete missing bot variable", fname, lineno)
-                    else:
-                        self._bvars[var] = value
-                elif type == 'array':
-                    # Arrays
-                    self._say("\tArray " + var + " = " + value)
-
-                    if value == '<undef>':
-                        try:
-                            del(self._arrays[var])
-                        except:
-                            self._warn("Failed to delete missing array", fname, lineno)
-                        continue
-
+                # Most config types are simple key/value stores.
+                if type in ["global", "var", "sub", "person"]:
+                    getattr(binDocument, type).add(key=var, value=value)
+                elif type == "array":
                     # Did this have multiple parts?
                     parts = value.split("<crlf>")
 
@@ -383,29 +346,7 @@ This may be called as either a class method of a method of a RiveScript object."
                     for f in fields:
                         f = f.replace(r'\s', ' ')
 
-                    self._arrays[var] = fields
-                elif type == 'sub':
-                    # Substitutions
-                    self._say("\tSubstitution " + var + " => " + value)
-
-                    if value == '<undef>':
-                        try:
-                            del(self._subs[var])
-                        except:
-                            self._warn("Failed to delete missing substitution", fname, lineno)
-                    else:
-                        self._subs[var] = value
-                elif type == 'person':
-                    # Person Substitutions
-                    self._say("\tPerson Substitution " + var + " => " + value)
-
-                    if value == '<undef>':
-                        try:
-                            del(self._person[var])
-                        except:
-                            self._warn("Failed to delete missing person substitution", fname, lineno)
-                    else:
-                        self._person[var] = value
+                    binDocument.array.add(name=var, content=fields)
                 else:
                     self._warn("Unknown definition type '" + type + "'", fname, lineno)
             elif cmd == '>':
@@ -422,14 +363,15 @@ This may be called as either a class method of a method of a RiveScript object."
                 # Handle the label types.
                 if type == 'begin':
                     # The BEGIN block.
-                    self._say("\tFound the BEGIN block.")
                     type = 'topic'
                     name = '__begin__'
                 if type == 'topic':
                     # Starting a new topic.
-                    self._say("\tSet topic to " + name)
                     ontrig = ''
                     topic  = name
+                    if not topic in binTopics:
+                        print "INITIALIZE TOPIC:", topic
+                        binTopics[topic] = binDocument.topic.add(name=topic)
 
                     # Does this topic include or inherit another one?
                     mode = ''  # or 'inherits' or 'includes'
@@ -442,13 +384,11 @@ This may be called as either a class method of a method of a RiveScript object."
                             elif mode != '':
                                 # This topic is either inherited or included.
                                 if mode == 'includes':
-                                    if not name in self._includes:
-                                        self._includes[name] = {}
-                                    self._includes[name][field] = 1
+                                    if not field in binTopics[topic].include:
+                                        binTopics[topic].include.append(field)
                                 else:
-                                    if not name in self._lineage:
-                                        self._lineage[name] = {}
-                                    self._lineage[name][field] = 1
+                                    if not field in binTopics[topic].inherit:
+                                        binTopics[topic].inherit.append(field)
                 elif type == 'object':
                     # If a field was provided, it should be the programming
                     # language.
@@ -456,25 +396,15 @@ This may be called as either a class method of a method of a RiveScript object."
                     if len(fields) > 0:
                         lang = fields[0].lower()
 
-                    # Only try to parse a language we support.
                     ontrig = ''
-                    if lang is None:
-                        self._warn("Trying to parse unknown programming language", fname, lineno)
-                        lang = 'python'  # Assume it's Python.
 
-                    # See if we have a defined handler for this language.
-                    if lang in self._handlers:
-                        # We have a handler, so start loading the code.
-                        objname = name
-                        objlang = lang
-                        objbuf  = []
-                        inobj   = True
-                    else:
-                        # We don't have a handler, just ignore it.
-                        objname = ''
-                        objlang = ''
-                        objbuf  = []
-                        inobj   = True
+                    binMacros[name] = binDocument.macro.add(name=name)
+                    if lang:
+                        binMacros[name].language = lang
+                    objname = name
+                    objlang = lang or "python" # Assume missing language is Python
+                    objbuf  = []
+                    inobj   = True
                 else:
                     self._warn("Unknown label type '" + type + "'", fname, lineno)
             elif cmd == '<':
@@ -487,61 +417,158 @@ This may be called as either a class method of a method of a RiveScript object."
                 elif type == 'object':
                     self._say("\tEnd object label.")
                     inobj = False
-            elif cmd == '+':
+
+            # All following commands will require a topic association.
+            if not topic in binTopics:
+                binTopics[topic] = binDocument.topic.add(name=topic)
+
+            if cmd == '+':
                 # + TRIGGER
                 self._say("\tTrigger pattern: " + line)
-                if len(isThat):
-                    self._initTT('thats', topic, isThat, line)
-                    self._initTT('syntax', topic, line, 'thats')
-                    self._syntax['thats'][topic][line]['trigger'] = (fname, lineno)
-                else:
-                    self._initTT('topics', topic, line)
-                    self._initTT('syntax', topic, line, 'topic')
-                    self._syntax['topic'][topic][line]['trigger'] = (fname, lineno)
                 ontrig = line
                 repcnt = 0
                 concnt = 0
+                if not topic in binTriggers:
+                    binTriggers[topic] = dict()
+                if not ontrig in binTriggers[topic]:
+                    binTriggers[topic][ontrig] = binTopics[topic].trigger.add(
+                        text=ontrig,
+                        syntax=proto.Syntax(filename=fname, line=lineno),
+                    )
             elif cmd == '-':
                 # - REPLY
                 if ontrig == '':
                     self._warn("Response found before trigger", fname, lineno)
                     continue
                 self._say("\tResponse: " + line)
-                if len(isThat):
-                    self._thats[topic][isThat][ontrig]['reply'][repcnt] = line
-                    self._syntax['thats'][topic][ontrig]['reply'][repcnt] = (fname, lineno)
-                else:
-                    self._topics[topic][ontrig]['reply'][repcnt] = line
-                    self._syntax['topic'][topic][ontrig]['reply'][repcnt] = (fname, lineno)
-                repcnt = repcnt + 1
+
+                binTriggers[topic][ontrig].reply.add(
+                    text=line,
+                    syntax=proto.Syntax(filename=fname, line=lineno),
+                )
             elif cmd == '%':
                 # % PREVIOUS
-                pass  # This was handled above.
+                binTriggers[topic][ontrig].previous = line
             elif cmd == '^':
                 # ^ CONTINUE
                 pass  # This was handled above.
             elif cmd == '@':
                 # @ REDIRECT
                 self._say("\tRedirect response to " + line)
-                if len(isThat):
-                    self._thats[topic][isThat][ontrig]['redirect'] = line
-                    self._syntax['thats'][topic][ontrig]['redirect'] = (fname, lineno)
-                else:
-                    self._topics[topic][ontrig]['redirect'] = line
-                    self._syntax['topic'][topic][ontrig]['redirect'] = (fname, lineno)
+                binTriggers[topic][ontrig].redirect.add(
+                    text=line,
+                    syntax=proto.Syntax(filename=fname, line=lineno),
+                )
             elif cmd == '*':
                 # * CONDITION
                 self._say("\tAdding condition: " + line)
-                if len(isThat):
-                    self._thats[topic][isThat][ontrig]['condition'][concnt] = line
-                    self._syntax['thats'][topic][ontrig]['condition'][concnt] = (fname, lineno)
-                else:
-                    self._topics[topic][ontrig]['condition'][concnt] = line
-                    self._syntax['topic'][topic][ontrig]['condition'][concnt] = (fname, lineno)
-                concnt = concnt + 1
+                parts = line.split("=>")
+                binTriggers[topic][ontrig].condition.add(
+                    condition=parts[0].strip(),
+                    text=parts[1].strip(),
+                    syntax=proto.Syntax(filename=fname, line=lineno),
+                )
             else:
                 self._warn("Unrecognized command \"" + cmd + "\"", fname, lineno)
                 continue
+
+        # Write the compiled output back to disk, if possible.
+        try:
+            fh = open(outfile, 'wb')
+            fh.write(binDocument.SerializeToString())
+            fh.close()
+        except:
+            pass
+
+        # Immediately parse the results.
+        return self._parse(binDocument, fname)
+
+    def _parse(self, document, fname):
+        """Parse RiveScript code into memory."""
+        self._say("Loading RiveScript document into memory.")
+
+        # Version checking.
+        if float(document.version) > rs_version:
+            self._warn("Won't process replies from {}: RiveScript version is too high!".format(fname))
+            return
+
+        # Load in configuration data.
+        for config in ["global", "var", "sub", "person", "array"]:
+            for item in getattr(document, config):
+                if config == "array":
+                    self._arrays[item.name] = item.content
+                else:
+                    intvar = config
+                    if config == "global":
+                        intvar = "gvars"
+                    elif config == "var":
+                        intvar = "bvars"
+                    elif config == "sub":
+                        intvar = "subs"
+                    getattr(self, "_{}".format(intvar))[item.key] = item.value
+
+        # Process the object macros.
+        for macro in document.macro:
+            # Do we have this language?
+            lang = macro.language or "python"
+            if lang in self._handlers:
+                self._objlangs[macro.name] = lang
+                self._handlers[lang].load(macro.name, macro.code.split("\n"))
+
+        # Go through all the topics.
+        for topic in document.topic:
+            self._say("Parsing topic from binary: {}".format(topic.name))
+
+            # Includes and Inherits.
+            for include in topic.include:
+                if not topic.name in self._includes:
+                    self._includes[topic.name] = {}
+                self._includes[topic.name][include] = 1
+            for inherit in topic.inherit:
+                if not topic.name in self._lineage:
+                    self._lineage[topic.name] = {}
+                self._lineage[topic.name][inherit] = 1
+
+            # TODO: handle when the "syntax" is missing (theoretically possible)
+
+            # Go through the topic's triggers.
+            for trigger in topic.trigger:
+                # Has a previous?
+                target = None
+                syntax = None
+                if trigger.previous:
+                    self._initTT("thats", topic.name, trigger.previous, trigger.text)
+                    self._initTT("syntax", topic.name, trigger.text, "thats")
+                    target = self._thats[topic.name][trigger.previous][trigger.text]
+                    syntax = self._syntax["thats"][topic.name][trigger.text]
+                    syntax["trigger"] = (trigger.syntax.filename, trigger.syntax.line)
+                else:
+                    self._initTT("topics", topic.name, trigger.text)
+                    self._initTT("syntax", topic.name, trigger.text, "topics")
+                    target = self._topics[topic.name][trigger.text]
+                    syntax = self._syntax["topics"][topic.name][trigger.text]
+                    syntax["trigger"] = (trigger.syntax.filename, trigger.syntax.line)
+
+                # Count replies & conditions.
+                repcnt = 0
+                concnt = 0
+
+                # Redirect?
+                if trigger.redirect:
+                    target["redirect"] = trigger.redirect
+                    syntax["redirect"] = (trigger.syntax.filename, trigger.syntax.line)
+
+                # Replies
+                for reply in trigger.reply:
+                    target["reply"][repcnt] = reply.text
+                    syntax["reply"][repcnt] = (reply.syntax.filename, reply.syntax.line)
+                    repcnt += 1
+
+                # Conditions
+                for condition in trigger.condition:
+                    target["condition"][repcnt] = condition.condition + " => " + condition.text
+                    syntax["condition"][repcnt] = (condition.syntax.filename, condition.syntax.line)
+                    concnt += 1
 
     def check_syntax(self, cmd, line):
         """Syntax check a RiveScript command and line.

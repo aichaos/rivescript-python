@@ -1,0 +1,86 @@
+package rivescript;
+
+// Protocol Buffer Schema for RiveScript Binary Format
+// Compile to Python by doing:
+//   $ protoc --python_out=rivescript/ rivescript.proto
+
+message Document {
+    // Wrapper for a complete RiveScript Document
+    required string version = 1; // RiveScript language version, i.e. 2.0
+    repeated Dict meta = 2;      // Optional meta information (author, etc.)
+
+    // Configuration variables (from your begin.rs)
+    repeated Dict global = 3; // global variables
+    repeated Dict var = 4;    // bot variables
+    repeated Dict sub = 5;    // substitutions
+    repeated Dict person = 6; // person substitutions
+    repeated Array array = 7; // arrays
+
+    // Topics in this document
+    repeated Topic topic = 8;
+
+    // Object macros in this document
+    repeated Macro macro = 9;
+}
+
+message Topic {
+    // A wrapper for topics, which group sets of triggers together
+    required string name = 1 [default = "random"];
+    repeated Trigger trigger = 2;
+    repeated string include = 3;
+    repeated string inherit = 4;
+}
+
+message Macro {
+    // Container for an object macro
+    required string name = 1;
+    optional string language = 2;
+    required string code = 3;
+}
+
+message Trigger {
+    required string text = 1;
+    repeated Reply reply = 2;
+    optional string previous = 3;
+    repeated Redirect redirect = 4;
+    repeated Condition condition = 5;
+    optional Syntax syntax = 6;
+}
+
+message Reply {
+    required string text = 1;
+    optional Syntax syntax = 2;
+}
+
+message Redirect {
+    required string text = 1;
+    optional Syntax syntax = 2;
+}
+
+message Condition {
+    required string condition = 1;
+    required string text = 2;
+    optional Syntax syntax = 3;
+}
+
+//
+// Primitive Types
+//
+
+message Syntax {
+    // Track the original file name and line number of anything.
+    required string filename = 1;
+    required uint32 line = 2;
+}
+
+message Array {
+    // String array type
+    required string name = 1;
+    repeated string content = 2;
+}
+
+message Dict {
+    // Key/value store
+    required string key = 1;
+    required string value = 2;
+}
