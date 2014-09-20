@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='rivescript.proto',
   package='rivescript',
-  serialized_pb='\n\x10rivescript.proto\x12\nrivescript\"\xa3\x02\n\x08\x44ocument\x12\x0f\n\x07version\x18\x01 \x02(\t\x12\x1e\n\x04meta\x18\x02 \x03(\x0b\x32\x10.rivescript.Dict\x12 \n\x06global\x18\x03 \x03(\x0b\x32\x10.rivescript.Dict\x12\x1d\n\x03var\x18\x04 \x03(\x0b\x32\x10.rivescript.Dict\x12\x1d\n\x03sub\x18\x05 \x03(\x0b\x32\x10.rivescript.Dict\x12 \n\x06person\x18\x06 \x03(\x0b\x32\x10.rivescript.Dict\x12 \n\x05\x61rray\x18\x07 \x03(\x0b\x32\x11.rivescript.Array\x12 \n\x05topic\x18\x08 \x03(\x0b\x32\x11.rivescript.Topic\x12 \n\x05macro\x18\t \x03(\x0b\x32\x11.rivescript.Macro\"e\n\x05Topic\x12\x14\n\x04name\x18\x01 \x02(\t:\x06random\x12$\n\x07trigger\x18\x02 \x03(\x0b\x32\x13.rivescript.Trigger\x12\x0f\n\x07include\x18\x03 \x03(\t\x12\x0f\n\x07inherit\x18\x04 \x03(\t\"5\n\x05Macro\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x10\n\x08language\x18\x02 \x01(\t\x12\x0c\n\x04\x63ode\x18\x03 \x02(\t\"\xc1\x01\n\x07Trigger\x12\x0c\n\x04text\x18\x01 \x02(\t\x12 \n\x05reply\x18\x02 \x03(\x0b\x32\x11.rivescript.Reply\x12\x10\n\x08previous\x18\x03 \x01(\t\x12&\n\x08redirect\x18\x04 \x03(\x0b\x32\x14.rivescript.Redirect\x12(\n\tcondition\x18\x05 \x03(\x0b\x32\x15.rivescript.Condition\x12\"\n\x06syntax\x18\x06 \x01(\x0b\x32\x12.rivescript.Syntax\"9\n\x05Reply\x12\x0c\n\x04text\x18\x01 \x02(\t\x12\"\n\x06syntax\x18\x02 \x01(\x0b\x32\x12.rivescript.Syntax\"<\n\x08Redirect\x12\x0c\n\x04text\x18\x01 \x02(\t\x12\"\n\x06syntax\x18\x02 \x01(\x0b\x32\x12.rivescript.Syntax\"P\n\tCondition\x12\x11\n\tcondition\x18\x01 \x02(\t\x12\x0c\n\x04text\x18\x02 \x02(\t\x12\"\n\x06syntax\x18\x03 \x01(\x0b\x32\x12.rivescript.Syntax\"(\n\x06Syntax\x12\x10\n\x08\x66ilename\x18\x01 \x02(\t\x12\x0c\n\x04line\x18\x02 \x02(\r\"&\n\x05\x41rray\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x03(\t\"\"\n\x04\x44ict\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t')
+  serialized_pb='\n\x10rivescript.proto\x12\nrivescript\"\xa3\x02\n\x08\x44ocument\x12\x0f\n\x07version\x18\x01 \x02(\t\x12\x1e\n\x04meta\x18\x02 \x03(\x0b\x32\x10.rivescript.Dict\x12 \n\x06global\x18\x03 \x03(\x0b\x32\x10.rivescript.Dict\x12\x1d\n\x03var\x18\x04 \x03(\x0b\x32\x10.rivescript.Dict\x12\x1d\n\x03sub\x18\x05 \x03(\x0b\x32\x10.rivescript.Dict\x12 \n\x06person\x18\x06 \x03(\x0b\x32\x10.rivescript.Dict\x12 \n\x05\x61rray\x18\x07 \x03(\x0b\x32\x11.rivescript.Array\x12 \n\x05topic\x18\x08 \x03(\x0b\x32\x11.rivescript.Topic\x12 \n\x05macro\x18\t \x03(\x0b\x32\x11.rivescript.Macro\"e\n\x05Topic\x12\x14\n\x04name\x18\x01 \x02(\t:\x06random\x12$\n\x07trigger\x18\x02 \x03(\x0b\x32\x13.rivescript.Trigger\x12\x0f\n\x07include\x18\x03 \x03(\t\x12\x0f\n\x07inherit\x18\x04 \x03(\t\"5\n\x05Macro\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x10\n\x08language\x18\x02 \x01(\t\x12\x0c\n\x04\x63ode\x18\x03 \x02(\t\"\xd7\x01\n\x07Trigger\x12\x0c\n\x04text\x18\x01 \x02(\t\x12 \n\x05reply\x18\x02 \x03(\x0b\x32\x11.rivescript.Reply\x12&\n\x08previous\x18\x03 \x03(\x0b\x32\x14.rivescript.Previous\x12&\n\x08redirect\x18\x04 \x03(\x0b\x32\x14.rivescript.Redirect\x12(\n\tcondition\x18\x05 \x03(\x0b\x32\x15.rivescript.Condition\x12\"\n\x06syntax\x18\x06 \x01(\x0b\x32\x12.rivescript.Syntax\"9\n\x05Reply\x12\x0c\n\x04text\x18\x01 \x02(\t\x12\"\n\x06syntax\x18\x02 \x01(\x0b\x32\x12.rivescript.Syntax\"<\n\x08Redirect\x12\x0c\n\x04text\x18\x01 \x02(\t\x12\"\n\x06syntax\x18\x02 \x01(\x0b\x32\x12.rivescript.Syntax\"<\n\x08Previous\x12\x0c\n\x04text\x18\x01 \x02(\t\x12\"\n\x06syntax\x18\x02 \x01(\x0b\x32\x12.rivescript.Syntax\"P\n\tCondition\x12\x11\n\tcondition\x18\x01 \x02(\t\x12\x0c\n\x04text\x18\x02 \x02(\t\x12\"\n\x06syntax\x18\x03 \x01(\x0b\x32\x12.rivescript.Syntax\"(\n\x06Syntax\x12\x10\n\x08\x66ilename\x18\x01 \x02(\t\x12\x0c\n\x04line\x18\x02 \x02(\r\"&\n\x05\x41rray\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x03(\t\"\"\n\x04\x44ict\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t')
 
 
 
@@ -216,8 +216,8 @@ _TRIGGER = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='previous', full_name='rivescript.Trigger.previous', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -252,7 +252,7 @@ _TRIGGER = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=485,
-  serialized_end=678,
+  serialized_end=700,
 )
 
 
@@ -286,8 +286,8 @@ _REPLY = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=680,
-  serialized_end=737,
+  serialized_start=702,
+  serialized_end=759,
 )
 
 
@@ -321,8 +321,43 @@ _REDIRECT = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=739,
-  serialized_end=799,
+  serialized_start=761,
+  serialized_end=821,
+)
+
+
+_PREVIOUS = _descriptor.Descriptor(
+  name='Previous',
+  full_name='rivescript.Previous',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='text', full_name='rivescript.Previous.text', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='syntax', full_name='rivescript.Previous.syntax', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=823,
+  serialized_end=883,
 )
 
 
@@ -363,8 +398,8 @@ _CONDITION = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=801,
-  serialized_end=881,
+  serialized_start=885,
+  serialized_end=965,
 )
 
 
@@ -398,8 +433,8 @@ _SYNTAX = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=883,
-  serialized_end=923,
+  serialized_start=967,
+  serialized_end=1007,
 )
 
 
@@ -433,8 +468,8 @@ _ARRAY = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=925,
-  serialized_end=963,
+  serialized_start=1009,
+  serialized_end=1047,
 )
 
 
@@ -468,8 +503,8 @@ _DICT = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=965,
-  serialized_end=999,
+  serialized_start=1049,
+  serialized_end=1083,
 )
 
 _DOCUMENT.fields_by_name['meta'].message_type = _DICT
@@ -482,11 +517,13 @@ _DOCUMENT.fields_by_name['topic'].message_type = _TOPIC
 _DOCUMENT.fields_by_name['macro'].message_type = _MACRO
 _TOPIC.fields_by_name['trigger'].message_type = _TRIGGER
 _TRIGGER.fields_by_name['reply'].message_type = _REPLY
+_TRIGGER.fields_by_name['previous'].message_type = _PREVIOUS
 _TRIGGER.fields_by_name['redirect'].message_type = _REDIRECT
 _TRIGGER.fields_by_name['condition'].message_type = _CONDITION
 _TRIGGER.fields_by_name['syntax'].message_type = _SYNTAX
 _REPLY.fields_by_name['syntax'].message_type = _SYNTAX
 _REDIRECT.fields_by_name['syntax'].message_type = _SYNTAX
+_PREVIOUS.fields_by_name['syntax'].message_type = _SYNTAX
 _CONDITION.fields_by_name['syntax'].message_type = _SYNTAX
 DESCRIPTOR.message_types_by_name['Document'] = _DOCUMENT
 DESCRIPTOR.message_types_by_name['Topic'] = _TOPIC
@@ -494,6 +531,7 @@ DESCRIPTOR.message_types_by_name['Macro'] = _MACRO
 DESCRIPTOR.message_types_by_name['Trigger'] = _TRIGGER
 DESCRIPTOR.message_types_by_name['Reply'] = _REPLY
 DESCRIPTOR.message_types_by_name['Redirect'] = _REDIRECT
+DESCRIPTOR.message_types_by_name['Previous'] = _PREVIOUS
 DESCRIPTOR.message_types_by_name['Condition'] = _CONDITION
 DESCRIPTOR.message_types_by_name['Syntax'] = _SYNTAX
 DESCRIPTOR.message_types_by_name['Array'] = _ARRAY
@@ -534,6 +572,12 @@ class Redirect(_message.Message):
   DESCRIPTOR = _REDIRECT
 
   # @@protoc_insertion_point(class_scope:rivescript.Redirect)
+
+class Previous(_message.Message):
+  __metaclass__ = _reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _PREVIOUS
+
+  # @@protoc_insertion_point(class_scope:rivescript.Previous)
 
 class Condition(_message.Message):
   __metaclass__ = _reflection.GeneratedProtocolMessageType

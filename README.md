@@ -10,6 +10,22 @@ trigger/response pairs for building up a bot's intelligence.
 
 This library is compatible with both Python 2 and Python 3.
 
+COMPILED RIVESCRIPT
+-------------------
+
+This branch includes some **experimental** code to support compiling RiveScript
+documents into binary files using Google's Protocol Buffers.
+
+When this module loads a RiveScript source file (`.rive`) it will feed it into a
+Protocol Buffer message and then write the binary compiled version to disk as
+a `.rivec` file (if it has permission to). On future attempts to load the same
+RiveScript document again, it will use the pre-compiled version which can be
+loaded into memory much more quickly.
+
+If you make a change to the source `.rive` file, RiveScript will re-compile it
+automatically. In this regard it works the same way Python does with their
+`.py` vs. `.pyc` files.
+
 USAGE
 -----
 

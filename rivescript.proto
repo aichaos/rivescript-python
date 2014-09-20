@@ -41,7 +41,7 @@ message Macro {
 message Trigger {
     required string text = 1;
     repeated Reply reply = 2;
-    optional string previous = 3;
+    repeated Previous previous = 3;
     repeated Redirect redirect = 4;
     repeated Condition condition = 5;
     optional Syntax syntax = 6;
@@ -53,6 +53,11 @@ message Reply {
 }
 
 message Redirect {
+    required string text = 1;
+    optional Syntax syntax = 2;
+}
+
+message Previous {
     required string text = 1;
     optional Syntax syntax = 2;
 }
