@@ -1,5 +1,21 @@
 Revision history for the Python package RiveScript.
 
+1.06  Nov 25 2014
+	- Change package name from python-rivescript to simply rivescript.
+	- Change from the GPLv2 license to the MIT license.
+	- Add compatibility with Python 3.
+	- Add Unicode support for RiveScript documents.
+	- Prefer the .rive extension for RS documents over the old .rs extension.
+	- Track filenames and line numbers when parsing RiveScript documents.
+	- Add Perl object handler example.
+	- Add current_user() method accessible from inside an object macro.
+	- Add unit tests.
+	- Add deparse() function that dumps the active memory state of the bot.
+	- Add write() method that writes the active memory state back to disk as a
+	  .rive file (uses deparse()).
+	- Bugfix with substitution placeholders.
+	- Bugfix with the <input> and <reply> tags.
+
 1.01  May 20 2013
 	- Small bugfix in _rot13 that caused crashes under certain circumstances.
 	- Small bugfix regarding the {weight} tag and atomic triggers.
