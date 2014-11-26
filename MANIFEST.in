@@ -7,3 +7,4 @@ include LICENSE
 recursive-include brain *.rive
 recursive-include eg *.py *.rive
 include example.py
+include example3.py
