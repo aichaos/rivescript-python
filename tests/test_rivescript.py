@@ -362,11 +362,15 @@ class ReplyTests(RiveScriptTestCase):
 
             + what is my name
             - Your name is <get name>, right?
+
+            + html test
+            - <set name=<b>Name</b>>This has some non-RS <em>tags</em> in it.
         """)
         self.reply("What is my name?", "Your name is undefined, right?")
         self.reply("My name is Alice", "OK.")
         self.reply("My name is Bob.", "I thought your name was Alice?")
         self.reply("What is my name?", "Your name is Bob, right?")
+        self.reply("HTML Test", "This has some non-RS <em>tags</em> in it.")
 
 
 class ObjectMacroTests(RiveScriptTestCase):

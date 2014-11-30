@@ -2050,8 +2050,14 @@ the value is unset at the end of the `reply()` method)."""
                     insert = "[ERR: Math couldn't '{}' to value '{}']".format(tag, self._users[user][var])
             elif tag == "get":
                 insert = self._users[user].get(data, "undefined")
+            else:
+                # Unrecognized tag.
+                insert = "\x00{}\x01".format(match)
 
             reply = reply.replace("<{}>".format(match), insert)
+
+        # Restore unrecognized tags.
+        reply = reply.replace("\x00", "<").replace("\x01", ">")
 
         # Streaming code. DEPRECATED!
         if '{!' in reply:
