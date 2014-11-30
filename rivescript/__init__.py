@@ -39,6 +39,6 @@ __status__     = 'Production'
 __docformat__  = 'plaintext'
 
 __all__      = ['rivescript']
-__version__  = '1.06'
+__version__  = '1.07'
 
 from .rivescript import RiveScript
