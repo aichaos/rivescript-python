@@ -5,8 +5,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-from rivescript import RiveScript
-from rivescript.rivescript import RS_ERR_MATCH, RS_ERR_REPLY
+from rivescript.rivescript import RS_ERR_MATCH
 
 from config import RiveScriptTestCase
 
@@ -353,6 +352,23 @@ class ReplyTests(RiveScriptTestCase):
         self.reply("Am I your master?", "Yes.")
 
 
+    def test_embedded_tags(self):
+        self.new("""
+            + my name is *
+            * <get name> != undefined => <set oldname=<get name>>I thought\s
+              ^ your name was <get oldname>?
+              ^ <set name=<formal>>
+            - <set name=<formal>>OK.
+
+            + what is my name
+            - Your name is <get name>, right?
+        """)
+        self.reply("What is my name?", "Your name is undefined, right?")
+        self.reply("My name is Alice", "OK.")
+        self.reply("My name is Bob.", "I thought your name was Alice?")
+        self.reply("What is my name?", "Your name is Bob, right?")
+
+
 class ObjectMacroTests(RiveScriptTestCase):
     """Test object macros."""
 
@@ -413,7 +429,7 @@ class ObjectMacroTests(RiveScriptTestCase):
 
             + test
             - Result: <call>test</call>
-        """)
+        """, debug=True)
         self.reply("test", "Result: Python here!")
         self.rs.set_handler("python", None)
         self.reply("test", "Result: [ERR: No Object Handler]")

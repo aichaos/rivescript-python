@@ -100,7 +100,7 @@ bool utf8:   Enable UTF-8 support."""
     def VERSION(self=None):
         """Return the version number of the RiveScript library.
 
-This may be called as either a class method of a method of a RiveScript object."""
+This may be called as either a class method or a method of a RiveScript object."""
         return __version__
 
     def _say(self, message):
@@ -183,7 +183,6 @@ This may be called as either a class method of a method of a RiveScript object."
         ontrig  = ''       # The current trigger
         repcnt  = 0        # Reply counter
         concnt  = 0        # Condition counter
-        lastcmd = ''       # Last command code
         isThat  = ''       # Is a %Previous trigger
 
         # Read each line.
@@ -588,12 +587,10 @@ Returns a syntax error string on error; None otherwise."""
             if parts[0] == "begin" and len(parts) > 1:
                 return "The 'begin' label takes no additional arguments, should be verbatim '> begin'"
             elif parts[0] == "topic":
-                rest = ' '.join(parts)
                 match = re.match(r'[^a-z0-9_\-\s]', line)
                 if match:
                     return "Topics should be lowercased and contain only numbers and letters"
             elif parts[0] == "object":
-                rest = ' '.join(parts)
                 match = re.match(r'[^A-Za-z0-9_\-\s]', line)
                 if match:
                     return "Objects can only contain numbers and letters"
@@ -1767,7 +1764,7 @@ the value is unset at the end of the `reply()` method)."""
         if not foundMatch:
             reply = RS_ERR_MATCH
         elif len(reply) == 0:
-            reply = RS_ERR_FOUND
+            reply = RS_ERR_REPLY
 
         self._say("Reply: " + reply)
 
@@ -1984,90 +1981,81 @@ the value is unset at the end of the `reply()` method)."""
                     output = self._string_format(match, item)
                 reply = re.sub(r'\{' + item + r'\}' + re.escape(match) + '\{/' + item + r'\}', output, reply)
 
-        # Bot variables: set (TODO: Perl RS doesn't support this)
-        reBotSet = re.findall(r'<bot (.+?)=(.+?)>', reply)
-        for match in reBotSet:
-            self._say("Set bot variable " + str(match[0]) + "=" + str(match[1]))
-            self._bvars[match[0]] = match[1]
-            reply = re.sub(r'<bot ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
+        # Handle all variable-related tags with an iterative regex approach,
+        # to allow for nesting of tags in arbitrary ways (think <set a=<get b>>)
+        # Dummy out the <call> tags first, because we don't handle them right
+        # here.
+        reply = reply.replace("<call>", "{__call__}")
+        reply = reply.replace("</call>", "{/__call__}")
+        while True:
+            # This regex will match a <tag> which contains no other tag inside
+            # it, i.e. in the case of <set a=<get b>> it will match <get b> but
+            # not the <set> tag, on the first pass. The second pass will get the
+            # <set> tag, and so on.
+            match = re.search(r'<([^<]+?)>', reply)
+            if not match: break # No remaining tags!
 
-        # Bot variables: get
-        reBot = re.findall(r'<bot (.+?)>', reply)
-        for match in reBot:
-            val = 'undefined'
-            if match in self._bvars:
-                val = self._bvars[match]
-            reply = re.sub(r'<bot ' + re.escape(match) + '>', val, reply)
+            match = match.group(1)
+            parts  = match.split(" ", 1)
+            tag    = parts[0]
+            data   = parts[1] if len(parts) > 1 else ""
+            insert = "" # Result of the tag evaluation
 
-        # Global vars: set (TODO: Perl RS doesn't support this)
-        reEnvSet = re.findall(r'<env (.+?)=(.+?)>', reply)
-        for match in reEnvSet:
-            self._say("Set global variable " + str(match[0]) + "=" + str(match[1]))
-            self._gvars[match[0]] = match[1]
-            reply = re.sub(r'<env ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
-
-        # Global vars
-        reEnv = re.findall(r'<env (.+?)>', reply)
-        for match in reEnv:
-            val = 'undefined'
-            if match in self._gvars:
-                val = self._gvars[match]
-            reply = re.sub(r'<env ' + re.escape(match) + '>', val, reply)
-
-        # Streaming code. DEPRECATED!
-        if '{!' in reply:
-            self._warn("Use of the {!...} tag is deprecated and not supported here.")
-
-        # Set user vars.
-        reSet = re.findall('<set (.+?)=(.+?)>', reply)
-        for match in reSet:
-            self._say("Set uservar " + str(match[0]) + "=" + str(match[1]))
-            self._users[user][match[0]] = match[1]
-            reply = re.sub('<set ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
-
-        # Math tags.
-        for item in ['add', 'sub', 'mult', 'div']:
-            matcher = re.findall('<' + item + r' (.+?)=(.+?)>', reply)
-            for match in matcher:
-                var    = match[0]
-                value  = match[1]
-                output = ''
+            # Handle the tags.
+            if tag == "bot" or tag == "env":
+                # <bot> and <env> tags are similar.
+                target = self._bvars if tag == "bot" else self._gvars
+                if "=" in data:
+                    # Setting a bot/env variable.
+                    parts = data.split("=")
+                    self._say("Set " + tag + " variable " + unicode(parts[0]) + "=" + unicode(parts[1]))
+                    target[parts[0]] = parts[1]
+                else:
+                    # Getting a bot/env variable.
+                    insert = target.get(data, "undefined")
+            elif tag == "set":
+                # <set> user vars.
+                parts = data.split("=")
+                self._say("Set uservar " + unicode(parts[0]) + "=" + unicode(parts[1]))
+                self._users[user][parts[0]] = parts[1]
+            elif tag in ["add", "sub", "mult", "div"]:
+                # Math operator tags.
+                parts = data.split("=")
+                var   = parts[0]
+                value = parts[1]
 
                 # Sanity check the value.
                 try:
                     value = int(value)
-
-                    # So far so good, initialize this one?
                     if not var in self._users[user]:
+                        # Initialize it.
                         self._users[user][var] = 0
                 except:
-                    output = "[ERR: Math can't '" + item + "' non-numeric value '" + value + "']"
+                    insert = "[ERR: Math can't '{}' non-numeric value '{}']".format(tag, value)
 
                 # Attempt the operation.
                 try:
                     orig = int(self._users[user][var])
                     new  = 0
-                    if item == 'add':
+                    if tag == "add":
                         new = orig + value
-                    elif item == 'sub':
+                    elif tag == "sub":
                         new = orig - value
-                    elif item == 'mult':
+                    elif tag == "mult":
                         new = orig * value
-                    elif item == 'div':
+                    elif tag == "div":
                         new = orig / value
                     self._users[user][var] = new
                 except:
-                    output = "[ERR: Math couldn't '" + item + "' to value '" + self._users[user][var] + "']"
+                    insert = "[ERR: Math couldn't '{}' to value '{}']".format(tag, self._users[user][var])
+            elif tag == "get":
+                insert = self._users[user].get(data, "undefined")
 
-                reply = re.sub('<' + item + ' ' + re.escape(var) + '=' + re.escape(str(value)) + '>', output, reply)
+            reply = reply.replace("<{}>".format(match), insert)
 
-        # Get user vars.
-        reGet = re.findall(r'<get (.+?)>', reply)
-        for match in reGet:
-            output = 'undefined'
-            if match in self._users[user]:
-                output = self._users[user][match]
-            reply = re.sub('<get ' + re.escape(match) + '>', str(output), reply)
+        # Streaming code. DEPRECATED!
+        if '{!' in reply:
+            self._warn("Use of the {!...} tag is deprecated and not supported here.")
 
         # Topic setter.
         reTopic = re.findall(r'\{topic=(.+?)\}', reply)
@@ -2085,6 +2073,8 @@ the value is unset at the end of the `reply()` method)."""
             reply = re.sub(r'\{@' + re.escape(match) + r'\}', subreply, reply)
 
         # Object caller.
+        reply = reply.replace("{__call__}", "<call>")
+        reply = reply.replace("{/__call__}", "</call>")
         reCall = re.findall(r'<call>(.+?)</call>', reply)
         for match in reCall:
             parts  = re.split(re_ws, match)
