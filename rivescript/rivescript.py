@@ -1997,7 +1997,7 @@ the value is unset at the end of the `reply()` method)."""
 
             match = match.group(1)
             parts  = match.split(" ", 1)
-            tag    = parts[0]
+            tag    = parts[0].lower()
             data   = parts[1] if len(parts) > 1 else ""
             insert = "" # Result of the tag evaluation
 
