@@ -4,6 +4,9 @@ Revision history for the Python package RiveScript.
 	- New algorithm for handling variable tags (<get>, <set>, <add>, <sub>,
 	  <mult>, <div>, <bot> and <env>) that allows for iterative nesting of
 	  these tags (for example, <set copy=<get orig>> will work now).
+	- Fix sorting algorithm, so triggers with matching word counts will be
+	  sorted by length descending.
+	- stream() function can accept a multiline string instead of an array
 
 1.06  Nov 25 2014
 	- Change package name from python-rivescript to simply rivescript.

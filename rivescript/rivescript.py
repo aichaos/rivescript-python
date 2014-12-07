@@ -164,8 +164,11 @@ This may be called as either a class method or a method of a RiveScript object."
     def stream(self, code):
         """Stream in RiveScript source code dynamically.
 
-`code` should be an array of lines of RiveScript code."""
+        `code` can either be a string containing RiveScript code or an array
+        of lines of RiveScript code."""
         self._say("Streaming code.")
+        if type(code) in [str, unicode]:
+            code = code.split("\n")
         self._parse("stream()", code)
 
     def _parse(self, fname, code):
@@ -1144,8 +1147,10 @@ Returns a syntax error string on error; None otherwise."""
             for ip in sorted(track.keys()):
                 self._say("ip=" + str(ip))
                 for kind in ['atomic', 'option', 'alpha', 'number', 'wild']:
-                    for i in sorted(track[ip][kind], reverse=True):
-                        running.extend(track[ip][kind][i])
+                    for wordcnt in sorted(track[ip][kind], reverse=True):
+                        # Triggers with a matching word count should be sorted
+                        # by length, descending.
+                        running.extend(sorted(track[ip][kind][wordcnt], key=len, reverse=True))
                 running.extend(sorted(track[ip]['under'], key=len, reverse=True))
                 running.extend(sorted(track[ip]['pound'], key=len, reverse=True))
                 running.extend(sorted(track[ip]['star'], key=len, reverse=True))

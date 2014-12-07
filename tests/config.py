@@ -7,7 +7,7 @@ from rivescript import RiveScript
 
 class RiveScriptTestCase(unittest.TestCase):
     """Base class for all RiveScript test cases, with helper functions."""
-    
+
     def setUp(self, **kwargs):
         self.rs = None # Local RiveScript bot object
         self.username = "localuser"
@@ -15,7 +15,7 @@ class RiveScriptTestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
 
     def new(self, code, **kwargs):
         """Make a bot and stream in the code."""
@@ -25,8 +25,7 @@ class RiveScriptTestCase(unittest.TestCase):
 
     def extend(self, code):
         """Stream code into the bot."""
-        lines = code.split("\n")
-        self.rs.stream(lines)
+        self.rs.stream(code)
         self.rs.sort_replies()
 
 
