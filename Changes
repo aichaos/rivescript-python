@@ -7,6 +7,10 @@ Revision history for the Python package RiveScript.
 	- Fix sorting algorithm, so triggers with matching word counts will be
 	  sorted by length descending.
 	- stream() function can accept a multiline string instead of an array
+	- Speed optimization by precompiling as many regexps as possible (what was
+	  especially helpful was to precompile substitution and simple trigger
+	  regexps), taking the time-to-reply for the default brain from ~0.19s down
+	  to ~0.04s
 
 1.06  Nov 25 2014
 	- Change package name from python-rivescript to simply rivescript.

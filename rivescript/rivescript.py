@@ -35,13 +35,40 @@ from . import __version__
 from . import python
 
 # Common regular expressions.
-re_equals  = re.compile('\s*=\s*')
-re_ws      = re.compile('\s+')
-re_objend  = re.compile('^\s*<\s*object')
-re_weight  = re.compile('\{weight=(\d+)\}')
-re_inherit = re.compile('\{inherits=(\d+)\}')
-re_wilds   = re.compile('[\s\*\#\_]+')
-re_nasties = re.compile('[^A-Za-z0-9 ]')
+class RE(object):
+    equals      = re.compile('\s*=\s*')
+    ws          = re.compile('\s+')
+    objend      = re.compile('^\s*<\s*object')
+    weight      = re.compile('\{weight=(\d+)\}')
+    inherit     = re.compile('\{inherits=(\d+)\}')
+    wilds       = re.compile('[\s\*\#\_]+')
+    nasties     = re.compile('[^A-Za-z0-9 ]')
+    crlf        = re.compile('<crlf>')
+    literal_w   = re.compile(r'\\w')
+    array       = re.compile(r'\@(.+?)\b')
+    def_syntax  = re.compile(r'^.+(?:\s+.+|)\s*=\s*.+?$')
+    name_syntax = re.compile(r'[^a-z0-9_\-\s]')
+    utf8_trig   = re.compile(r'[A-Z\\.]')
+    trig_syntax = re.compile(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]')
+    cond_syntax = re.compile(r'^.+?\s*(?:==|eq|!=|ne|<>|<|<=|>|>=)\s*.+?=>.+?$')
+    utf8_meta   = re.compile(r'[\\<>]')
+    utf8_punct  = re.compile(r'[.?,!;:@#$%^&*()]')
+    cond_split  = re.compile(r'\s*=>\s*')
+    cond_parse  = re.compile(r'^(.+?)\s+(==|eq|!=|ne|<>|<|<=|>|>=)\s+(.+?)$')
+    topic_tag   = re.compile(r'\{topic=(.+?)\}')
+    set_tag     = re.compile(r'<set (.+?)=(.+?)>')
+    bot_tag     = re.compile(r'<bot (.+?)>')
+    get_tag     = re.compile(r'<get (.+?)>')
+    star_tags   = re.compile(r'<star(\d+)>')
+    botstars    = re.compile(r'<botstar(\d+)>')
+    input_tags  = re.compile(r'<input([1-9])>')
+    reply_tags  = re.compile(r'<reply([1-9])>')
+    random_tags = re.compile(r'\{random\}(.+?)\{/random\}')
+    redir_tag   = re.compile(r'\{@(.+?)\}')
+    tag_search  = re.compile(r'<([^<]+?)>')
+    placeholder = re.compile(r'\x00(\d+)\x00')
+    zero_star   = re.compile(r'^\*$')
+    optionals   = re.compile(r'\[(.+?)\]')
 
 # Version of RiveScript we support.
 rs_version = 2.0
@@ -87,6 +114,11 @@ bool utf8:   Enable UTF-8 support."""
         self._thats    = {}     # %Previous reply structure
         self._sorted   = {}     # Sorted buffers
         self._syntax   = {}     # Syntax tracking (filenames & line no.'s)
+        self._regexc   = {      # Precomputed regexes for speed optimizations.
+            "trigger": {},
+            "subs":    {},
+            "person":  {},
+        }
 
         # "Current request" variables.
         self._current_user = None  # The current user ID.
@@ -198,7 +230,7 @@ This may be called as either a class method or a method of a RiveScript object."
 
             # In an object?
             if inobj:
-                if re.match(re_objend, line):
+                if re.match(RE.objend, line):
                     # End the object.
                     if len(objname):
                         # Call the object's handler.
@@ -306,8 +338,8 @@ This may be called as either a class method or a method of a RiveScript object."
             # Handle the types of RiveScript commands.
             if cmd == '!':
                 # ! DEFINE
-                halves = re.split(re_equals, line, 2)
-                left = re.split(re_ws, halves[0].strip(), 2)
+                halves = re.split(RE.equals, line, 2)
+                left = re.split(RE.ws, halves[0].strip(), 2)
                 value, type, var = '', '', ''
                 if len(halves) == 2:
                     value = halves[1].strip()
@@ -318,7 +350,7 @@ This may be called as either a class method or a method of a RiveScript object."
 
                 # Remove 'fake' line breaks unless this is an array.
                 if type != 'array':
-                    value = re.sub(r'<crlf>', '', value)
+                    value = re.sub(RE.crlf, '', value)
 
                 # Handle version numbers.
                 if type == 'version':
@@ -400,11 +432,11 @@ This may be called as either a class method or a method of a RiveScript object."
                         if '|' in val:
                             fields.extend(val.split('|'))
                         else:
-                            fields.extend(re.split(re_ws, val))
+                            fields.extend(re.split(RE.ws, val))
 
                     # Convert any remaining '\s' escape codes into spaces.
                     for f in fields:
-                        f = f.replace(r'\s', ' ')
+                        f = f.replace('\s', ' ')
 
                     self._arrays[var] = fields
                 elif type == 'sub':
@@ -418,6 +450,9 @@ This may be called as either a class method or a method of a RiveScript object."
                             self._warn("Failed to delete missing substitution", fname, lineno)
                     else:
                         self._subs[var] = value
+
+                    # Precompile the regexp.
+                    self._precompile_substitution("subs", var)
                 elif type == 'person':
                     # Person Substitutions
                     self._say("\tPerson Substitution " + var + " => " + value)
@@ -429,11 +464,14 @@ This may be called as either a class method or a method of a RiveScript object."
                             self._warn("Failed to delete missing person substitution", fname, lineno)
                     else:
                         self._person[var] = value
+
+                    # Precompile the regexp.
+                    self._precompile_substitution("person", var)
                 else:
                     self._warn("Unknown definition type '" + type + "'", fname, lineno)
             elif cmd == '>':
                 # > LABEL
-                temp = re.split(re_ws, line)
+                temp = re.split(RE.ws, line)
                 type   = temp[0]
                 name   = ''
                 fields = []
@@ -524,6 +562,9 @@ This may be called as either a class method or a method of a RiveScript object."
                 ontrig = line
                 repcnt = 0
                 concnt = 0
+
+                # Pre-compile the trigger's regexp if possible.
+                self._precompile_regexp(ontrig)
             elif cmd == '-':
                 # - REPLY
                 if ontrig == '':
@@ -578,7 +619,7 @@ Returns a syntax error string on error; None otherwise."""
             #     ! type name = value
             #     OR
             #     ! type = value
-            match = re.match(r'^.+(?:\s+.+|)\s*=\s*.+?$', line)
+            match = re.match(RE.def_syntax, line)
             if not match:
                 return "Invalid format for !Definition line: must be '! type name = value' OR '! type = value'"
         elif cmd == '>':
@@ -590,11 +631,11 @@ Returns a syntax error string on error; None otherwise."""
             if parts[0] == "begin" and len(parts) > 1:
                 return "The 'begin' label takes no additional arguments, should be verbatim '> begin'"
             elif parts[0] == "topic":
-                match = re.match(r'[^a-z0-9_\-\s]', line)
+                match = re.match(RE.name_syntax, line)
                 if match:
                     return "Topics should be lowercased and contain only numbers and letters"
             elif parts[0] == "object":
-                match = re.match(r'[^A-Za-z0-9_\-\s]', line)
+                match = re.match(RE.name_syntax, line)
                 if match:
                     return "Objects can only contain numbers and letters"
         elif cmd == '+' or cmd == '%' or cmd == '@':
@@ -640,11 +681,11 @@ Returns a syntax error string on error; None otherwise."""
 
             # In UTF-8 mode, most symbols are allowed.
             if self._utf8:
-                match = re.match(r'[A-Z\\.]', line)
+                match = re.match(RE.utf8_trig, line)
                 if match:
                     return "Triggers can't contain uppercase letters, backslashes or dots in UTF-8 mode."
             else:
-                match = re.match(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]', line)
+                match = re.match(RE.trig_syntax, line)
                 if match:
                     return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > ="
         elif cmd == '-' or cmd == '^' or cmd == '/':
@@ -655,7 +696,7 @@ Returns a syntax error string on error; None otherwise."""
             # * Condition
             #   Syntax for a conditional is as follows:
             #   * value symbol value => response
-            match = re.match(r'^.+?\s*(?:==|eq|!=|ne|<>|<|<=|>|>=)\s*.+?=>.+?$', line)
+            match = re.match(RE.cond_syntax, line)
             if not match:
                 return "Invalid format for !Condition: should be like '* value symbol value => response'"
 
@@ -1048,7 +1089,7 @@ Returns a syntax error string on error; None otherwise."""
         }
 
         for trig in triggers:
-            match, weight = re.search(re_weight, trig), 0
+            match, weight = re.search(RE.weight, trig), 0
             if match:
                 weight = int(match.group(1))
             if not weight in prior:
@@ -1078,13 +1119,13 @@ Returns a syntax error string on error; None otherwise."""
                 self._say("\t\tLooking at trigger: " + trig)
 
                 # See if it has an inherits tag.
-                match = re.search(re_inherit, trig)
+                match = re.search(RE.inherit, trig)
                 if match:
                     inherits = int(match.group(1))
                     if inherits > highest_inherits:
                         highest_inherits = inherits
                     self._say("\t\t\tTrigger belongs to a topic which inherits other topics: level=" + str(inherits))
-                    trig = re.sub(re_inherit, "", trig)
+                    trig = re.sub(RE.inherit, "", trig)
                 else:
                     inherits = -1
 
@@ -1508,11 +1549,11 @@ the value is unset at the end of the `reply()` method)."""
         # In UTF-8 mode, only strip metacharacters and HTML brackets
         # (to protect from obvious XSS attacks).
         if self._utf8:
-            msg = re.sub(r'[\\<>]', '', msg)
+            msg = re.sub(RE.utf8_meta, '', msg)
 
             # For the bot's reply, also strip common punctuation.
             if botreply:
-                msg = re.sub(r'[.?,!;:@#$%^&*()]', '', msg)
+                msg = re.sub(RE.utf8_punct, '', msg)
         else:
             # For everything else, strip all non-alphanumerics.
             msg = self._strip_nasties(msg)
@@ -1601,19 +1642,19 @@ the value is unset at the end of the `reply()` method)."""
                     # See if it's a match.
                     for trig in self._sorted["thats"][top]:
                         botside = self._reply_regexp(user, trig)
-                        self._say("Try to match lastReply (" + lastReply + ") to " + botside)
+                        self._say("Try to match lastReply (" + lastReply + ") to " + trig)
 
                         # Match??
-                        match = re.match(r'^' + botside + r'$', lastReply)
+                        match = re.match(botside, lastReply)
                         if match:
                             # Huzzah! See if OUR message is right too.
                             self._say("Bot side matched!")
                             thatstars = match.groups()
                             for subtrig in self._sorted["that_trig"][top][trig]:
                                 humanside = self._reply_regexp(user, subtrig)
-                                self._say("Now try to match " + msg + " to " + humanside)
+                                self._say("Now try to match " + msg + " to " + subtrig)
 
-                                match = re.match(r'^' + humanside + '$', msg)
+                                match = re.match(humanside, msg)
                                 if match:
                                     self._say("Found a match!")
                                     matched = self._thats[top][trig][subtrig]
@@ -1645,11 +1686,11 @@ the value is unset at the end of the `reply()` method)."""
                 if isAtomic:
                     # Only look for exact matches, no sense running atomic triggers
                     # through the regexp engine.
-                    if msg == regexp:
+                    if msg == trig:
                         isMatch = True
                 else:
                     # Non-atomic triggers always need the regexp.
-                    match = re.match(r'^' + regexp + r'$', msg)
+                    match = re.match(regexp, msg)
                     if match:
                         # The regexp matched!
                         isMatch = True
@@ -1689,9 +1730,9 @@ the value is unset at the end of the `reply()` method)."""
 
                 # Check the conditionals.
                 for con in sorted(matched["condition"]):
-                    halves = re.split(r'\s*=>\s*', matched["condition"][con])
+                    halves = re.split(RE.cond_split, matched["condition"][con])
                     if halves and len(halves) == 2:
-                        condition = re.match(r'^(.+?)\s+(==|eq|!=|ne|<>|<|<=|>|>=)\s+(.+?)$', halves[0])
+                        condition = re.match(RE.cond_parse, halves[0])
                         if condition:
                             left     = condition.group(1)
                             eq       = condition.group(2)
@@ -1752,7 +1793,7 @@ the value is unset at the end of the `reply()` method)."""
                 for rep in sorted(matched["reply"]):
                     text = matched["reply"][rep]
                     weight = 1
-                    match  = re.match(re_weight, text)
+                    match  = re.match(RE.weight, text)
                     if match:
                         weight = int(match.group(1))
                         if weight <= 0:
@@ -1777,13 +1818,13 @@ the value is unset at the end of the `reply()` method)."""
         if context == "begin":
             # BEGIN blocks can only set topics and uservars. The rest happen
             # later!
-            reTopic = re.findall(r'\{topic=(.+?)\}', reply)
+            reTopic = re.findall(RE.topic_tag, reply)
             for match in reTopic:
                 self._say("Setting user's topic to " + match)
                 self._users[user]["topic"] = match
                 reply = re.sub(r'\{topic=' + re.escape(match) + r'\}', '', reply)
 
-            reSet = re.findall('<set (.+?)=(.+?)>', reply)
+            reSet = re.findall(RE.set_tag, reply)
             for match in reSet:
                 self._say("Set uservar " + str(match[0]) + "=" + str(match[1]))
                 self._users[user][match[0]] = match[1]
@@ -1794,18 +1835,18 @@ the value is unset at the end of the `reply()` method)."""
 
         return reply
 
-    def _substitute(self, msg, list):
+    def _substitute(self, msg, kind):
         """Run a kind of substitution on a message."""
 
         # Safety checking.
         if not 'lists' in self._sorted:
             raise Exception("You forgot to call sort_replies()!")
-        if not list in self._sorted["lists"]:
+        if not kind in self._sorted["lists"]:
             raise Exception("You forgot to call sort_replies()!")
 
         # Get the substitution map.
         subs = None
-        if list == 'subs':
+        if kind == 'subs':
             subs = self._subs
         else:
             subs = self._person
@@ -1814,7 +1855,7 @@ the value is unset at the end of the `reply()` method)."""
         ph = []
         i  = 0
 
-        for pattern in self._sorted["lists"][list]:
+        for pattern in self._sorted["lists"][kind]:
             result = subs[pattern]
 
             # Make a placeholder.
@@ -1822,13 +1863,13 @@ the value is unset at the end of the `reply()` method)."""
             placeholder = "\x00%d\x00" % i
             i += 1
 
-            qm = re.escape(pattern)
-            msg = re.sub(r'^' + qm + "$", placeholder, msg)
-            msg = re.sub(r'^' + qm + r'(\W+)', placeholder + r'\1', msg)
-            msg = re.sub(r'(\W+)' + qm + r'(\W+)', r'\1' + placeholder + r'\2', msg)
-            msg = re.sub(r'(\W+)' + qm + r'$', r'\1' + placeholder, msg)
+            cache = self._regexc[kind][pattern]
+            msg = re.sub(cache["sub1"], placeholder, msg)
+            msg = re.sub(cache["sub2"], placeholder + r'\1', msg)
+            msg = re.sub(cache["sub3"], r'\1' + placeholder + r'\2', msg)
+            msg = re.sub(cache["sub4"], r'\1' + placeholder, msg)
 
-        placeholders = re.findall(r'\x00(\d+)\x00', msg)
+        placeholders = re.findall(RE.placeholder, msg)
         for match in placeholders:
             i = int(match)
             result = ph[i]
@@ -1837,22 +1878,42 @@ the value is unset at the end of the `reply()` method)."""
         # Strip & return.
         return msg.strip()
 
+    def _precompile_substitution(self, kind, pattern):
+        """Pre-compile the regexp for a substitution pattern.
+
+        This will speed up the substitutions that happen at the beginning of
+        the reply fetching process. With the default brain, this took the
+        time for _substitute down from 0.08s to 0.02s"""
+        if not pattern in self._regexc[kind]:
+            qm = re.escape(pattern)
+            self._regexc[kind][pattern] = {
+                "qm": qm,
+                "sub1": re.compile(r'^' + qm + r'$'),
+                "sub2": re.compile(r'^' + qm + r'(\W+)'),
+                "sub3": re.compile(r'(\W+)' + qm + r'(\W+)'),
+                "sub4": re.compile(r'(\W+)' + qm + r'$'),
+            }
+
     def _reply_regexp(self, user, regexp):
         """Prepares a trigger for the regular expression engine."""
 
+        if regexp in self._regexc["trigger"]:
+            # Already compiled this one!
+            return self._regexc["trigger"][regexp]
+
         # If the trigger is simply '*' then the * there needs to become (.*?)
         # to match the blank string too.
-        regexp = re.sub(r'^\*$', r'<zerowidthstar>', regexp)
+        regexp = re.sub(RE.zero_star, r'<zerowidthstar>', regexp)
 
         # Simple replacements.
-        regexp = re.sub(r'\*', r'(.+?)', regexp)  # Convert * into (.+?)
-        regexp = re.sub(r'#', r'(\d+?)', regexp)  # Convert # into (\d+?)
-        regexp = re.sub(r'_', r'(\w+?)', regexp)  # Convert _ into (\w+?)
+        regexp = regexp.replace('*', '(.+?)')   # Convert * into (.+?)
+        regexp = regexp.replace('#', '(\d+?)')  # Convert # into (\d+?)
+        regexp = regexp.replace('_', '(\w+?)')  # Convert _ into (\w+?)
         regexp = re.sub(r'\{weight=\d+\}', '', regexp) # Remove {weight} tags
-        regexp = re.sub(r'<zerowidthstar>', r'(.*?)', regexp)
+        regexp = regexp.replace('<zerowidthstar>', r'(.*?)')
 
         # Optionals.
-        optionals = re.findall(r'\[(.+?)\]', regexp)
+        optionals = re.findall(RE.optionals, regexp)
         for match in optionals:
             parts = match.split("|")
             new = []
@@ -1871,10 +1932,10 @@ the value is unset at the end of the `reply()` method)."""
             regexp = re.sub(r'\s*\[' + re.escape(match) + '\]\s*', '(?:' + pipes + ')', regexp)
 
         # _ wildcards can't match numbers!
-        regexp = re.sub(r'\\w', r'[A-Za-z]', regexp)
+        regexp = re.sub(RE.literal_w, r'[A-Za-z]', regexp)
 
         # Filter in arrays.
-        arrays = re.findall(r'\@(.+?)\b', regexp)
+        arrays = re.findall(RE.array, regexp)
         for array in arrays:
             rep = ''
             if array in self._arrays:
@@ -1882,7 +1943,7 @@ the value is unset at the end of the `reply()` method)."""
             regexp = re.sub(r'\@' + re.escape(array) + r'\b', rep, regexp)
 
         # Filter in bot variables.
-        bvars = re.findall(r'<bot (.+?)>', regexp)
+        bvars = re.findall(RE.bot_tag, regexp)
         for var in bvars:
             rep = ''
             if var in self._bvars:
@@ -1890,7 +1951,7 @@ the value is unset at the end of the `reply()` method)."""
             regexp = re.sub(r'<bot ' + re.escape(var) + r'>', rep, regexp)
 
         # Filter in user variables.
-        uvars = re.findall(r'<get (.+?)>', regexp)
+        uvars = re.findall(RE.get_tag, regexp)
         for var in uvars:
             rep = ''
             if var in self._users[user]:
@@ -1912,7 +1973,23 @@ the value is unset at the end of the `reply()` method)."""
                 )
                 # TODO: the Perl version doesn't do just <input>/<reply> in trigs!
 
-        return regexp
+        return re.compile(r'^' +regexp + r'$')
+
+    def _precompile_regexp(self, trigger):
+        """Precompile the regex for most triggers.
+
+        If the trigger is non-atomic, and doesn't include dynamic tags like
+        `<bot>`, `<get>`, `<input>/<reply>` or arrays, it can be precompiled
+        and save time when matching."""
+        if self._is_atomic(trigger):
+            return # Don't need a regexp for atomic triggers.
+
+        # Check for dynamic tags.
+        for tag in ["@", "<bot", "<get", "<input", "<reply"]:
+            if tag in trigger:
+                return # Can't precompile this trigger.
+
+        self._regexc["trigger"][trigger] = self._reply_regexp(None, trigger)
 
     def _process_tags(self, user, msg, reply, st=[], bst=[], depth=0):
         """Post process tags in a message."""
@@ -1926,46 +2003,46 @@ the value is unset at the end of the `reply()` method)."""
             botstars.append("undefined")
 
         # Tag shortcuts.
-        reply = re.sub('<person>', '{person}<star>{/person}', reply)
-        reply = re.sub('<@>', '{@<star>}', reply)
-        reply = re.sub('<formal>', '{formal}<star>{/formal}', reply)
-        reply = re.sub('<sentence>', '{sentence}<star>{/sentence}', reply)
-        reply = re.sub('<uppercase>', '{uppercase}<star>{/uppercase}', reply)
-        reply = re.sub('<lowercase>', '{lowercase}<star>{/lowercase}', reply)
+        reply = reply.replace('<person>', '{person}<star>{/person}')
+        reply = reply.replace('<@>', '{@<star>}')
+        reply = reply.replace('<formal>', '{formal}<star>{/formal}')
+        reply = reply.replace('<sentence>', '{sentence}<star>{/sentence}')
+        reply = reply.replace('<uppercase>', '{uppercase}<star>{/uppercase}')
+        reply = reply.replace('<lowercase>', '{lowercase}<star>{/lowercase}')
 
         # Weight and <star> tags.
-        reply = re.sub(r'\{weight=\d+\}', '', reply)  # Leftover {weight}s
+        reply = re.sub(RE.weight, '', reply)  # Leftover {weight}s
         if len(stars) > 0:
-            reply = re.sub('<star>', stars[1], reply)
-            reStars = re.findall(r'<star(\d+)>', reply)
+            reply = reply.replace('<star>', stars[1])
+            reStars = re.findall(RE.star_tags, reply)
             for match in reStars:
                 if int(match) < len(stars):
                     reply = re.sub(r'<star' + match + '>', stars[int(match)], reply)
         if len(botstars) > 0:
-            reply = re.sub('<botstar>', botstars[1], reply)
-            reStars = re.findall(r'<botstar(\d+)>', reply)
+            reply = reply.replace('<botstar>', botstars[1])
+            reStars = re.findall(RE.botstars, reply)
             for match in reStars:
                 if int(match) < len(botstars):
                     reply = re.sub(r'<botstar' + match + '>', botstars[int(match)], reply)
 
         # <input> and <reply>
-        reply = re.sub('<input>', self._users[user]['__history__']['input'][0], reply)
-        reply = re.sub('<reply>', self._users[user]['__history__']['reply'][0], reply)
-        reInput = re.findall(r'<input([1-9])>', reply)
+        reply = reply.replace('<input>', self._users[user]['__history__']['input'][0])
+        reply = reply.replace('<reply>', self._users[user]['__history__']['reply'][0])
+        reInput = re.findall(RE.input_tags, reply)
         for match in reInput:
             reply = re.sub(r'<input' + match + r'>', self._users[user]['__history__']['input'][int(match) - 1], reply)
-        reReply = re.findall(r'<reply([1-9])>', reply)
+        reReply = re.findall(RE.reply_tags, reply)
         for match in reReply:
             reply = re.sub(r'<reply' + match + r'>', self._users[user]['__history__']['reply'][int(match) - 1], reply)
 
         # <id> and escape codes.
-        reply = re.sub(r'<id>', user, reply)
-        reply = re.sub(r'\\s', ' ', reply)
-        reply = re.sub(r'\\n', "\n", reply)
-        reply = re.sub(r'\\#', r'#', reply)
+        reply = reply.replace('<id>', user)
+        reply = reply.replace('\\s', ' ')
+        reply = reply.replace('\\n', "\n")
+        reply = reply.replace('\\#', '#')
 
         # Random bits.
-        reRandom = re.findall(r'\{random\}(.+?)\{/random\}', reply)
+        reRandom = re.findall(RE.random_tags, reply)
         for match in reRandom:
             output = ''
             if '|' in match:
@@ -1997,7 +2074,7 @@ the value is unset at the end of the `reply()` method)."""
             # it, i.e. in the case of <set a=<get b>> it will match <get b> but
             # not the <set> tag, on the first pass. The second pass will get the
             # <set> tag, and so on.
-            match = re.search(r'<([^<]+?)>', reply)
+            match = re.search(RE.tag_search, reply)
             if not match: break # No remaining tags!
 
             match = match.group(1)
@@ -2069,14 +2146,14 @@ the value is unset at the end of the `reply()` method)."""
             self._warn("Use of the {!...} tag is deprecated and not supported here.")
 
         # Topic setter.
-        reTopic = re.findall(r'\{topic=(.+?)\}', reply)
+        reTopic = re.findall(RE.topic_tag, reply)
         for match in reTopic:
             self._say("Setting user's topic to " + match)
             self._users[user]["topic"] = match
             reply = re.sub(r'\{topic=' + re.escape(match) + r'\}', '', reply)
 
         # Inline redirecter.
-        reRedir = re.findall(r'\{@(.+?)\}', reply)
+        reRedir = re.findall(RE.redir_tag, reply)
         for match in reRedir:
             self._say("Redirect to " + match)
             at = match.strip()
@@ -2088,7 +2165,7 @@ the value is unset at the end of the `reply()` method)."""
         reply = reply.replace("{/__call__}", "</call>")
         reCall = re.findall(r'<call>(.+?)</call>', reply)
         for match in reCall:
-            parts  = re.split(re_ws, match)
+            parts  = re.split(RE.ws, match)
             output = ''
             obj    = parts[0]
             args   = []
@@ -2286,9 +2363,9 @@ the value is unset at the end of the `reply()` method)."""
         """Count the words that aren't wildcards in a trigger."""
         words = []
         if all:
-            words = re.split(re_ws, trigger)
+            words = re.split(RE.ws, trigger)
         else:
-            words = re.split(re_wilds, trigger)
+            words = re.split(RE.wilds, trigger)
 
         wc = 0  # Word count
         for word in words:
@@ -2299,7 +2376,7 @@ the value is unset at the end of the `reply()` method)."""
 
     def _strip_nasties(self, s):
         """Formats a string for ASCII regex matching."""
-        s = re.sub(re_nasties, '', s)
+        s = re.sub(RE.nasties, '', s)
         return s
 
     def _dump(self):
