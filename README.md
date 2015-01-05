@@ -1,8 +1,6 @@
-RiveScript-Python
-=================
+# RiveScript-Python
 
-INTRODUCTION
-------------
+## INTRODUCTION
 
 This is a RiveScript interpreter for the Python programming language. RiveScript
 is a scripting language for chatterbots, making it easy to write
@@ -10,14 +8,13 @@ trigger/response pairs for building up a bot's intelligence.
 
 This library is compatible with both Python 2 and Python 3.
 
-USAGE
------
+## USAGE
 
 The `rivescript` module can be executed as a stand-alone Python script, or
 included in other Python code. When executed directly, it launches an
 interactive chat session:
 
-    python -m rivescript ./brain
+    python rivescript ./brain
 
 When used as a library, the synopsis is as follows:
 
@@ -40,8 +37,7 @@ while True:
 The scripts `example.py` and `example3.py` provide simple examples for using
 RiveScript as a library for Python 2 and 3, respectively.
 
-UTF-8 SUPPORT
--------------
+## UTF-8 SUPPORT
 
 Version 1.05 adds experimental support for UTF-8 in RiveScript. It is not
 enabled by default. Enable it by passing a `True` value for the `utf8`
@@ -67,8 +63,7 @@ are converted (if needed) to Python's `unicode` data type. So, while it's
 good practice to make sure you're providing Unicode strings to the bot, the
 library will have you covered if you forget.
 
-JSON MODE
----------
+## JSON MODE
 
 The `rivescript` package, when run stand-alone, supports "JSON Mode", where
 you communicate with the bot using JSON. This is useful for third-party
@@ -107,13 +102,12 @@ The bot's response will be formatted like so:
 The `status` will be `ok` on success, or `error` if there was an error. The
 `reply` is the bot's response (or an error message on error).
 
-LICENSE
--------
+## LICENSE
 
 ```
 The MIT License (MIT)
 
-Copyright (c) 2014 Noah Petherbridge
+Copyright (c) 2015 Noah Petherbridge
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
