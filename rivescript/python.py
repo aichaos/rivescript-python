@@ -23,12 +23,12 @@
 # SOFTWARE.
 
 # Python3 compat
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 __docformat__ = 'plaintext'
 
 
-class PyRiveObjects:
+class PyRiveObjects(object):
     """A RiveScript object handler for Python code.
 
 This class provides built-in support for your RiveScript documents to include

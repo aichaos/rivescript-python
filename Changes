@@ -11,6 +11,8 @@ Revision history for the Python package RiveScript.
 	  especially helpful was to precompile substitution and simple trigger
 	  regexps), taking the time-to-reply for the default brain from ~0.19s down
 	  to ~0.04s
+	- Add support for `! local concat` option to override concatenation mode
+	  (file scoped)
 
 1.06  Nov 25 2014
 	- Change package name from python-rivescript to simply rivescript.

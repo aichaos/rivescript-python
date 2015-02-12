@@ -25,7 +25,7 @@
 # SOFTWARE.
 
 # Python 3 compat
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 __author__     = 'Noah Petherbridge'
 __copyright__  = 'Copyright 2013, Noah Petherbridge'

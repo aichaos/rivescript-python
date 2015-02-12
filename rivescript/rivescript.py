@@ -22,6 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import unicode_literals
 import sys
 import os
 import re
@@ -78,8 +79,15 @@ RS_ERR_MATCH = "ERR: No Reply Matched"
 RS_ERR_REPLY = "ERR: No Reply Found"
 
 
-class RiveScript:
+class RiveScript(object):
     """A RiveScript interpreter for Python 2 and 3."""
+
+    # Concatenation mode characters.
+    _concat_modes = dict(
+        none="",
+        space=" ",
+        newline="\n",
+    )
 
     ############################################################################
     # Initialization and Utility Methods                                       #
@@ -220,6 +228,11 @@ This may be called as either a class method or a method of a RiveScript object."
         concnt  = 0        # Condition counter
         isThat  = ''       # Is a %Previous trigger
 
+        # Local (file scoped) parser options.
+        local_options = dict(
+            concat="none", # Concat mode for ^Continue command
+        )
+
         # Read each line.
         for lp, line in enumerate(code):
             lineno = lineno + 1
@@ -329,7 +342,9 @@ This may be called as either a class method or a method of a RiveScript object."
                     # end of the current line.
                     if cmd != '^' and lookCmd != '%':
                         if lookCmd == '^':
-                            line += lookahead
+                            line += self._concat_modes.get(
+                                local_options["concat"], ""
+                            ) + lookahead
                         else:
                             break
 
@@ -372,7 +387,11 @@ This may be called as either a class method or a method of a RiveScript object."
                     continue
 
                 # Handle the rest of the types.
-                if type == 'global':
+                if type == 'local':
+                    # Local file-scoped parser options.
+                    self._say("\tSet parser option " + var + " = " + value)
+                    local_options[var] = value
+                elif type == 'global':
                     # 'Global' variables
                     self._say("\tSet global " + var + " = " + value)
 
