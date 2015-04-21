@@ -235,7 +235,7 @@ This may be called as either a class method or a method of a RiveScript object."
 
         # Read each line.
         for lp, line in enumerate(code):
-            lineno = lineno + 1
+            lineno += 1
 
             self._say("Line: " + line + " (topic: " + topic + ") incomment: " + str(inobj))
             if len(line.strip()) == 0:  # Skip blank lines
@@ -596,7 +596,7 @@ This may be called as either a class method or a method of a RiveScript object."
                 else:
                     self._topics[topic][ontrig]['reply'][repcnt] = line
                     self._syntax['topic'][topic][ontrig]['reply'][repcnt] = (fname, lineno)
-                repcnt = repcnt + 1
+                repcnt += 1
             elif cmd == '%':
                 # % PREVIOUS
                 pass  # This was handled above.
@@ -621,7 +621,7 @@ This may be called as either a class method or a method of a RiveScript object."
                 else:
                     self._topics[topic][ontrig]['condition'][concnt] = line
                     self._syntax['topic'][topic][ontrig]['condition'][concnt] = (fname, lineno)
-                concnt = concnt + 1
+                concnt += 1
             else:
                 self._warn("Unrecognized command \"" + cmd + "\"", fname, lineno)
                 continue
@@ -672,21 +672,21 @@ Returns a syntax error string on error; None otherwise."""
             # Count brackets.
             for char in line:
                 if char == '(':
-                    parens = parens + 1
+                    parens += 1
                 elif char == ')':
-                    parens = parens - 1
+                    parens -= 1
                 elif char == '[':
-                    square = square + 1
+                    square += 1
                 elif char == ']':
-                    square = square - 1
+                    square -= 1
                 elif char == '{':
-                    curly = curly + 1
+                    curly += 1
                 elif char == '}':
-                    curly = curly - 1
+                    curly -= 1
                 elif char == '<':
-                    angle = angle + 1
+                    angle += 1
                 elif char == '>':
-                    angle = angle - 1
+                    angle -= 1
 
             # Any mismatches?
             if parens != 0:
