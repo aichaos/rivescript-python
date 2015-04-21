@@ -102,27 +102,27 @@ str  log:    Specify a log file for debug output to go to (instead of STDOUT).
 int  depth:  Specify the recursion depth limit.
 bool utf8:   Enable UTF-8 support."""
         # Instance variables.
-        self._debug    = debug  # Debug mode
-        self._log      = log    # Debug log file
-        self._utf8     = utf8   # UTF-8 mode
-        self._strict   = strict # Strict mode
-        self._depth    = depth  # Recursion depth limit
-        self._gvars    = {}     # 'global' variables
-        self._bvars    = {}     # 'bot' variables
-        self._subs     = {}     # 'sub' variables
-        self._person   = {}     # 'person' variables
-        self._arrays   = {}     # 'array' variables
-        self._users    = {}     # 'user' variables
-        self._freeze   = {}     # frozen 'user' variables
-        self._includes = {}     # included topics
-        self._lineage  = {}     # inherited topics
-        self._handlers = {}     # Object handlers
-        self._objlangs = {}     # Languages of objects used
-        self._topics   = {}     # Main reply structure
-        self._thats    = {}     # %Previous reply structure
-        self._sorted   = {}     # Sorted buffers
-        self._syntax   = {}     # Syntax tracking (filenames & line no.'s)
-        self._regexc   = {      # Precomputed regexes for speed optimizations.
+        self._debug    = debug   # Debug mode
+        self._log      = log     # Debug log file
+        self._utf8     = utf8    # UTF-8 mode
+        self._strict   = strict  # Strict mode
+        self._depth    = depth   # Recursion depth limit
+        self._gvars    = {}      # 'global' variables
+        self._bvars    = {}      # 'bot' variables
+        self._subs     = {}      # 'sub' variables
+        self._person   = {}      # 'person' variables
+        self._arrays   = {}      # 'array' variables
+        self._users    = {}      # 'user' variables
+        self._freeze   = {}      # frozen 'user' variables
+        self._includes = {}      # included topics
+        self._lineage  = {}      # inherited topics
+        self._handlers = {}      # Object handlers
+        self._objlangs = {}      # Languages of objects used
+        self._topics   = {}      # Main reply structure
+        self._thats    = {}      # %Previous reply structure
+        self._sorted   = {}      # Sorted buffers
+        self._syntax   = {}      # Syntax tracking (filenames & line no.'s)
+        self._regexc   = {       # Precomputed regexes for speed optimizations.
             "trigger": {},
             "subs":    {},
             "person":  {},
@@ -216,21 +216,21 @@ This may be called as either a class method or a method of a RiveScript object."
         self._say("Parsing code")
 
         # Track temporary variables.
-        topic   = 'random' # Default topic=random
-        lineno  = 0        # Line numbers for syntax tracking
-        comment = False    # In a multi-line comment
-        inobj   = False    # In an object
-        objname = ''       # The name of the object we're in
-        objlang = ''       # The programming language of the object
-        objbuf  = []       # Object contents buffer
-        ontrig  = ''       # The current trigger
-        repcnt  = 0        # Reply counter
-        concnt  = 0        # Condition counter
-        isThat  = ''       # Is a %Previous trigger
+        topic   = 'random'  # Default topic=random
+        lineno  = 0         # Line numbers for syntax tracking
+        comment = False     # In a multi-line comment
+        inobj   = False     # In an object
+        objname = ''        # The name of the object we're in
+        objlang = ''        # The programming language of the object
+        objbuf  = []        # Object contents buffer
+        ontrig  = ''        # The current trigger
+        repcnt  = 0         # Reply counter
+        concnt  = 0         # Condition counter
+        isThat  = ''        # Is a %Previous trigger
 
         # Local (file scoped) parser options.
         local_options = dict(
-            concat="none", # Concat mode for ^Continue command
+            concat="none",  # Concat mode for ^Continue command
         )
 
         # Read each line.
@@ -760,7 +760,7 @@ Returns a syntax error string on error; None otherwise."""
 
         # Topic Triggers.
         for topic in self._topics:
-            dest = {} # Where to place the topic info
+            dest = {}  # Where to place the topic info
 
             if topic == "__begin__":
                 # Begin block.
@@ -777,7 +777,7 @@ Returns a syntax error string on error; None otherwise."""
 
         # %Previous's.
         for topic in self._thats:
-            dest = {} # Where to place the topic info
+            dest = {}  # Where to place the topic info
 
             if topic == "__begin__":
                 # Begin block.
@@ -876,7 +876,7 @@ Returns a syntax error string on error; None otherwise."""
             if topic == "random" and done_random: continue
             if topic == "random": done_random = True
 
-            tagged = False # Used > topic tag
+            tagged = False  # Used > topic tag
 
             if topic != "random" or topic in deparsed["include"] or topic in deparsed["inherit"]:
                 tagged = True
@@ -963,7 +963,7 @@ Returns a syntax error string on error; None otherwise."""
             line = sep.join(buf)
             if len(line) > width:
                 # Need to word wrap!
-                words.insert(0, buf.pop()) # Undo
+                words.insert(0, buf.pop())  # Undo
                 lines.append(sep.join(buf))
                 buf = []
                 line = ""
@@ -1249,14 +1249,14 @@ Returns a syntax error string on error; None otherwise."""
     def _init_sort_track(self):
         """Returns a new dict for keeping track of triggers for sorting."""
         return {
-            'atomic': {}, # Sort by number of whole words
-            'option': {}, # Sort optionals by number of words
-            'alpha':  {}, # Sort alpha wildcards by no. of words
-            'number': {}, # Sort number wildcards by no. of words
-            'wild':   {}, # Sort wildcards by no. of words
-            'pound':  [], # Triggers of just #
-            'under':  [], # Triggers of just _
-            'star':   []  # Triggers of just *
+            'atomic': {},  # Sort by number of whole words
+            'option': {},  # Sort optionals by number of words
+            'alpha':  {},  # Sort alpha wildcards by no. of words
+            'number': {},  # Sort number wildcards by no. of words
+            'wild':   {},  # Sort wildcards by no. of words
+            'pound':  [],  # Triggers of just #
+            'under':  [],  # Triggers of just _
+            'star':   []   # Triggers of just *
         }
 
 
@@ -1928,7 +1928,7 @@ the value is unset at the end of the `reply()` method)."""
         regexp = regexp.replace('*', '(.+?)')   # Convert * into (.+?)
         regexp = regexp.replace('#', '(\d+?)')  # Convert # into (\d+?)
         regexp = regexp.replace('_', '(\w+?)')  # Convert _ into (\w+?)
-        regexp = re.sub(r'\{weight=\d+\}', '', regexp) # Remove {weight} tags
+        regexp = re.sub(r'\{weight=\d+\}', '', regexp)  # Remove {weight} tags
         regexp = regexp.replace('<zerowidthstar>', r'(.*?)')
 
         # Optionals.
@@ -2001,12 +2001,12 @@ the value is unset at the end of the `reply()` method)."""
         `<bot>`, `<get>`, `<input>/<reply>` or arrays, it can be precompiled
         and save time when matching."""
         if self._is_atomic(trigger):
-            return # Don't need a regexp for atomic triggers.
+            return  # Don't need a regexp for atomic triggers.
 
         # Check for dynamic tags.
         for tag in ["@", "<bot", "<get", "<input", "<reply"]:
             if tag in trigger:
-                return # Can't precompile this trigger.
+                return  # Can't precompile this trigger.
 
         self._regexc["trigger"][trigger] = self._reply_regexp(None, trigger)
 
@@ -2094,13 +2094,13 @@ the value is unset at the end of the `reply()` method)."""
             # not the <set> tag, on the first pass. The second pass will get the
             # <set> tag, and so on.
             match = re.search(RE.tag_search, reply)
-            if not match: break # No remaining tags!
+            if not match: break  # No remaining tags!
 
             match = match.group(1)
             parts  = match.split(" ", 1)
             tag    = parts[0].lower()
             data   = parts[1] if len(parts) > 1 else ""
-            insert = "" # Result of the tag evaluation
+            insert = ""  # Result of the tag evaluation
 
             # Handle the tags.
             if tag == "bot" or tag == "env":
