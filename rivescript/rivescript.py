@@ -1127,7 +1127,7 @@ Returns a syntax error string on error; None otherwise."""
             # came form a topic which inherits another topic. Lower inherits
             # values mean higher priority on the stack.
             inherits = -1          # -1 means no {inherits} tag
-            highest_inherits = -1  # highest inheritence number seen
+            highest_inherits = -1  # highest inheritance number seen
 
             # Loop through and categorize these triggers.
             track = {
@@ -1148,7 +1148,7 @@ Returns a syntax error string on error; None otherwise."""
                 else:
                     inherits = -1
 
-                # If this is the first time we've seen this inheritence level,
+                # If this is the first time we've seen this inheritance level,
                 # initialize its track structure.
                 if inherits not in track:
                     track[inherits] = self._init_sort_track()
@@ -1724,7 +1724,7 @@ the value is unset at the end of the `reply()` method)."""
                     # doesn't belong to our topic? Find it!
                     if trig not in self._topics[topic]:
                         # We have to find it.
-                        matched = self._find_trigger_by_inheritence(topic, trig)
+                        matched = self._find_trigger_by_inheritance(topic, trig)
                     else:
                         # We do have it!
                         matched = self._topics[topic][trig]
@@ -2219,19 +2219,19 @@ the value is unset at the end of the `reply()` method)."""
             return string.capwords(msg)
 
     ############################################################################
-    # Topic Inheritence Utility Methods                                        #
+    # Topic inheritance Utility Methods                                        #
     ############################################################################
 
-    def _topic_triggers(self, topic, triglvl, depth=0, inheritence=0, inherited=False):
+    def _topic_triggers(self, topic, triglvl, depth=0, inheritance=0, inherited=False):
         """Recursively scan a topic and return a list of all triggers."""
 
         # Break if we're in too deep.
         if depth > self._depth:
-            self._warn("Deep recursion while scanning topic inheritence")
+            self._warn("Deep recursion while scanning topic inheritance")
 
-        # Important info about the depth vs inheritence params to this function:
+        # Important info about the depth vs inheritance params to this function:
         # depth increments by 1 each time this function recursively calls itself.
-        # inheritence increments by 1 only when this topic inherits another
+        # inheritance increments by 1 only when this topic inherits another
         # topic.
         #
         # This way, '> topic alpha includes beta inherits gamma' will have this
@@ -2245,7 +2245,7 @@ the value is unset at the end of the `reply()` method)."""
         # to the triggers. This only applies when the top topic 'includes'
         # another topic.
         self._say("\tCollecting trigger list for topic " + topic + "(depth="
-            + str(depth) + "; inheritence=" + str(inheritence) + "; "
+            + str(depth) + "; inheritance=" + str(inheritance) + "; "
             + "inherited=" + str(inherited) + ")")
 
         # topic:   the name of the topic
@@ -2266,14 +2266,14 @@ the value is unset at the end of the `reply()` method)."""
             # Check every included topic.
             for includes in self._includes[topic]:
                 self._say("\t\tTopic " + topic + " includes " + includes)
-                triggers.extend(self._topic_triggers(includes, triglvl, (depth + 1), inheritence, True))
+                triggers.extend(self._topic_triggers(includes, triglvl, (depth + 1), inheritance, True))
 
         # Does this topic inherit others?
         if topic in self._lineage:
             # Check every inherited topic.
             for inherits in self._lineage[topic]:
                 self._say("\t\tTopic " + topic + " inherits " + inherits)
-                triggers.extend(self._topic_triggers(inherits, triglvl, (depth + 1), (inheritence + 1), False))
+                triggers.extend(self._topic_triggers(inherits, triglvl, (depth + 1), (inheritance + 1), False))
 
         # Collect the triggers for *this* topic. If this topic inherits any
         # other topics, it means that this topic's triggers have higher
@@ -2281,14 +2281,14 @@ the value is unset at the end of the `reply()` method)."""
         # {inherits} tag.
         if topic in self._lineage or inherited:
             for trigger in inThisTopic:
-                self._say("\t\tPrefixing trigger with {inherits=" + str(inheritence) + "}" + trigger)
-                triggers.append("{inherits=" + str(inheritence) + "}" + trigger)
+                self._say("\t\tPrefixing trigger with {inherits=" + str(inheritance) + "}" + trigger)
+                triggers.append("{inherits=" + str(inheritance) + "}" + trigger)
         else:
             triggers.extend(inThisTopic)
 
         return triggers
 
-    def _find_trigger_by_inheritence(self, topic, trig, depth=0):
+    def _find_trigger_by_inheritance(self, topic, trig, depth=0):
         """Locate the replies for a trigger in an inherited/included topic."""
 
         # This sub was called because the user matched a trigger from the sorted
@@ -2297,10 +2297,10 @@ the value is unset at the end of the `reply()` method)."""
 
         # Prevent recursion.
         if depth > self._depth:
-            self._warn("Deep recursion detected while following an inheritence trail!")
+            self._warn("Deep recursion detected while following an inheritance trail!")
             return None
 
-        # Inheritence is more important than inclusion: triggers in one topic can
+        # inheritance is more important than inclusion: triggers in one topic can
         # override those in an inherited topic.
         if topic in self._lineage:
             for inherits in sorted(self._lineage[topic]):
@@ -2310,7 +2310,7 @@ the value is unset at the end of the `reply()` method)."""
                     return self._topics[inherits][trig]
                 else:
                     # Check what THAT topic inherits from.
-                    match = self._find_trigger_by_inheritence(
+                    match = self._find_trigger_by_inheritance(
                         inherits, trig, (depth + 1)
                     )
                     if match:
@@ -2326,7 +2326,7 @@ the value is unset at the end of the `reply()` method)."""
                     return self._topics[includes][trig]
                 else:
                     # Check what THAT topic inherits from.
-                    match = self._find_trigger_by_inheritence(
+                    match = self._find_trigger_by_inheritance(
                         includes, trig, (depth + 1)
                     )
                     if match:
