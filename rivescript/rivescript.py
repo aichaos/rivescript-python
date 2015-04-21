@@ -102,27 +102,27 @@ str  log:    Specify a log file for debug output to go to (instead of STDOUT).
 int  depth:  Specify the recursion depth limit.
 bool utf8:   Enable UTF-8 support."""
         # Instance variables.
-        self._debug    = debug  # Debug mode
-        self._log      = log    # Debug log file
-        self._utf8     = utf8   # UTF-8 mode
-        self._strict   = strict # Strict mode
-        self._depth    = depth  # Recursion depth limit
-        self._gvars    = {}     # 'global' variables
-        self._bvars    = {}     # 'bot' variables
-        self._subs     = {}     # 'sub' variables
-        self._person   = {}     # 'person' variables
-        self._arrays   = {}     # 'array' variables
-        self._users    = {}     # 'user' variables
-        self._freeze   = {}     # frozen 'user' variables
-        self._includes = {}     # included topics
-        self._lineage  = {}     # inherited topics
-        self._handlers = {}     # Object handlers
-        self._objlangs = {}     # Languages of objects used
-        self._topics   = {}     # Main reply structure
-        self._thats    = {}     # %Previous reply structure
-        self._sorted   = {}     # Sorted buffers
-        self._syntax   = {}     # Syntax tracking (filenames & line no.'s)
-        self._regexc   = {      # Precomputed regexes for speed optimizations.
+        self._debug    = debug   # Debug mode
+        self._log      = log     # Debug log file
+        self._utf8     = utf8    # UTF-8 mode
+        self._strict   = strict  # Strict mode
+        self._depth    = depth   # Recursion depth limit
+        self._gvars    = {}      # 'global' variables
+        self._bvars    = {}      # 'bot' variables
+        self._subs     = {}      # 'sub' variables
+        self._person   = {}      # 'person' variables
+        self._arrays   = {}      # 'array' variables
+        self._users    = {}      # 'user' variables
+        self._freeze   = {}      # frozen 'user' variables
+        self._includes = {}      # included topics
+        self._lineage  = {}      # inherited topics
+        self._handlers = {}      # Object handlers
+        self._objlangs = {}      # Languages of objects used
+        self._topics   = {}      # Main reply structure
+        self._thats    = {}      # %Previous reply structure
+        self._sorted   = {}      # Sorted buffers
+        self._syntax   = {}      # Syntax tracking (filenames & line no.'s)
+        self._regexc   = {       # Precomputed regexes for speed optimizations.
             "trigger": {},
             "subs":    {},
             "person":  {},
@@ -216,26 +216,26 @@ This may be called as either a class method or a method of a RiveScript object."
         self._say("Parsing code")
 
         # Track temporary variables.
-        topic   = 'random' # Default topic=random
-        lineno  = 0        # Line numbers for syntax tracking
-        comment = False    # In a multi-line comment
-        inobj   = False    # In an object
-        objname = ''       # The name of the object we're in
-        objlang = ''       # The programming language of the object
-        objbuf  = []       # Object contents buffer
-        ontrig  = ''       # The current trigger
-        repcnt  = 0        # Reply counter
-        concnt  = 0        # Condition counter
-        isThat  = ''       # Is a %Previous trigger
+        topic   = 'random'  # Default topic=random
+        lineno  = 0         # Line numbers for syntax tracking
+        comment = False     # In a multi-line comment
+        inobj   = False     # In an object
+        objname = ''        # The name of the object we're in
+        objlang = ''        # The programming language of the object
+        objbuf  = []        # Object contents buffer
+        ontrig  = ''        # The current trigger
+        repcnt  = 0         # Reply counter
+        concnt  = 0         # Condition counter
+        isThat  = ''        # Is a %Previous trigger
 
         # Local (file scoped) parser options.
         local_options = dict(
-            concat="none", # Concat mode for ^Continue command
+            concat="none",  # Concat mode for ^Continue command
         )
 
         # Read each line.
         for lp, line in enumerate(code):
-            lineno = lineno + 1
+            lineno += 1
 
             self._say("Line: " + line + " (topic: " + topic + ") incomment: " + str(inobj))
             if len(line.strip()) == 0:  # Skip blank lines
@@ -269,7 +269,7 @@ This may be called as either a class method or a method of a RiveScript object."
             elif line[0] == '#':
                 self._warn("Using the # symbol for comments is deprecated", fname, lineno)
             elif line[:2] == '/*':  # Start of a multi-line comment.
-                if not '*/' in line:  # Cancel if the end is here too.
+                if '*/' not in line:  # Cancel if the end is here too.
                     comment = True
                 continue
             elif '*/' in line:
@@ -522,11 +522,11 @@ This may be called as either a class method or a method of a RiveScript object."
                             elif mode != '':
                                 # This topic is either inherited or included.
                                 if mode == 'includes':
-                                    if not name in self._includes:
+                                    if name not in self._includes:
                                         self._includes[name] = {}
                                     self._includes[name][field] = 1
                                 else:
-                                    if not name in self._lineage:
+                                    if name not in self._lineage:
                                         self._lineage[name] = {}
                                     self._lineage[name][field] = 1
                 elif type == 'object':
@@ -596,7 +596,7 @@ This may be called as either a class method or a method of a RiveScript object."
                 else:
                     self._topics[topic][ontrig]['reply'][repcnt] = line
                     self._syntax['topic'][topic][ontrig]['reply'][repcnt] = (fname, lineno)
-                repcnt = repcnt + 1
+                repcnt += 1
             elif cmd == '%':
                 # % PREVIOUS
                 pass  # This was handled above.
@@ -621,7 +621,7 @@ This may be called as either a class method or a method of a RiveScript object."
                 else:
                     self._topics[topic][ontrig]['condition'][concnt] = line
                     self._syntax['topic'][topic][ontrig]['condition'][concnt] = (fname, lineno)
-                concnt = concnt + 1
+                concnt += 1
             else:
                 self._warn("Unrecognized command \"" + cmd + "\"", fname, lineno)
                 continue
@@ -672,21 +672,21 @@ Returns a syntax error string on error; None otherwise."""
             # Count brackets.
             for char in line:
                 if char == '(':
-                    parens = parens + 1
+                    parens += 1
                 elif char == ')':
-                    parens = parens - 1
+                    parens -= 1
                 elif char == '[':
-                    square = square + 1
+                    square += 1
                 elif char == ']':
-                    square = square - 1
+                    square -= 1
                 elif char == '{':
-                    curly = curly + 1
+                    curly += 1
                 elif char == '}':
-                    curly = curly - 1
+                    curly -= 1
                 elif char == '<':
-                    angle = angle + 1
+                    angle += 1
                 elif char == '>':
-                    angle = angle - 1
+                    angle -= 1
 
             # Any mismatches?
             if parens != 0:
@@ -760,14 +760,14 @@ Returns a syntax error string on error; None otherwise."""
 
         # Topic Triggers.
         for topic in self._topics:
-            dest = {} # Where to place the topic info
+            dest = {}  # Where to place the topic info
 
             if topic == "__begin__":
                 # Begin block.
                 dest = result["begin"]["triggers"]
             else:
                 # Normal topic.
-                if not topic in result["topic"]:
+                if topic not in result["topic"]:
                     result["topic"][topic] = {}
                 dest = result["topic"][topic]
 
@@ -777,14 +777,14 @@ Returns a syntax error string on error; None otherwise."""
 
         # %Previous's.
         for topic in self._thats:
-            dest = {} # Where to place the topic info
+            dest = {}  # Where to place the topic info
 
             if topic == "__begin__":
                 # Begin block.
                 dest = result["begin"]["that"]
             else:
                 # Normal topic.
-                if not topic in result["that"]:
+                if topic not in result["that"]:
                     result["that"][topic] = {}
                 dest = result["that"][topic]
 
@@ -872,11 +872,11 @@ Returns a syntax error string on error; None otherwise."""
         topics.extend(sorted(deparsed["topic"].keys()))
         done_random = False
         for topic in topics:
-            if not topic in deparsed["topic"]: continue
+            if topic not in deparsed["topic"]: continue
             if topic == "random" and done_random: continue
             if topic == "random": done_random = True
 
-            tagged = False # Used > topic tag
+            tagged = False  # Used > topic tag
 
             if topic != "random" or topic in deparsed["include"] or topic in deparsed["inherit"]:
                 tagged = True
@@ -963,7 +963,7 @@ Returns a syntax error string on error; None otherwise."""
             line = sep.join(buf)
             if len(line) > width:
                 # Need to word wrap!
-                words.insert(0, buf.pop()) # Undo
+                words.insert(0, buf.pop())  # Undo
                 lines.append(sep.join(buf))
                 buf = []
                 line = ""
@@ -986,29 +986,29 @@ Returns a syntax error string on error; None otherwise."""
     def _initTT(self, toplevel, topic, trigger, what=''):
         """Initialize a Topic Tree data structure."""
         if toplevel == 'topics':
-            if not topic in self._topics:
+            if topic not in self._topics:
                 self._topics[topic] = {}
-            if not trigger in self._topics[topic]:
+            if trigger not in self._topics[topic]:
                 self._topics[topic][trigger]              = {}
                 self._topics[topic][trigger]['reply']     = {}
                 self._topics[topic][trigger]['condition'] = {}
                 self._topics[topic][trigger]['redirect']  = None
         elif toplevel == 'thats':
-            if not topic in self._thats:
+            if topic not in self._thats:
                 self._thats[topic] = {}
-            if not trigger in self._thats[topic]:
+            if trigger not in self._thats[topic]:
                 self._thats[topic][trigger] = {}
-            if not what in self._thats[topic][trigger]:
+            if what not in self._thats[topic][trigger]:
                 self._thats[topic][trigger][what] = {}
                 self._thats[topic][trigger][what]['reply']     = {}
                 self._thats[topic][trigger][what]['condition'] = {}
                 self._thats[topic][trigger][what]['redirect']  = {}
         elif toplevel == 'syntax':
-            if not what in self._syntax:
+            if what not in self._syntax:
                 self._syntax[what] = {}
-            if not topic in self._syntax[what]:
+            if topic not in self._syntax[what]:
                 self._syntax[what][topic] = {}
-            if not trigger in self._syntax[what][topic]:
+            if trigger not in self._syntax[what][topic]:
                 self._syntax[what][topic][trigger]              = {}
                 self._syntax[what][topic][trigger]['reply']     = {}
                 self._syntax[what][topic][trigger]['condition'] = {}
@@ -1064,7 +1064,7 @@ Returns a syntax error string on error; None otherwise."""
             running = self._sort_trigger_set(alltrig)
 
             # Save this topic's sorted list.
-            if not sortlvl in self._sorted:
+            if sortlvl not in self._sorted:
                 self._sorted[sortlvl] = {}
             self._sorted[sortlvl][topic] = running
 
@@ -1086,15 +1086,15 @@ Returns a syntax error string on error; None otherwise."""
         """Make a sorted list of triggers that correspond to %Previous groups."""
         self._say("Sorting reverse triggers for %Previous groups...")
 
-        if not "that_trig" in self._sorted:
+        if "that_trig" not in self._sorted:
             self._sorted["that_trig"] = {}
 
         for topic in self._thats:
-            if not topic in self._sorted["that_trig"]:
+            if topic not in self._sorted["that_trig"]:
                 self._sorted["that_trig"][topic] = {}
 
             for bottrig in self._thats[topic]:
-                if not bottrig in self._sorted["that_trig"][topic]:
+                if bottrig not in self._sorted["that_trig"][topic]:
                     self._sorted["that_trig"][topic][bottrig] = []
                 triggers = self._sort_trigger_set(self._thats[topic][bottrig].keys())
                 self._sorted["that_trig"][topic][bottrig] = triggers
@@ -1111,7 +1111,7 @@ Returns a syntax error string on error; None otherwise."""
             match, weight = re.search(RE.weight, trig), 0
             if match:
                 weight = int(match.group(1))
-            if not weight in prior:
+            if weight not in prior:
                 prior[weight] = []
 
             prior[weight].append(trig)
@@ -1127,7 +1127,7 @@ Returns a syntax error string on error; None otherwise."""
             # came form a topic which inherits another topic. Lower inherits
             # values mean higher priority on the stack.
             inherits = -1          # -1 means no {inherits} tag
-            highest_inherits = -1  # highest inheritence number seen
+            highest_inherits = -1  # highest inheritance number seen
 
             # Loop through and categorize these triggers.
             track = {
@@ -1148,9 +1148,9 @@ Returns a syntax error string on error; None otherwise."""
                 else:
                     inherits = -1
 
-                # If this is the first time we've seen this inheritence level,
+                # If this is the first time we've seen this inheritance level,
                 # initialize its track structure.
-                if not inherits in track:
+                if inherits not in track:
                     track[inherits] = self._init_sort_track()
 
                 # Start inspecting the trigger's contents.
@@ -1159,7 +1159,7 @@ Returns a syntax error string on error; None otherwise."""
                     cnt = self._word_count(trig)
                     self._say("\t\t\tHas a _ wildcard with " + str(cnt) + " words.")
                     if cnt > 1:
-                        if not cnt in track[inherits]['alpha']:
+                        if cnt not in track[inherits]['alpha']:
                             track[inherits]['alpha'][cnt] = []
                         track[inherits]['alpha'][cnt].append(trig)
                     else:
@@ -1169,7 +1169,7 @@ Returns a syntax error string on error; None otherwise."""
                     cnt = self._word_count(trig)
                     self._say("\t\t\tHas a # wildcard with " + str(cnt) + " words.")
                     if cnt > 1:
-                        if not cnt in track[inherits]['number']:
+                        if cnt not in track[inherits]['number']:
                             track[inherits]['number'][cnt] = []
                         track[inherits]['number'][cnt].append(trig)
                     else:
@@ -1179,7 +1179,7 @@ Returns a syntax error string on error; None otherwise."""
                     cnt = self._word_count(trig)
                     self._say("\t\t\tHas a * wildcard with " + str(cnt) + " words.")
                     if cnt > 1:
-                        if not cnt in track[inherits]['wild']:
+                        if cnt not in track[inherits]['wild']:
                             track[inherits]['wild'][cnt] = []
                         track[inherits]['wild'][cnt].append(trig)
                     else:
@@ -1188,14 +1188,14 @@ Returns a syntax error string on error; None otherwise."""
                     # Optionals included.
                     cnt = self._word_count(trig)
                     self._say("\t\t\tHas optionals and " + str(cnt) + " words.")
-                    if not cnt in track[inherits]['option']:
+                    if cnt not in track[inherits]['option']:
                         track[inherits]['option'][cnt] = []
                     track[inherits]['option'][cnt].append(trig)
                 else:
                     # Totally atomic.
                     cnt = self._word_count(trig)
                     self._say("\t\t\tTotally atomic and " + str(cnt) + " words.")
-                    if not cnt in track[inherits]['atomic']:
+                    if cnt not in track[inherits]['atomic']:
                         track[inherits]['atomic'][cnt] = []
                     track[inherits]['atomic'][cnt].append(trig)
 
@@ -1223,7 +1223,7 @@ Returns a syntax error string on error; None otherwise."""
             return len(word2) - len(word1)
 
         # Initialize the list sort buffer.
-        if not "lists" in self._sorted:
+        if "lists" not in self._sorted:
             self._sorted["lists"] = {}
         self._sorted["lists"][name] = []
 
@@ -1234,7 +1234,7 @@ Returns a syntax error string on error; None otherwise."""
         for item in items:
             # Count the words.
             cword = self._word_count(item, all=True)
-            if not cword in track:
+            if cword not in track:
                 track[cword] = []
             track[cword].append(item)
 
@@ -1249,14 +1249,14 @@ Returns a syntax error string on error; None otherwise."""
     def _init_sort_track(self):
         """Returns a new dict for keeping track of triggers for sorting."""
         return {
-            'atomic': {}, # Sort by number of whole words
-            'option': {}, # Sort optionals by number of words
-            'alpha':  {}, # Sort alpha wildcards by no. of words
-            'number': {}, # Sort number wildcards by no. of words
-            'wild':   {}, # Sort wildcards by no. of words
-            'pound':  [], # Triggers of just #
-            'under':  [], # Triggers of just _
-            'star':   []  # Triggers of just *
+            'atomic': {},  # Sort by number of whole words
+            'option': {},  # Sort optionals by number of words
+            'alpha':  {},  # Sort alpha wildcards by no. of words
+            'number': {},  # Sort number wildcards by no. of words
+            'wild':   {},  # Sort wildcards by no. of words
+            'pound':  [],  # Triggers of just #
+            'under':  [],  # Triggers of just _
+            'star':   []   # Triggers of just *
         }
 
 
@@ -1355,7 +1355,7 @@ Equivalent to `! person` in RiveScript code. Set to None to delete."""
     def set_uservar(self, user, name, value):
         """Set a variable for a user."""
 
-        if not user in self._users:
+        if user not in self._users:
             self._users[user] = {"topic": "random"}
 
         self._users[user][name] = value
@@ -1581,11 +1581,11 @@ the value is unset at the end of the `reply()` method)."""
 
     def _getreply(self, user, msg, context='normal', step=0):
         # Needed to sort replies?
-        if not 'topics' in self._sorted:
+        if 'topics' not in self._sorted:
             raise Exception("You forgot to call sort_replies()!")
 
         # Initialize the user's profile?
-        if not user in self._users:
+        if user not in self._users:
             self._users[user] = {'topic': 'random'}
 
         # Collect data on the user.
@@ -1595,7 +1595,7 @@ the value is unset at the end of the `reply()` method)."""
         reply     = ''
 
         # Avoid letting them fall into a missing topic.
-        if not topic in self._topics:
+        if topic not in self._topics:
             self._warn("User " + user + " was in an empty topic named '" + topic + "'")
             topic = self._users[user]['topic'] = 'random'
 
@@ -1608,7 +1608,7 @@ the value is unset at the end of the `reply()` method)."""
             topic = '__begin__'
 
         # Initialize this user's history.
-        if not '__history__' in self._users[user]:
+        if '__history__' not in self._users[user]:
             self._users[user]['__history__'] = {
                 'input': [
                     'undefined', 'undefined', 'undefined', 'undefined',
@@ -1623,7 +1623,7 @@ the value is unset at the end of the `reply()` method)."""
             }
 
         # More topic sanity checking.
-        if not topic in self._topics:
+        if topic not in self._topics:
             # This was handled before, which would mean topic=random and
             # it doesn't exist. Serious issue!
             return "[ERR: No default topic 'random' was found!]"
@@ -1722,9 +1722,9 @@ the value is unset at the end of the `reply()` method)."""
 
                     # We found a match, but what if the trigger we've matched
                     # doesn't belong to our topic? Find it!
-                    if not trig in self._topics[topic]:
+                    if trig not in self._topics[topic]:
                         # We have to find it.
-                        matched = self._find_trigger_by_inheritence(topic, trig)
+                        matched = self._find_trigger_by_inheritance(topic, trig)
                     else:
                         # We do have it!
                         matched = self._topics[topic][trig]
@@ -1858,9 +1858,9 @@ the value is unset at the end of the `reply()` method)."""
         """Run a kind of substitution on a message."""
 
         # Safety checking.
-        if not 'lists' in self._sorted:
+        if 'lists' not in self._sorted:
             raise Exception("You forgot to call sort_replies()!")
-        if not kind in self._sorted["lists"]:
+        if kind not in self._sorted["lists"]:
             raise Exception("You forgot to call sort_replies()!")
 
         # Get the substitution map.
@@ -1903,7 +1903,7 @@ the value is unset at the end of the `reply()` method)."""
         This will speed up the substitutions that happen at the beginning of
         the reply fetching process. With the default brain, this took the
         time for _substitute down from 0.08s to 0.02s"""
-        if not pattern in self._regexc[kind]:
+        if pattern not in self._regexc[kind]:
             qm = re.escape(pattern)
             self._regexc[kind][pattern] = {
                 "qm": qm,
@@ -1928,7 +1928,7 @@ the value is unset at the end of the `reply()` method)."""
         regexp = regexp.replace('*', '(.+?)')   # Convert * into (.+?)
         regexp = regexp.replace('#', '(\d+?)')  # Convert # into (\d+?)
         regexp = regexp.replace('_', '(\w+?)')  # Convert _ into (\w+?)
-        regexp = re.sub(r'\{weight=\d+\}', '', regexp) # Remove {weight} tags
+        regexp = re.sub(r'\{weight=\d+\}', '', regexp)  # Remove {weight} tags
         regexp = regexp.replace('<zerowidthstar>', r'(.*?)')
 
         # Optionals.
@@ -2001,12 +2001,12 @@ the value is unset at the end of the `reply()` method)."""
         `<bot>`, `<get>`, `<input>/<reply>` or arrays, it can be precompiled
         and save time when matching."""
         if self._is_atomic(trigger):
-            return # Don't need a regexp for atomic triggers.
+            return  # Don't need a regexp for atomic triggers.
 
         # Check for dynamic tags.
         for tag in ["@", "<bot", "<get", "<input", "<reply"]:
             if tag in trigger:
-                return # Can't precompile this trigger.
+                return  # Can't precompile this trigger.
 
         self._regexc["trigger"][trigger] = self._reply_regexp(None, trigger)
 
@@ -2094,13 +2094,13 @@ the value is unset at the end of the `reply()` method)."""
             # not the <set> tag, on the first pass. The second pass will get the
             # <set> tag, and so on.
             match = re.search(RE.tag_search, reply)
-            if not match: break # No remaining tags!
+            if not match: break  # No remaining tags!
 
             match = match.group(1)
             parts  = match.split(" ", 1)
             tag    = parts[0].lower()
             data   = parts[1] if len(parts) > 1 else ""
-            insert = "" # Result of the tag evaluation
+            insert = ""  # Result of the tag evaluation
 
             # Handle the tags.
             if tag == "bot" or tag == "env":
@@ -2128,7 +2128,7 @@ the value is unset at the end of the `reply()` method)."""
                 # Sanity check the value.
                 try:
                     value = int(value)
-                    if not var in self._users[user]:
+                    if var not in self._users[user]:
                         # Initialize it.
                         self._users[user][var] = 0
                 except:
@@ -2219,19 +2219,19 @@ the value is unset at the end of the `reply()` method)."""
             return string.capwords(msg)
 
     ############################################################################
-    # Topic Inheritence Utility Methods                                        #
+    # Topic inheritance Utility Methods                                        #
     ############################################################################
 
-    def _topic_triggers(self, topic, triglvl, depth=0, inheritence=0, inherited=False):
+    def _topic_triggers(self, topic, triglvl, depth=0, inheritance=0, inherited=False):
         """Recursively scan a topic and return a list of all triggers."""
 
         # Break if we're in too deep.
         if depth > self._depth:
-            self._warn("Deep recursion while scanning topic inheritence")
+            self._warn("Deep recursion while scanning topic inheritance")
 
-        # Important info about the depth vs inheritence params to this function:
+        # Important info about the depth vs inheritance params to this function:
         # depth increments by 1 each time this function recursively calls itself.
-        # inheritence increments by 1 only when this topic inherits another
+        # inheritance increments by 1 only when this topic inherits another
         # topic.
         #
         # This way, '> topic alpha includes beta inherits gamma' will have this
@@ -2245,7 +2245,7 @@ the value is unset at the end of the `reply()` method)."""
         # to the triggers. This only applies when the top topic 'includes'
         # another topic.
         self._say("\tCollecting trigger list for topic " + topic + "(depth="
-            + str(depth) + "; inheritence=" + str(inheritence) + "; "
+            + str(depth) + "; inheritance=" + str(inheritance) + "; "
             + "inherited=" + str(inherited) + ")")
 
         # topic:   the name of the topic
@@ -2266,14 +2266,14 @@ the value is unset at the end of the `reply()` method)."""
             # Check every included topic.
             for includes in self._includes[topic]:
                 self._say("\t\tTopic " + topic + " includes " + includes)
-                triggers.extend(self._topic_triggers(includes, triglvl, (depth + 1), inheritence, True))
+                triggers.extend(self._topic_triggers(includes, triglvl, (depth + 1), inheritance, True))
 
         # Does this topic inherit others?
         if topic in self._lineage:
             # Check every inherited topic.
             for inherits in self._lineage[topic]:
                 self._say("\t\tTopic " + topic + " inherits " + inherits)
-                triggers.extend(self._topic_triggers(inherits, triglvl, (depth + 1), (inheritence + 1), False))
+                triggers.extend(self._topic_triggers(inherits, triglvl, (depth + 1), (inheritance + 1), False))
 
         # Collect the triggers for *this* topic. If this topic inherits any
         # other topics, it means that this topic's triggers have higher
@@ -2281,14 +2281,14 @@ the value is unset at the end of the `reply()` method)."""
         # {inherits} tag.
         if topic in self._lineage or inherited:
             for trigger in inThisTopic:
-                self._say("\t\tPrefixing trigger with {inherits=" + str(inheritence) + "}" + trigger)
-                triggers.append("{inherits=" + str(inheritence) + "}" + trigger)
+                self._say("\t\tPrefixing trigger with {inherits=" + str(inheritance) + "}" + trigger)
+                triggers.append("{inherits=" + str(inheritance) + "}" + trigger)
         else:
             triggers.extend(inThisTopic)
 
         return triggers
 
-    def _find_trigger_by_inheritence(self, topic, trig, depth=0):
+    def _find_trigger_by_inheritance(self, topic, trig, depth=0):
         """Locate the replies for a trigger in an inherited/included topic."""
 
         # This sub was called because the user matched a trigger from the sorted
@@ -2297,10 +2297,10 @@ the value is unset at the end of the `reply()` method)."""
 
         # Prevent recursion.
         if depth > self._depth:
-            self._warn("Deep recursion detected while following an inheritence trail!")
+            self._warn("Deep recursion detected while following an inheritance trail!")
             return None
 
-        # Inheritence is more important than inclusion: triggers in one topic can
+        # inheritance is more important than inclusion: triggers in one topic can
         # override those in an inherited topic.
         if topic in self._lineage:
             for inherits in sorted(self._lineage[topic]):
@@ -2310,7 +2310,7 @@ the value is unset at the end of the `reply()` method)."""
                     return self._topics[inherits][trig]
                 else:
                     # Check what THAT topic inherits from.
-                    match = self._find_trigger_by_inheritence(
+                    match = self._find_trigger_by_inheritance(
                         inherits, trig, (depth + 1)
                     )
                     if match:
@@ -2326,7 +2326,7 @@ the value is unset at the end of the `reply()` method)."""
                     return self._topics[includes][trig]
                 else:
                     # Check what THAT topic inherits from.
-                    match = self._find_trigger_by_inheritence(
+                    match = self._find_trigger_by_inheritance(
                         includes, trig, (depth + 1)
                     )
                     if match:
