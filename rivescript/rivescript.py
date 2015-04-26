@@ -1870,9 +1870,9 @@ the value is unset at the end of the `reply()` method)."""
 
         # Safety checking.
         if 'lists' not in self._sorted:
-            raise Exception("You forgot to call sort_replies()!")
+            raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
         if kind not in self._sorted["lists"]:
-            raise Exception("You forgot to call sort_replies()!")
+            raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
 
         # Get the substitution map.
         subs = None
