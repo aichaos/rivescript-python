@@ -75,8 +75,9 @@ class RE(object):
 rs_version = 2.0
 
 # Exportable constants.
-RS_ERR_MATCH = "ERR: No Reply Matched"
-RS_ERR_REPLY = "ERR: No Reply Found"
+RS_ERR_MATCH = "[ERR: No reply matched]"
+RS_ERR_REPLY = "[ERR: No reply found]"
+RS_ERR_DEEP_RECURSION = "[ERR: Deep recursion detected]"
 
 
 class RiveScript(object):
@@ -1510,7 +1511,7 @@ the value is unset at the end of the `reply()` method)."""
     # Reply Fetching Methods                                                   #
     ############################################################################
 
-    def reply(self, user, msg):
+    def reply(self, user, msg, errors_as_replies=True):
         """Fetch a reply from the RiveScript brain."""
         self._say("Get reply to [" + user + "] " + msg)
 
@@ -1528,7 +1529,12 @@ the value is unset at the end of the `reply()` method)."""
 
             # Okay to continue?
             if '{ok}' in begin:
-                reply = self._getreply(user, msg)
+                try:
+                    reply = self._getreply(user, msg)
+                except RiveScriptError as e:
+                    if not errors_as_replies:
+                        raise
+                    reply = e.error_message
                 begin = begin.replace('{ok}', reply)
 
             reply = begin
@@ -1537,7 +1543,12 @@ the value is unset at the end of the `reply()` method)."""
             reply = self._process_tags(user, msg, reply)
         else:
             # Just continue then.
-            reply = self._getreply(user, msg)
+            try:
+                reply = self._getreply(user, msg)
+            except RiveScriptError as e:
+                if not errors_as_replies:
+                    raise
+                reply = e.error_message
 
         # Save their reply history.
         oldInput = self._users[user]['__history__']['input'][:8]
@@ -1582,7 +1593,7 @@ the value is unset at the end of the `reply()` method)."""
     def _getreply(self, user, msg, context='normal', step=0):
         # Needed to sort replies?
         if 'topics' not in self._sorted:
-            raise Exception("You forgot to call sort_replies()!")
+            raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
 
         # Initialize the user's profile?
         if user not in self._users:
@@ -1601,7 +1612,7 @@ the value is unset at the end of the `reply()` method)."""
 
         # Avoid deep recursion.
         if step > self._depth:
-            return "ERR: Deep Recursion Detected"
+            raise DeepRecursionError
 
         # Are we in the BEGIN statement?
         if context == 'begin':
@@ -1626,7 +1637,7 @@ the value is unset at the end of the `reply()` method)."""
         if topic not in self._topics:
             # This was handled before, which would mean topic=random and
             # it doesn't exist. Serious issue!
-            return "[ERR: No default topic 'random' was found!]"
+            raise NoDefaultRandomTopicError("no default topic 'random' was found")
 
         # Create a pointer for the matched data when we find it.
         matched        = None
@@ -1827,9 +1838,9 @@ the value is unset at the end of the `reply()` method)."""
 
         # Still no reply?
         if not foundMatch:
-            reply = RS_ERR_MATCH
+            raise NoMatchError
         elif len(reply) == 0:
-            reply = RS_ERR_REPLY
+            raise NoReplyError
 
         self._say("Reply: " + reply)
 
@@ -2429,6 +2440,45 @@ the value is unset at the end of the `reply()` method)."""
 
         print("=== Syntax Tree ===")
         pp.pprint(self._syntax)
+
+
+################################################################################
+# Exception Classes                                                            #
+################################################################################
+class RiveScriptError(Exception):
+    """RiveScript base exception class"""
+    def __init__(self, error_message=None):
+        super(RiveScriptError, self).__init__(error_message)
+        self.error_message = error_message
+
+
+class NoMatchError(RiveScriptError):
+    """No reply could be matched"""
+    def __init__(self):
+        super(NoMatchError, self).__init__(RS_ERR_MATCH)
+
+
+class NoReplyError(RiveScriptError):
+    """No reply could be found"""
+    def __init__(self):
+        super(NoReplyError, self).__init__(RS_ERR_REPLY)
+
+
+class DeepRecursionError(RiveScriptError):
+    """Prevented an infinite loop / deep recursion, unable to retrieve a reply for this message"""
+    def __init__(self):
+        super(DeepRecursionError, self).__init__(RS_ERR_DEEP_RECURSION)
+
+
+class NoDefaultRandomTopicError(Exception):
+    """No default topic 'random' could be found, critical error"""
+    pass
+
+
+class RepliesNotSortedError(Exception):
+    """sort_replies() was not called after the RiveScript documents were loaded, critical error"""
+    pass
+
 
 ################################################################################
 # Interactive Mode                                                             #
