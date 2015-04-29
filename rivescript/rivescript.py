@@ -1529,7 +1529,7 @@ the value is unset at the end of the `reply()` method)."""
             # Okay to continue?
             if '{ok}' in begin:
                 reply = self._getreply(user, msg)
-                begin = re.sub('{ok}', reply, begin)
+                begin = begin.replace('{ok}', reply)
 
             reply = begin
 
@@ -1841,13 +1841,13 @@ the value is unset at the end of the `reply()` method)."""
             for match in reTopic:
                 self._say("Setting user's topic to " + match)
                 self._users[user]["topic"] = match
-                reply = re.sub(r'\{topic=' + re.escape(match) + r'\}', '', reply)
+                reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
             reSet = re.findall(RE.set_tag, reply)
             for match in reSet:
                 self._say("Set uservar " + str(match[0]) + "=" + str(match[1]))
                 self._users[user][match[0]] = match[1]
-                reply = re.sub('<set ' + re.escape(match[0]) + '=' + re.escape(match[1]) + '>', '', reply)
+                reply = reply.replace('<set {key}={value}>'.format(key=match[0], value=match[1]), '')
         else:
             # Process more tags if not in BEGIN.
             reply = self._process_tags(user, msg, reply, stars, thatstars, step)
@@ -1892,7 +1892,7 @@ the value is unset at the end of the `reply()` method)."""
         for match in placeholders:
             i = int(match)
             result = ph[i]
-            msg = re.sub(r'\x00' + match + r'\x00', result, msg)
+            msg = msg.replace('\x00' + match + '\x00', result)
 
         # Strip & return.
         return msg.strip()
@@ -1967,7 +1967,7 @@ the value is unset at the end of the `reply()` method)."""
             rep = ''
             if var in self._bvars:
                 rep = self._strip_nasties(self._bvars[var])
-            regexp = re.sub(r'<bot ' + re.escape(var) + r'>', rep, regexp)
+            regexp = regexp.replace('<bot {var}>'.format(var=var), rep)
 
         # Filter in user variables.
         uvars = re.findall(RE.get_tag, regexp)
@@ -1975,7 +1975,7 @@ the value is unset at the end of the `reply()` method)."""
             rep = ''
             if var in self._users[user]:
                 rep = self._strip_nasties(self._users[user][var])
-            regexp = re.sub(r'<get ' + re.escape(var) + r'>', rep, regexp)
+            regexp = regexp.replace('<get {var}>'.format(var=var), rep)
 
         # Filter in <input> and <reply> tags. This is a slow process, so only
         # do it if we have to!
@@ -1984,15 +1984,12 @@ the value is unset at the end of the `reply()` method)."""
                 tags = re.findall(r'<' + type + r'([0-9])>', regexp)
                 for index in tags:
                     rep = self._format_message(self._users[user]['__history__'][type][int(index) - 1])
-                    regexp = re.sub(r'<' + type + str(index) + r'>', rep, regexp)
-                regexp = re.sub(
-                    '<' + type + '>',
-                    self._format_message(self._users[user]['__history__'][type][0]),
-                    regexp
-                )
+                    regexp = regexp.replace('<{type}{index}>'.format(type=type, index=index), rep)
+                regexp = regexp.replace('<{type}>'.format(type=type),
+                                        self._format_message(self._users[user]['__history__'][type][0]))
                 # TODO: the Perl version doesn't do just <input>/<reply> in trigs!
 
-        return re.compile(r'^' +regexp + r'$')
+        return re.compile(r'^' + regexp + r'$')
 
     def _precompile_regexp(self, trigger):
         """Precompile the regex for most triggers.
@@ -2036,23 +2033,25 @@ the value is unset at the end of the `reply()` method)."""
             reStars = re.findall(RE.star_tags, reply)
             for match in reStars:
                 if int(match) < len(stars):
-                    reply = re.sub(r'<star' + match + '>', stars[int(match)], reply)
+                    reply = reply.replace('<star{match}>'.format(match=match), stars[int(match)])
         if len(botstars) > 0:
             reply = reply.replace('<botstar>', botstars[1])
             reStars = re.findall(RE.botstars, reply)
             for match in reStars:
                 if int(match) < len(botstars):
-                    reply = re.sub(r'<botstar' + match + '>', botstars[int(match)], reply)
+                    reply = reply.replace('<botstar{match}>'.format(match=match), botstars[int(match)])
 
         # <input> and <reply>
         reply = reply.replace('<input>', self._users[user]['__history__']['input'][0])
         reply = reply.replace('<reply>', self._users[user]['__history__']['reply'][0])
         reInput = re.findall(RE.input_tags, reply)
         for match in reInput:
-            reply = re.sub(r'<input' + match + r'>', self._users[user]['__history__']['input'][int(match) - 1], reply)
+            reply = reply.replace('<input{match}>'.format(match=match),
+                                  self._users[user]['__history__']['input'][int(match) - 1])
         reReply = re.findall(RE.reply_tags, reply)
         for match in reReply:
-            reply = re.sub(r'<reply' + match + r'>', self._users[user]['__history__']['reply'][int(match) - 1], reply)
+            reply = reply.replace('<reply{match}>'.format(match=match),
+                                  self._users[user]['__history__']['reply'][int(match) - 1])
 
         # <id> and escape codes.
         reply = reply.replace('<id>', user)
@@ -2068,7 +2067,7 @@ the value is unset at the end of the `reply()` method)."""
                 output = random.choice(match.split('|'))
             else:
                 output = random.choice(match.split(' '))
-            reply = re.sub(r'\{random\}' + re.escape(match) + r'\{/random\}', output, reply)
+            reply = reply.replace('{{random}}{match}{{/random}}'.format(match=match), output)
 
         # Person Substitutions and String Formatting.
         for item in ['person', 'formal', 'sentence', 'uppercase',  'lowercase']:
@@ -2080,7 +2079,7 @@ the value is unset at the end of the `reply()` method)."""
                     output = self._substitute(match, "person")
                 else:
                     output = self._string_format(match, item)
-                reply = re.sub(r'\{' + item + r'\}' + re.escape(match) + '\{/' + item + r'\}', output, reply)
+                reply = reply.replace('{{{item}}}{match}{{/{item}}}'.format(item=item, match=match), output)
 
         # Handle all variable-related tags with an iterative regex approach,
         # to allow for nesting of tags in arbitrary ways (think <set a=<get b>>)
@@ -2169,7 +2168,7 @@ the value is unset at the end of the `reply()` method)."""
         for match in reTopic:
             self._say("Setting user's topic to " + match)
             self._users[user]["topic"] = match
-            reply = re.sub(r'\{topic=' + re.escape(match) + r'\}', '', reply)
+            reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
         # Inline redirecter.
         reRedir = re.findall(RE.redir_tag, reply)
@@ -2177,7 +2176,7 @@ the value is unset at the end of the `reply()` method)."""
             self._say("Redirect to " + match)
             at = match.strip()
             subreply = self._getreply(user, at, step=(depth + 1))
-            reply = re.sub(r'\{@' + re.escape(match) + r'\}', subreply, reply)
+            reply = reply.replace('{{@{match}}}'.format(match=match), subreply)
 
         # Object caller.
         reply = reply.replace("{__call__}", "<call>")
@@ -2203,7 +2202,7 @@ the value is unset at the end of the `reply()` method)."""
             else:
                 output = '[ERR: Object Not Found]'
 
-            reply = re.sub('<call>' + re.escape(match) + r'</call>', output, reply)
+            reply = reply.replace('<call>{match}</call>'.format(match=match), output)
 
         return reply
 
