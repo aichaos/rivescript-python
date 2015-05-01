@@ -80,7 +80,7 @@ RS_ERR_REPLY = "[ERR: No reply found]"
 RS_ERR_DEEP_RECURSION = "[ERR: Deep recursion detected]"
 RS_ERR_OBJECT = "[ERR: Error when executing Python object]"
 RS_ERR_OBJECT_HANDLER = "[ERR: No Object Handler]"
-RS_ERR_OBJECT_MISSING = "[ERR: Error when executing Python object]"
+RS_ERR_OBJECT_MISSING = "[ERR: Object Not Found]"
 
 
 class RiveScript(object):
@@ -2216,7 +2216,7 @@ the value is unset at the end of the `reply()` method)."""
                     except python.PythonObjectError as e:
                         self._warn(str(e))
                         if not ignore_object_errors:
-                            raise ObjectError
+                            raise ObjectError(str(e))
                         output = RS_ERR_OBJECT
                 else:
                     if not ignore_object_errors:
