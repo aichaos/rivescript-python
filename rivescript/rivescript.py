@@ -76,8 +76,12 @@ class RE(object):
 rs_version = 2.0
 
 # Exportable constants.
-RS_ERR_MATCH = "ERR: No Reply Matched"
-RS_ERR_REPLY = "ERR: No Reply Found"
+RS_ERR_MATCH = "[ERR: No reply matched]"
+RS_ERR_REPLY = "[ERR: No reply found]"
+RS_ERR_DEEP_RECURSION = "[ERR: Deep recursion detected]"
+RS_ERR_OBJECT = "[ERR: Error when executing Python object]"
+RS_ERR_OBJECT_HANDLER = "[ERR: No Object Handler]"
+RS_ERR_OBJECT_MISSING = "[ERR: Object Not Found]"
 
 
 class RiveScript(object):
@@ -1511,7 +1515,7 @@ the value is unset at the end of the `reply()` method)."""
     # Reply Fetching Methods                                                   #
     ############################################################################
 
-    def reply(self, user, msg):
+    def reply(self, user, msg, errors_as_replies=True):
         """Fetch a reply from the RiveScript brain."""
         self._say("Get reply to [" + user + "] " + msg)
 
@@ -1525,20 +1529,30 @@ the value is unset at the end of the `reply()` method)."""
 
         # If the BEGIN block exists, consult it first.
         if "__begin__" in self._topics:
-            begin = self._getreply(user, 'request', context='begin')
+            begin = self._getreply(user, 'request', context='begin', ignore_object_errors=errors_as_replies)
 
             # Okay to continue?
             if '{ok}' in begin:
-                reply = self._getreply(user, msg)
+                try:
+                    reply = self._getreply(user, msg, ignore_object_errors=errors_as_replies)
+                except RiveScriptError as e:
+                    if not errors_as_replies:
+                        raise
+                    reply = e.error_message
                 begin = begin.replace('{ok}', reply)
 
             reply = begin
 
             # Run more tag substitutions.
-            reply = self._process_tags(user, msg, reply)
+            reply = self._process_tags(user, msg, reply, ignore_object_errors=errors_as_replies)
         else:
             # Just continue then.
-            reply = self._getreply(user, msg)
+            try:
+                reply = self._getreply(user, msg, ignore_object_errors=errors_as_replies)
+            except RiveScriptError as e:
+                if not errors_as_replies:
+                    raise
+                reply = e.error_message
 
         # Save their reply history.
         oldInput = self._users[user]['__history__']['input'][:8]
@@ -1580,10 +1594,10 @@ the value is unset at the end of the `reply()` method)."""
 
         return msg
 
-    def _getreply(self, user, msg, context='normal', step=0):
+    def _getreply(self, user, msg, context='normal', step=0, ignore_object_errors=True):
         # Needed to sort replies?
         if 'topics' not in self._sorted:
-            raise Exception("You forgot to call sort_replies()!")
+            raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
 
         # Initialize the user's profile?
         if user not in self._users:
@@ -1602,7 +1616,7 @@ the value is unset at the end of the `reply()` method)."""
 
         # Avoid deep recursion.
         if step > self._depth:
-            return "ERR: Deep Recursion Detected"
+            raise DeepRecursionError
 
         # Are we in the BEGIN statement?
         if context == 'begin':
@@ -1627,7 +1641,7 @@ the value is unset at the end of the `reply()` method)."""
         if topic not in self._topics:
             # This was handled before, which would mean topic=random and
             # it doesn't exist. Serious issue!
-            return "[ERR: No default topic 'random' was found!]"
+            raise NoDefaultRandomTopicError("no default topic 'random' was found")
 
         # Create a pointer for the matched data when we find it.
         matched        = None
@@ -1743,9 +1757,10 @@ the value is unset at the end of the `reply()` method)."""
                 # See if there are any hard redirects.
                 if matched["redirect"]:
                     self._say("Redirecting us to " + matched["redirect"])
-                    redirect = self._process_tags(user, msg, matched["redirect"], stars, thatstars, step)
+                    redirect = self._process_tags(user, msg, matched["redirect"], stars, thatstars, step,
+                                                  ignore_object_errors)
                     self._say("Pretend user said: " + redirect)
-                    reply = self._getreply(user, redirect, step=(step + 1))
+                    reply = self._getreply(user, redirect, step=(step + 1), ignore_object_errors=ignore_object_errors)
                     break
 
                 # Check the conditionals.
@@ -1761,8 +1776,8 @@ the value is unset at the end of the `reply()` method)."""
                             self._say("Left: " + left + "; eq: " + eq + "; right: " + right + " => " + potreply)
 
                             # Process tags all around.
-                            left  = self._process_tags(user, msg, left, stars, thatstars, step)
-                            right = self._process_tags(user, msg, right, stars, thatstars, step)
+                            left  = self._process_tags(user, msg, left, stars, thatstars, step, ignore_object_errors)
+                            right = self._process_tags(user, msg, right, stars, thatstars, step, ignore_object_errors)
 
                             # Defaults?
                             if len(left) == 0:
@@ -1828,9 +1843,9 @@ the value is unset at the end of the `reply()` method)."""
 
         # Still no reply?
         if not foundMatch:
-            reply = RS_ERR_MATCH
+            raise NoMatchError
         elif len(reply) == 0:
-            reply = RS_ERR_REPLY
+            raise NoReplyError
 
         self._say("Reply: " + reply)
 
@@ -1851,7 +1866,7 @@ the value is unset at the end of the `reply()` method)."""
                 reply = reply.replace('<set {key}={value}>'.format(key=match[0], value=match[1]), '')
         else:
             # Process more tags if not in BEGIN.
-            reply = self._process_tags(user, msg, reply, stars, thatstars, step)
+            reply = self._process_tags(user, msg, reply, stars, thatstars, step, ignore_object_errors)
 
         return reply
 
@@ -1860,9 +1875,9 @@ the value is unset at the end of the `reply()` method)."""
 
         # Safety checking.
         if 'lists' not in self._sorted:
-            raise Exception("You forgot to call sort_replies()!")
+            raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
         if kind not in self._sorted["lists"]:
-            raise Exception("You forgot to call sort_replies()!")
+            raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
 
         # Get the substitution map.
         subs = None
@@ -2008,7 +2023,7 @@ the value is unset at the end of the `reply()` method)."""
 
         self._regexc["trigger"][trigger] = self._reply_regexp(None, trigger)
 
-    def _process_tags(self, user, msg, reply, st=[], bst=[], depth=0):
+    def _process_tags(self, user, msg, reply, st=[], bst=[], depth=0, ignore_object_errors=True):
         """Post process tags in a message."""
         stars = ['']
         stars.extend(st)
@@ -2197,11 +2212,21 @@ the value is unset at the end of the `reply()` method)."""
                 lang = self._objlangs[obj]
                 if lang in self._handlers:
                     # We do.
-                    output = self._handlers[lang].call(self, obj, user, args)
+                    try:
+                        output = self._handlers[lang].call(self, obj, user, args)
+                    except python.PythonObjectError as e:
+                        self._warn(str(e))
+                        if not ignore_object_errors:
+                            raise ObjectError(str(e))
+                        output = RS_ERR_OBJECT
                 else:
-                    output = '[ERR: No Object Handler]'
+                    if not ignore_object_errors:
+                        raise ObjectError(RS_ERR_OBJECT_HANDLER)
+                    output = RS_ERR_OBJECT_HANDLER
             else:
-                output = '[ERR: Object Not Found]'
+                if not ignore_object_errors:
+                    raise ObjectError(RS_ERR_OBJECT_MISSING)
+                output = RS_ERR_OBJECT_MISSING
 
             reply = reply.replace('<call>{match}</call>'.format(match=match), output)
 
@@ -2430,6 +2455,52 @@ the value is unset at the end of the `reply()` method)."""
 
         print("=== Syntax Tree ===")
         pp.pprint(self._syntax)
+
+
+################################################################################
+# Exception Classes                                                            #
+################################################################################
+
+class RiveScriptError(Exception):
+    """RiveScript base exception class"""
+    def __init__(self, error_message=None):
+        super(RiveScriptError, self).__init__(error_message)
+        self.error_message = error_message
+
+
+class NoMatchError(RiveScriptError):
+    """No reply could be matched"""
+    def __init__(self):
+        super(NoMatchError, self).__init__(RS_ERR_MATCH)
+
+
+class NoReplyError(RiveScriptError):
+    """No reply could be found"""
+    def __init__(self):
+        super(NoReplyError, self).__init__(RS_ERR_REPLY)
+
+
+class ObjectError(RiveScriptError):
+    """An error occurred when executing a Python object"""
+    def __init__(self, error_message=RS_ERR_OBJECT):
+        super(ObjectError, self).__init__(error_message)
+
+
+class DeepRecursionError(RiveScriptError):
+    """Prevented an infinite loop / deep recursion, unable to retrieve a reply for this message"""
+    def __init__(self):
+        super(DeepRecursionError, self).__init__(RS_ERR_DEEP_RECURSION)
+
+
+class NoDefaultRandomTopicError(Exception):
+    """No default topic 'random' could be found, critical error"""
+    pass
+
+
+class RepliesNotSortedError(Exception):
+    """sort_replies() was not called after the RiveScript documents were loaded, critical error"""
+    pass
+
 
 ################################################################################
 # Interactive Mode                                                             #

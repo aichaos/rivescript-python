@@ -41,4 +41,5 @@ __docformat__  = 'plaintext'
 __all__      = ['rivescript']
 __version__  = '1.07'
 
-from .rivescript import RiveScript
+from .rivescript import RiveScript, RiveScriptError, NoMatchError, NoReplyError,\
+    ObjectError, DeepRecursionError, NoDefaultRandomTopicError, RepliesNotSortedError

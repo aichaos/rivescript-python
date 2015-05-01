@@ -67,7 +67,7 @@ handler on your RiveScript object:
 
         try:
             exec(source)
-            #self._objects[name] = RSOBJ
+            # self._objects[name] = RSOBJ
         except Exception as e:
             print("Failed to load code from object", name)
             print("The error given was: ", e)
@@ -75,7 +75,7 @@ handler on your RiveScript object:
     def call(self, rs, name, user, fields):
         """Invoke a previously loaded object."""
         # Call the dynamic method.
-        if not name in self._objects:
+        if name not in self._objects:
             return '[ERR: Object Not Found]'
         func = self._objects[name]
         reply = ''
@@ -84,6 +84,9 @@ handler on your RiveScript object:
             if reply is None:
                 reply = ''
         except Exception as e:
-            print("Error executing Python object:", e)
-            reply = '[ERR: Error when executing Python object]'
+            raise PythonObjectError("Error executing Python object: " + str(e))
         return str(reply)
+
+
+class PythonObjectError(Exception):
+    pass
