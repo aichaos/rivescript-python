@@ -23,6 +23,7 @@
 # SOFTWARE.
 
 from __future__ import unicode_literals
+from six import text_type
 import sys
 import os
 import re
@@ -207,7 +208,7 @@ This may be called as either a class method or a method of a RiveScript object."
         `code` can either be a string containing RiveScript code or an array
         of lines of RiveScript code."""
         self._say("Streaming code.")
-        if type(code) in [str, unicode]:
+        if type(code) in [str, text_type]:
             code = code.split("\n")
         self._parse("stream()", code)
 
@@ -838,7 +839,7 @@ Returns a syntax error string on error; None otherwise."""
             for var in sorted(deparsed["begin"][kind].keys()):
                 # Array types need to be separated by either spaces or pipes.
                 data = deparsed["begin"][kind][var]
-                if type(data) not in [str, unicode]:
+                if type(data) not in [str, text_type]:
                     needs_pipes = False
                     for test in data:
                         if " " in test:
@@ -2108,7 +2109,7 @@ the value is unset at the end of the `reply()` method)."""
                 if "=" in data:
                     # Setting a bot/env variable.
                     parts = data.split("=")
-                    self._say("Set " + tag + " variable " + unicode(parts[0]) + "=" + unicode(parts[1]))
+                    self._say("Set " + tag + " variable " + text_type(parts[0]) + "=" + text_type(parts[1]))
                     target[parts[0]] = parts[1]
                 else:
                     # Getting a bot/env variable.
@@ -2116,7 +2117,7 @@ the value is unset at the end of the `reply()` method)."""
             elif tag == "set":
                 # <set> user vars.
                 parts = data.split("=")
-                self._say("Set uservar " + unicode(parts[0]) + "=" + unicode(parts[1]))
+                self._say("Set uservar " + text_type(parts[0]) + "=" + text_type(parts[1]))
                 self._users[user][parts[0]] = parts[1]
             elif tag in ["add", "sub", "mult", "div"]:
                 # Math operator tags.

@@ -22,7 +22,7 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
-    install_requires = [ 'setuptools' ],
+    install_requires = [ 'setuptools', 'six' ],
 )
 
 # vim:expandtab
