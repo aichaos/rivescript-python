@@ -1,6 +1,6 @@
 Revision history for the Python package RiveScript.
 
-1.08  Oct 10 2015
+1.8.0  Oct 10 2015
 	- New algorithm for handling variable tags (<get>, <set>, <add>, <sub>,
 	  <mult>, <div>, <bot> and <env>) that allows for iterative nesting of
 	  these tags (for example, <set copy=<get orig>> will work now).
