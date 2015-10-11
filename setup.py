@@ -10,7 +10,7 @@ setup(
     long_description = 'A scripting language to make it easy to write responses for a chatterbot.',
     author           = 'Noah Petherbridge',
     author_email     = 'root@kirsle.net',
-    url              = 'https://github.com/kirsle/rivescript-python',
+    url              = 'https://github.com/aichaos/rivescript-python',
     license          = 'MIT',
     packages         = ['rivescript'],
     keywords         = ['bot', 'chatbot', 'chatterbot', 'ai', 'aiml',
