@@ -28,7 +28,7 @@
 from __future__ import print_function, unicode_literals
 
 __author__     = 'Noah Petherbridge'
-__copyright__  = 'Copyright 2013, Noah Petherbridge'
+__copyright__  = 'Copyright 2015, Noah Petherbridge'
 __credits__    = [
     'Noah Petherbridge',
     'dinever'
@@ -39,7 +39,7 @@ __status__     = 'Production'
 __docformat__  = 'plaintext'
 
 __all__      = ['rivescript']
-__version__  = '1.07'
+__version__  = '1.08'
 
 from .rivescript import RiveScript, RiveScriptError, NoMatchError, NoReplyError,\
     ObjectError, DeepRecursionError, NoDefaultRandomTopicError, RepliesNotSortedError

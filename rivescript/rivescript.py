@@ -1953,9 +1953,8 @@ the value is unset at the end of the `reply()` method)."""
             parts = match.split("|")
             new = []
             for p in parts:
-                p = r'\s*' + p + r'\s*'
+                p = r'(?:\\s|\\b)+{}(?:\\s|\\b)+'.format(p)
                 new.append(p)
-            new.append(r'\s*')
 
             # If this optional had a star or anything in it, make it
             # non-matching.
@@ -1964,7 +1963,8 @@ the value is unset at the end of the `reply()` method)."""
             pipes = re.sub(re.escape('(\d+?)'), '(?:\d+?)', pipes)
             pipes = re.sub(re.escape('([A-Za-z]+?)'), '(?:[A-Za-z]+?)', pipes)
 
-            regexp = re.sub(r'\s*\[' + re.escape(match) + '\]\s*', '(?:' + pipes + ')', regexp)
+            regexp = re.sub(r'\s*\[' + re.escape(match) + '\]\s*',
+                '(?:' + pipes + r'|(?:\\s|\\b))', regexp)
 
         # _ wildcards can't match numbers!
         regexp = re.sub(RE.literal_w, r'[A-Za-z]', regexp)

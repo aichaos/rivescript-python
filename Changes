@@ -1,6 +1,6 @@
 Revision history for the Python package RiveScript.
 
-1.07  TBD
+1.08  Oct 10 2015
 	- New algorithm for handling variable tags (<get>, <set>, <add>, <sub>,
 	  <mult>, <div>, <bot> and <env>) that allows for iterative nesting of
 	  these tags (for example, <set copy=<get orig>> will work now).
@@ -13,6 +13,8 @@ Revision history for the Python package RiveScript.
 	  to ~0.04s
 	- Add support for `! local concat` option to override concatenation mode
 	  (file scoped)
+	- Fix the regexp used when matching optionals so that the triggers don't match
+	  on inputs where they shouldn't. (RiveScript-JS issue #46)
 
 1.06  Nov 25 2014
 	- Change package name from python-rivescript to simply rivescript.

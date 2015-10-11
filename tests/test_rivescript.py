@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 import unittest
 
 from rivescript.rivescript import RS_ERR_MATCH
 
-from config import RiveScriptTestCase
+from .config import RiveScriptTestCase
 
 
 class BeginBlockTests(RiveScriptTestCase):
@@ -201,6 +201,12 @@ class TriggerTests(RiveScriptTestCase):
 
             + [please|can you] ask me a question
             - Why is the sky blue?
+
+            + (aa|bb|cc) [bogus]
+            - Matched.
+
+            + (yo|hi) [computer|bot] *
+            - Matched.
         """)
         self.reply("What are you?", "I am a robot.")
         self.reply("What is you?", "I am a robot.")
@@ -212,6 +218,19 @@ class TriggerTests(RiveScriptTestCase):
         self.reply("Can you ask me a question?", "Why is the sky blue?")
         self.reply("Please ask me a question?", "Why is the sky blue?")
         self.reply("Ask me a question?", "Why is the sky blue?")
+
+        self.reply("aa", "Matched.")
+        self.reply("bb", "Matched.")
+        self.reply("aa bogus", "Matched.")
+        self.reply("aabogus", RS_ERR_MATCH)
+        self.reply("bogus", RS_ERR_MATCH)
+
+        self.reply("hi Aiden", "Matched.")
+        self.reply("hi bot how are you?", "Matched.")
+        self.reply("yo computer what time is it?", "Matched.")
+        self.reply("yoghurt is yummy", RS_ERR_MATCH)
+        self.reply("hide and seek is fun", RS_ERR_MATCH)
+        self.reply("hip hip hurrah", RS_ERR_MATCH)
 
 
     def test_trigger_arrays(self):
