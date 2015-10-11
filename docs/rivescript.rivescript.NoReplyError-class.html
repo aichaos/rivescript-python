@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>rivescript.python.PyRiveObjects</title>
+  <title>rivescript.rivescript.NoReplyError</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -40,8 +40,8 @@
     <td width="100%">
       <span class="breadcrumbs">
         Package&nbsp;rivescript ::
-        <a href="rivescript.python-module.html" onclick="show_private();">Module&nbsp;python</a> ::
-        Class&nbsp;PyRiveObjects
+        <a href="rivescript.rivescript-module.html">Module&nbsp;rivescript</a> ::
+        Class&nbsp;NoReplyError
       </span>
     </td>
     <td>
@@ -51,46 +51,28 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="rivescript.python.PyRiveObjects-class.html"
+            >]&nbsp;|&nbsp;<a href="rivescript.rivescript.NoReplyError-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class PyRiveObjects</h1><p class="nomargin-top"><span class="codelink"><a href="rivescript.python-pysrc.html#PyRiveObjects">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class NoReplyError</h1><p class="nomargin-top"><span class="codelink"><a href="rivescript.rivescript-pysrc.html#NoReplyError">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-object --+
-         |
-        <strong class="uidshort">PyRiveObjects</strong>
+              object --+            
+                       |            
+exceptions.BaseException --+        
+                           |        
+        exceptions.Exception --+    
+                               |    
+                 <a href="rivescript.rivescript.RiveScriptError-class.html">RiveScriptError</a> --+
+                                   |
+                                  <strong class="uidshort">NoReplyError</strong>
 </pre>
 
 <hr />
-<pre class="literalblock">
-A RiveScript object handler for Python code.
-
-This class provides built-in support for your RiveScript documents to include
-and execute object macros written in Python. For example:
-
-    &gt; object base64 python
-        import base64 as b64
-        return b64.b64encode(&quot; &quot;.join(args))
-    &lt; object
-
-    + encode * in base64
-    - OK: &lt;call&gt;base64 &lt;star&gt;&lt;/call&gt;
-
-Python object macros receive these two parameters:
-
-    rs:   The reference to the parent RiveScript instance
-    args: A list of argument words passed to your object macro
-
-Python support is on by default. To turn it off, just unset the Python language
-handler on your RiveScript object:
-
-    rs.set_handler(&quot;python&quot;, None)
-
-</pre>
+<p>No reply could be found</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -115,50 +97,10 @@ handler on your RiveScript object:
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rivescript.python.PyRiveObjects-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="rivescript.rivescript.NoReplyError-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rivescript.python-pysrc.html#PyRiveObjects.__init__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="call"></a><span class="summary-sig-name">call</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">rs</span>,
-        <span class="summary-sig-arg">name</span>,
-        <span class="summary-sig-arg">user</span>,
-        <span class="summary-sig-arg">fields</span>)</span><br />
-      Invoke a previously loaded object.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rivescript.python-pysrc.html#PyRiveObjects.call">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="load"></a><span class="summary-sig-name">load</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>,
-        <span class="summary-sig-arg">code</span>)</span><br />
-      Prepare a Python code object given by the RiveScript interpreter.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rivescript.python-pysrc.html#PyRiveObjects.load">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rivescript.rivescript-pysrc.html#NoReplyError.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -168,45 +110,28 @@ handler on your RiveScript object:
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>exceptions.Exception</code></b>:
+      <code>__new__</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>exceptions.BaseException</code></b>:
       <code>__delattr__</code>,
-      <code>__format__</code>,
       <code>__getattribute__</code>,
-      <code>__hash__</code>,
-      <code>__new__</code>,
+      <code>__getitem__</code>,
+      <code>__getslice__</code>,
       <code>__reduce__</code>,
-      <code>__reduce_ex__</code>,
       <code>__repr__</code>,
       <code>__setattr__</code>,
-      <code>__sizeof__</code>,
+      <code>__setstate__</code>,
       <code>__str__</code>,
+      <code>__unicode__</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__format__</code>,
+      <code>__hash__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__sizeof__</code>,
       <code>__subclasshook__</code>
       </p>
-    </td>
-  </tr>
-</table>
-<!-- ==================== CLASS VARIABLES ==================== -->
-<a name="section-ClassVariables"></a>
-<table class="summary" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Class Variables</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-ClassVariables"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="_objects"></a><span class="summary-name">_objects</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
     </td>
   </tr>
 </table>
@@ -229,6 +154,10 @@ handler on your RiveScript object:
 </tr>
   <tr>
     <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>exceptions.BaseException</code></b>:
+      <code>args</code>,
+      <code>message</code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
       </p>
@@ -264,7 +193,7 @@ handler on your RiveScript object:
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rivescript.python-pysrc.html#PyRiveObjects.__init__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rivescript.rivescript-pysrc.html#NoReplyError.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   

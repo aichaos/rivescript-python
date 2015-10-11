@@ -60,7 +60,7 @@
 <h1 class="epydoc">Module rivescript</h1><p class="nomargin-top"><span class="codelink"><a href="rivescript.rivescript-pysrc.html">source&nbsp;code</a></span></p>
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        1.06
+        1.08
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -83,8 +83,73 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rivescript.rivescript.DeepRecursionError-class.html" class="summary-name">DeepRecursionError</a><br />
+      Prevented an infinite loop / deep recursion, unable to retrieve a 
+        reply for this message
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rivescript.rivescript.NoDefaultRandomTopicError-class.html" class="summary-name">NoDefaultRandomTopicError</a><br />
+      No default topic 'random' could be found, critical error
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rivescript.rivescript.NoMatchError-class.html" class="summary-name">NoMatchError</a><br />
+      No reply could be matched
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rivescript.rivescript.NoReplyError-class.html" class="summary-name">NoReplyError</a><br />
+      No reply could be found
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rivescript.rivescript.ObjectError-class.html" class="summary-name">ObjectError</a><br />
+      An error occurred when executing a Python object
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rivescript.rivescript.RE-class.html" class="summary-name">RE</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rivescript.rivescript.RepliesNotSortedError-class.html" class="summary-name">RepliesNotSortedError</a><br />
+      sort_replies() was not called after the RiveScript documents were 
+        loaded, critical error
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rivescript.rivescript.RiveScript-class.html" class="summary-name">RiveScript</a><br />
       A RiveScript interpreter for Python 2 and 3.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rivescript.rivescript.RiveScriptError-class.html" class="summary-name">RiveScriptError</a><br />
+      RiveScript base exception class
     </td>
   </tr>
 </table>
@@ -109,70 +174,42 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="re_equals"></a><span class="summary-name">re_equals</span> = <code title="re.compile(r'\s*=\s*')">re.compile(r'\s<code class="re-op">*</code>=\s<code class="re-op">*</code>')</code>
+        <a name="RS_ERR_DEEP_RECURSION"></a><span class="summary-name">RS_ERR_DEEP_RECURSION</span> = <code title="u'[ERR: Deep recursion detected]'"><code class="variable-quote">u'</code><code class="variable-string">[ERR: Deep recursion detected]</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="re_ws"></a><span class="summary-name">re_ws</span> = <code title="re.compile(r'\s+')">re.compile(r'\s<code class="re-op">+</code>')</code>
+        <a name="RS_ERR_MATCH"></a><span class="summary-name">RS_ERR_MATCH</span> = <code title="u'[ERR: No reply matched]'"><code class="variable-quote">u'</code><code class="variable-string">[ERR: No reply matched]</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="re_objend"></a><span class="summary-name">re_objend</span> = <code title="re.compile(r'^\s*&lt;\s*object')">re.compile(r'^\s<code class="re-op">*</code>&lt;\s<code class="re-op">*</code>object')</code>
+        <a name="RS_ERR_OBJECT"></a><span class="summary-name">RS_ERR_OBJECT</span> = <code title="u'[ERR: Error when executing Python object]'"><code class="variable-quote">u'</code><code class="variable-string">[ERR: Error when executing Python object]</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="re_weight"></a><span class="summary-name">re_weight</span> = <code title="re.compile(r'\{weight=(\d+)\}')">re.compile(r'\{weight=<code class="re-group">(</code>\d<code class="re-op">+</code><code class="re-group">)</code>\}')</code>
+        <a name="RS_ERR_OBJECT_HANDLER"></a><span class="summary-name">RS_ERR_OBJECT_HANDLER</span> = <code title="u'[ERR: No Object Handler]'"><code class="variable-quote">u'</code><code class="variable-string">[ERR: No Object Handler]</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="re_inherit"></a><span class="summary-name">re_inherit</span> = <code title="re.compile(r'\{inherits=(\d+)\}')">re.compile(r'\{inherits=<code class="re-group">(</code>\d<code class="re-op">+</code><code class="re-group">)</code>\}')</code>
+        <a name="RS_ERR_OBJECT_MISSING"></a><span class="summary-name">RS_ERR_OBJECT_MISSING</span> = <code title="u'[ERR: Object Not Found]'"><code class="variable-quote">u'</code><code class="variable-string">[ERR: Object Not Found]</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="re_wilds"></a><span class="summary-name">re_wilds</span> = <code title="re.compile(r'[\s\*#_]+')">re.compile(r'<code class="re-group">[</code>\s\*#_<code class="re-group">]</code><code class="re-op">+</code>')</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="re_nasties"></a><span class="summary-name">re_nasties</span> = <code title="re.compile(r'[^A-Za-z0-9 ]')">re.compile(r'<code class="re-group">[</code><code class="re-op">^</code>A<code class="re-op">-</code>Za<code class="re-op">-</code>z0<code class="re-op">-</code>9 <code class="re-group">]</code>')</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="rs_version"></a><span class="summary-name">rs_version</span> = <code title="2.0">2.0</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="RS_ERR_MATCH"></a><span class="summary-name">RS_ERR_MATCH</span> = <code title="'ERR: No Reply Matched'"><code class="variable-quote">'</code><code class="variable-string">ERR: No Reply Matched</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="RS_ERR_REPLY"></a><span class="summary-name">RS_ERR_REPLY</span> = <code title="'ERR: No Reply Found'"><code class="variable-quote">'</code><code class="variable-string">ERR: No Reply Found</code><code class="variable-quote">'</code></code>
+        <a name="RS_ERR_REPLY"></a><span class="summary-name">RS_ERR_REPLY</span> = <code title="u'[ERR: No reply found]'"><code class="variable-quote">u'</code><code class="variable-string">[ERR: No reply found]</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
@@ -180,6 +217,13 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rivescript'"><code class="variable-quote">'</code><code class="variable-string">rivescript</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="rs_version"></a><span class="summary-name">rs_version</span> = <code title="2.0">2.0</code>
     </td>
   </tr>
 </table>
@@ -211,7 +255,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Nov 25 18:56:01 2014
+    Generated by Epydoc 3.0.1 on Sat Oct 10 19:19:51 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

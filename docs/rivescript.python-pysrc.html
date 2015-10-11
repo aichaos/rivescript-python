@@ -62,7 +62,7 @@
 <a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"> </tt>
 <a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># The MIT License (MIT)</tt> </tt>
 <a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
-<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># Copyright (c) 2014 Noah Petherbridge</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># Copyright (c) 2015 Noah Petherbridge</tt> </tt>
 <a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
 <a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># Permission is hereby granted, free of charge, to any person obtaining a copy</tt> </tt>
 <a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># of this software and associated documentation files (the "Software"), to deal</tt> </tt>
@@ -83,12 +83,12 @@
 <a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-comment"># SOFTWARE.</tt> </tt>
 <a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
 <a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-comment"># Python3 compat</tt> </tt>
-<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">__future__</tt> <tt class="py-keyword">import</tt> <tt class="py-name">print_function</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">__future__</tt> <tt class="py-keyword">import</tt> <tt class="py-name">print_function</tt><tt class="py-op">,</tt> <tt class="py-name">unicode_literals</tt> </tt>
 <a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"> </tt>
 <a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt class="py-name">__docformat__</tt> <tt class="py-op">=</tt> <tt class="py-string">'plaintext'</tt> </tt>
 <a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"> </tt>
 <a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"> </tt>
-<a name="PyRiveObjects"></a><div id="PyRiveObjects-def"><a name="L31"></a><tt class="py-lineno">31</tt> <a class="py-toggle" href="#" id="PyRiveObjects-toggle" onclick="return toggle('PyRiveObjects');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rivescript.python.PyRiveObjects-class.html">PyRiveObjects</a><tt class="py-op">:</tt> </tt>
+<a name="PyRiveObjects"></a><div id="PyRiveObjects-def"><a name="L31"></a><tt class="py-lineno">31</tt> <a class="py-toggle" href="#" id="PyRiveObjects-toggle" onclick="return toggle('PyRiveObjects');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rivescript.python.PyRiveObjects-class.html">PyRiveObjects</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 </div><div id="PyRiveObjects-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="PyRiveObjects-expanded"><a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">    <tt class="py-docstring">"""A RiveScript object handler for Python code.</tt> </tt>
 <a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
 <a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line"><tt class="py-docstring">This class provides built-in support for your RiveScript documents to include</tt> </tt>
@@ -127,7 +127,7 @@
 <a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line"> </tt>
 <a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
 <a name="L69"></a><tt class="py-lineno">69</tt>  <tt class="py-line">            <tt class="py-keyword">exec</tt><tt class="py-op">(</tt><tt class="py-name">source</tt><tt class="py-op">)</tt> </tt>
-<a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line">            <tt class="py-comment">#self._objects[name] = RSOBJ</tt> </tt>
+<a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line">            <tt class="py-comment"># self._objects[name] = RSOBJ</tt> </tt>
 <a name="L71"></a><tt class="py-lineno">71</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt> <tt class="py-keyword">as</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
 <a name="L72"></a><tt class="py-lineno">72</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"Failed to load code from object"</tt><tt class="py-op">,</tt> <tt class="py-name">name</tt><tt class="py-op">)</tt> </tt>
 <a name="L73"></a><tt class="py-lineno">73</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"The error given was: "</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">)</tt> </tt>
@@ -135,7 +135,7 @@
 <a name="PyRiveObjects.call"></a><div id="PyRiveObjects.call-def"><a name="L75"></a><tt class="py-lineno">75</tt> <a class="py-toggle" href="#" id="PyRiveObjects.call-toggle" onclick="return toggle('PyRiveObjects.call');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rivescript.python.PyRiveObjects-class.html#call">call</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">rs</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">,</tt> <tt class="py-param">user</tt><tt class="py-op">,</tt> <tt class="py-param">fields</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 </div><div id="PyRiveObjects.call-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="PyRiveObjects.call-expanded"><a name="L76"></a><tt class="py-lineno">76</tt>  <tt class="py-line">        <tt class="py-docstring">"""Invoke a previously loaded object."""</tt> </tt>
 <a name="L77"></a><tt class="py-lineno">77</tt>  <tt class="py-line">        <tt class="py-comment"># Call the dynamic method.</tt> </tt>
-<a name="L78"></a><tt class="py-lineno">78</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">name</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-1" class="py-name"><a title="rivescript.python.PyRiveObjects._objects" class="py-name" href="#" onclick="return doclink('link-1', '_objects', 'link-0');">_objects</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L78"></a><tt class="py-lineno">78</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">name</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-1" class="py-name"><a title="rivescript.python.PyRiveObjects._objects" class="py-name" href="#" onclick="return doclink('link-1', '_objects', 'link-0');">_objects</a></tt><tt class="py-op">:</tt> </tt>
 <a name="L79"></a><tt class="py-lineno">79</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-string">'[ERR: Object Not Found]'</tt> </tt>
 <a name="L80"></a><tt class="py-lineno">80</tt>  <tt class="py-line">        <tt class="py-name">func</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name"><a title="rivescript.python.PyRiveObjects._objects" class="py-name" href="#" onclick="return doclink('link-2', '_objects', 'link-0');">_objects</a></tt><tt class="py-op">[</tt><tt class="py-name">name</tt><tt class="py-op">]</tt> </tt>
 <a name="L81"></a><tt class="py-lineno">81</tt>  <tt class="py-line">        <tt id="link-3" class="py-name" targets="Method rivescript.rivescript.RiveScript.reply()=rivescript.rivescript.RiveScript-class.html#reply"><a title="rivescript.rivescript.RiveScript.reply" class="py-name" href="#" onclick="return doclink('link-3', 'reply', 'link-3');">reply</a></tt> <tt class="py-op">=</tt> <tt class="py-string">''</tt> </tt>
@@ -144,10 +144,13 @@
 <a name="L84"></a><tt class="py-lineno">84</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-5" class="py-name"><a title="rivescript.rivescript.RiveScript.reply" class="py-name" href="#" onclick="return doclink('link-5', 'reply', 'link-3');">reply</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
 <a name="L85"></a><tt class="py-lineno">85</tt>  <tt class="py-line">                <tt id="link-6" class="py-name"><a title="rivescript.rivescript.RiveScript.reply" class="py-name" href="#" onclick="return doclink('link-6', 'reply', 'link-3');">reply</a></tt> <tt class="py-op">=</tt> <tt class="py-string">''</tt> </tt>
 <a name="L86"></a><tt class="py-lineno">86</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt> <tt class="py-keyword">as</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
-<a name="L87"></a><tt class="py-lineno">87</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"Error executing Python object:"</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">)</tt> </tt>
-<a name="L88"></a><tt class="py-lineno">88</tt>  <tt class="py-line">            <tt id="link-7" class="py-name"><a title="rivescript.rivescript.RiveScript.reply" class="py-name" href="#" onclick="return doclink('link-7', 'reply', 'link-3');">reply</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'[ERR: Error when executing Python object]'</tt> </tt>
-<a name="L89"></a><tt class="py-lineno">89</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-8" class="py-name"><a title="rivescript.rivescript.RiveScript.reply" class="py-name" href="#" onclick="return doclink('link-8', 'reply', 'link-3');">reply</a></tt><tt class="py-op">)</tt> </tt>
-</div></div><a name="L90"></a><tt class="py-lineno">90</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<a name="L87"></a><tt class="py-lineno">87</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-7" class="py-name" targets="Class rivescript.python.PythonObjectError=rivescript.python.PythonObjectError-class.html"><a title="rivescript.python.PythonObjectError" class="py-name" href="#" onclick="return doclink('link-7', 'PythonObjectError', 'link-7');">PythonObjectError</a></tt><tt class="py-op">(</tt><tt class="py-string">"Error executing Python object: "</tt> <tt class="py-op">+</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L88"></a><tt class="py-lineno">88</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-8" class="py-name"><a title="rivescript.rivescript.RiveScript.reply" class="py-name" href="#" onclick="return doclink('link-8', 'reply', 'link-3');">reply</a></tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L89"></a><tt class="py-lineno">89</tt>  <tt class="py-line"> </tt>
+<a name="L90"></a><tt class="py-lineno">90</tt>  <tt class="py-line"> </tt>
+<a name="PythonObjectError"></a><div id="PythonObjectError-def"><a name="L91"></a><tt class="py-lineno">91</tt> <a class="py-toggle" href="#" id="PythonObjectError-toggle" onclick="return toggle('PythonObjectError');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rivescript.python.PythonObjectError-class.html">PythonObjectError</a><tt class="py-op">(</tt><tt class="py-base-class">Exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PythonObjectError-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="PythonObjectError-expanded"><a name="L92"></a><tt class="py-lineno">92</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L93"></a><tt class="py-lineno">93</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -182,7 +185,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Nov 25 18:56:01 2014
+    Generated by Epydoc 3.0.1 on Sat Oct 10 19:19:51 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
