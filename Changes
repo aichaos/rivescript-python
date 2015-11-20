@@ -1,5 +1,9 @@
 Revision history for the Python package RiveScript.
 
+1.8.1  Nov 19 2015
+	- Add `@` to the list of characters that disqualifies a trigger from being
+	  considered "atomic"
+
 1.8.0  Oct 10 2015
 	- New algorithm for handling variable tags (<get>, <set>, <add>, <sub>,
 	  <mult>, <div>, <bot> and <env>) that allows for iterative nesting of

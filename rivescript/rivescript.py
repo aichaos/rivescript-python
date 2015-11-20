@@ -2396,7 +2396,7 @@ the value is unset at the end of the `reply()` method)."""
         # Atomic triggers don't contain any wildcards or parenthesis or anything
         # of the sort. We don't need to test the full character set, just left
         # brackets will do.
-        special = ['*', '#', '_', '(', '[', '<']
+        special = ['*', '#', '_', '(', '[', '<', '@']
         for char in special:
             if char in trigger:
                 return False
