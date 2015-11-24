@@ -44,7 +44,7 @@ from rivescript import RiveScript
 # Compatible wrapper for inputs.
 def _input(prompt=None):
     if sys.version_info[0] < 3:
-        return raw_input(prompt)
+        return raw_input(prompt).decode("utf-8")
     else:
         return input(prompt)
 
