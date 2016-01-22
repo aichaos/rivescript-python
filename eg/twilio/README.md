@@ -40,7 +40,7 @@ Test that the app basically works by requesting the following URL from your
 server in your web browser (substituting `yourserver.com` with your server's
 domain or IP address):
 
-`http://yourserver.com:5000/twilio/?From=123456789&Body=hello`
+`http://yourserver.com:5000/twilio?From=123456789&Body=hello`
 
 You should get a response from the bot, such as "How do you do. Please state
 your problem."
@@ -49,7 +49,7 @@ You can test it on the command line from a different terminal session on your
 server, too:
 
 ```bash
-$ curl 'http://127.0.0.1:5000/twilio/?From=123456789&Body=hello'
+$ curl 'http://127.0.0.1:5000/twilio?From=123456789&Body=hello'
 <?xml version="1.0" encoding="UTF-8"?><Response><Message><Body>Hi. What seems
 to be your problem?</Body></Message></Response>
 ```
