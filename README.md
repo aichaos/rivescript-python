@@ -8,13 +8,31 @@ trigger/response pairs for building up a bot's intelligence.
 
 This library is compatible with both Python 2 and Python 3.
 
+## INSTALLATION
+
+This module is available on [PyPI](https://pypi.python.org/) and can be
+installed via pip:
+
+`pip install rivescript`
+
+To install manually, download or clone the git repository and run
+`python setup.py install`
+
+## EXAMPLES
+
+There are examples available in the
+[eg/](https://github.com/aichaos/rivescript-python/tree/master/eg) directory of
+this project on GitHub that show how to interface with a RiveScript bot in a
+variety of ways--such as through the Twilio SMS API--and other code snippets and
+useful tricks.
+
 ## USAGE
 
 The `rivescript` module can be executed as a stand-alone Python script, or
 included in other Python code. When executed directly, it launches an
 interactive chat session:
 
-    python rivescript ./brain
+    python rivescript ./eg/brain
 
 When used as a library, the synopsis is as follows:
 
@@ -22,7 +40,7 @@ When used as a library, the synopsis is as follows:
 from rivescript import RiveScript
 
 bot = RiveScript()
-bot.load_directory("./brain")
+bot.load_directory("./eg/brain")
 bot.sort_replies()
 
 while True:

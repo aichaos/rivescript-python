@@ -5,7 +5,7 @@
 from rivescript import RiveScript
 
 rs = RiveScript()
-rs.load_directory("./brain")
+rs.load_directory("./eg/brain")
 rs.sort_replies()
 
 print("""This is a bare minimal example for how to write your own RiveScript bot!
