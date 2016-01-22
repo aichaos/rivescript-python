@@ -11,6 +11,8 @@ RiveScript-Python.
 
 ## Client Examples
 
+* [json-server](json-server/) - A minimal Flask web server that makes a
+  RiveScript bot available at a JSON POST endpoint.
 * [twilio](twilio/) - An example that uses the Twilio SMS API to create a bot
   that can receive SMS text messages from users and reply to them using
   RiveScript.
