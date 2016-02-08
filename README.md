@@ -1,5 +1,7 @@
 # RiveScript-Python
 
+[![Build Status](https://travis-ci.org/aichaos/rivescript-python.svg?branch=master)](https://travis-ci.org/aichaos/rivescript-python)
+
 ## INTRODUCTION
 
 This is a RiveScript interpreter for the Python programming language. RiveScript
