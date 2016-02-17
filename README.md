@@ -59,24 +59,23 @@ RiveScript as a library for Python 2 and 3, respectively.
 
 ## UTF-8 SUPPORT
 
-Version 1.05 adds experimental support for UTF-8 in RiveScript. It is not
-enabled by default. Enable it by passing a `True` value for the `utf8`
-option in the constructor, or by using the `--utf8` (or `-u` for short)
-option to the interactive mode.
+RiveScript supports Unicode but it is not enabled by default. Enable it by
+passing a `True` value for the `utf8` option in the constructor, or by using the
+`--utf8` argument to the standalone interactive mode.
 
-By default (without UTF-8 mode on), triggers may only contain basic ASCII
-characters (no foreign characters), and the user's message is stripped of
-all characters except letters/numbers and spaces. This means that, for
-example, you can't capture a user's e-mail address in a RiveScript reply,
-because of the @ and . characters.
+In UTF-8 mode, most characters in a user's message are left intact, except for
+certain metacharacters like backslashes and common punctuation characters like
+`/[.,!?;:]/`.
 
-When UTF-8 mode is enabled, these restrictions are lifted. Triggers are only
-limited to not contain certain metacharacters like the backslash, and the
-user's message is only stripped of backslashes and HTML angled brackets (to
-protect from obvious XSS if you use RiveScript in a web application). The
-`<star>` tags in RiveScript will capture the user's "raw" input, so you can
-write replies to get the user's e-mail address or store foreign characters
-in their name.
+If you want to override the punctuation regexp, you can provide a new one by
+assigning the `unicode_punctuation` attribute of the bot object after
+initialization. Example:
+
+```python
+import re
+bot = RiveScript(utf8=True)
+bot.unicode_punctuation = re.compile(r'[.,!?;:]')
+```
 
 Regardless of whether UTF-8 mode is on, all input messages given to the bot
 are converted (if needed) to Python's `unicode` data type. So, while it's
@@ -127,7 +126,7 @@ The `status` will be `ok` on success, or `error` if there was an error. The
 ```
 The MIT License (MIT)
 
-Copyright (c) 2015 Noah Petherbridge
+Copyright (c) 2016 Noah Petherbridge
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

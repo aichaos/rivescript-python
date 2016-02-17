@@ -1,7 +1,7 @@
 include setup.py
 recursive-include rivescript *.py
 recursive-include docs *.*
-include Changes
+include Changes.md
 include README.md
 include LICENSE
 recursive-include brain *.rive

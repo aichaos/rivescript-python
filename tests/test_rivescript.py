@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import re
 import unittest
 
 from rivescript.rivescript import RS_ERR_MATCH
@@ -679,6 +680,22 @@ class UnicodeTest(RiveScriptTestCase):
         self.reply("more", "Whö nëvër qüïtë lëärnëd höw tö swïm")
         self.reply("more", "Hë fëll öff ä döck, änd sänk lïkë ä röck")
         self.reply("more", "Änd thät wäs thë ënd öf hïm.")
+
+    def test_unicode_punctuation(self):
+        self.new("""
+            + hello bot
+            - Hello human!
+        """, utf8=True)
+
+        self.reply("Hello bot", "Hello human!")
+        self.reply("Hello, bot", "Hello human!")
+        self.reply("Hello: bot", "Hello human!")
+        self.reply("Hello... bot?", "Hello human!")
+
+        # Edit the punctuation regexp.
+        self.rs.unicode_punctuation = re.compile(r'xxx')
+        self.reply("Hello bot", "Hello human!")
+        self.reply("Hello, bot!", RS_ERR_MATCH)
 
 
 if __name__ == "__main__":

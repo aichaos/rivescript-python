@@ -2,7 +2,7 @@
 
 # The MIT License (MIT)
 #
-# Copyright (c) 2015 Noah Petherbridge
+# Copyright (c) 2016 Noah Petherbridge
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -106,12 +106,26 @@ bool strict: Strict mode (RS syntax errors are fatal)
 str  log:    Specify a log file for debug output to go to (instead of STDOUT).
 int  depth:  Specify the recursion depth limit.
 bool utf8:   Enable UTF-8 support."""
-        # Instance variables.
-        self._debug    = debug   # Debug mode
-        self._log      = log     # Debug log file
-        self._utf8     = utf8    # UTF-8 mode
-        self._strict   = strict  # Strict mode
-        self._depth    = depth   # Recursion depth limit
+
+        ###
+        # User configurable fields.
+        ###
+
+        # Debugging
+        self._debug = debug   # Debug mode
+        self._log   = log     # Debug log file
+
+        # Unicode stuff
+        self._utf8               = utf8  # UTF-8 mode
+        self.unicode_punctuation = re.compile(r'[.,!?;:]')
+
+        # Misc.
+        self._strict = strict  # Strict mode
+        self._depth  = depth   # Recursion depth limit
+
+        ###
+        # Internal fields.
+        ###
         self._gvars    = {}      # 'global' variables
         self._bvars    = {}      # 'bot' variables
         self._subs     = {}      # 'sub' variables
@@ -1584,6 +1598,7 @@ the value is unset at the end of the `reply()` method)."""
         # (to protect from obvious XSS attacks).
         if self._utf8:
             msg = re.sub(RE.utf8_meta, '', msg)
+            msg = re.sub(self.unicode_punctuation, '', msg)
 
             # For the bot's reply, also strip common punctuation.
             if botreply:

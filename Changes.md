@@ -1,5 +1,9 @@
 Revision history for the Python package RiveScript.
 
+1.10.0  Feb 16 2016
+	- Add configurable `unicode_punctuation` attribute to strip out punctuation
+	  when running in UTF-8 mode.
+
 1.8.1  Nov 19 2015
 	- Add `@` to the list of characters that disqualifies a trigger from being
 	  considered "atomic"
