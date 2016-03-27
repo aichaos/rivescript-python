@@ -1328,6 +1328,7 @@ is by default, unless you've called set_handler("python", None))."""
         # Do we have a Python handler?
         if 'python' in self._handlers:
             self._handlers['python']._objects[name] = code
+            self._objlangs[name] = 'python'
         else:
             self._warn("Can't set_subroutine: no Python object handler!")
 
