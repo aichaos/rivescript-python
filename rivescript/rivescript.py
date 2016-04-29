@@ -44,14 +44,14 @@ class RE(object):
     weight      = re.compile('\{weight=(\d+)\}')
     inherit     = re.compile('\{inherits=(\d+)\}')
     wilds       = re.compile('[\s\*\#\_]+')
-    nasties     = re.compile('[^A-Za-z0-9 ]')
+    nasties     = re.compile('[^/A-Za-z0-9 ]')
     crlf        = re.compile('<crlf>')
     literal_w   = re.compile(r'\\w')
     array       = re.compile(r'\@(.+?)\b')
     def_syntax  = re.compile(r'^.+(?:\s+.+|)\s*=\s*.+?$')
     name_syntax = re.compile(r'[^a-z0-9_\-\s]')
     utf8_trig   = re.compile(r'[A-Z\\.]')
-    trig_syntax = re.compile(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]')
+    trig_syntax = re.compile(r'[^/a-z0-9(\|)\[\]*_#@{}<>=\s]')
     cond_syntax = re.compile(r'^.+?\s*(?:==|eq|!=|ne|<>|<|<=|>|>=)\s*.+?=>.+?$')
     utf8_meta   = re.compile(r'[\\<>]')
     utf8_punct  = re.compile(r'[.?,!;:@#$%^&*()]')
@@ -471,6 +471,13 @@ This may be called as either a class method or a method of a RiveScript object."
                             fields.extend(val.split('|'))
                         else:
                             fields.extend(re.split(RE.ws, val))
+
+                    # Expand nested arrays
+                    for f in fields:
+                        if f.startswith('@'):
+                            aname = f[1:]
+                            if aname in self._arrays and aname != var:
+                                fields.extend(self._arrays[aname])
 
                     # Convert any remaining '\s' escape codes into spaces.
                     for f in fields:
