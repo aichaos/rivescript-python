@@ -44,14 +44,14 @@ class RE(object):
     weight      = re.compile('\{weight=(\d+)\}')
     inherit     = re.compile('\{inherits=(\d+)\}')
     wilds       = re.compile('[\s\*\#\_]+')
-    nasties     = re.compile('[^/A-Za-z0-9 ]')
+    nasties     = re.compile('[^A-Za-z0-9 ]')
     crlf        = re.compile('<crlf>')
     literal_w   = re.compile(r'\\w')
     array       = re.compile(r'\@(.+?)\b')
     def_syntax  = re.compile(r'^.+(?:\s+.+|)\s*=\s*.+?$')
     name_syntax = re.compile(r'[^a-z0-9_\-\s]')
     utf8_trig   = re.compile(r'[A-Z\\.]')
-    trig_syntax = re.compile(r'[^/a-z0-9(\|)\[\]*_#@{}<>=\s]')
+    trig_syntax = re.compile(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]')
     cond_syntax = re.compile(r'^.+?\s*(?:==|eq|!=|ne|<>|<|<=|>|>=)\s*.+?=>.+?$')
     utf8_meta   = re.compile(r'[\\<>]')
     utf8_punct  = re.compile(r'[.?,!;:@#$%^&*()]')
@@ -471,13 +471,6 @@ This may be called as either a class method or a method of a RiveScript object."
                             fields.extend(val.split('|'))
                         else:
                             fields.extend(re.split(RE.ws, val))
-
-                    # Expand nested arrays
-                    for f in fields:
-                        if f.startswith('@'):
-                            aname = f[1:]
-                            if aname in self._arrays and aname != var:
-                                fields.extend(self._arrays[aname])
 
                     # Convert any remaining '\s' escape codes into spaces.
                     for f in fields:
@@ -1952,6 +1945,30 @@ the value is unset at the end of the `reply()` method)."""
                 "sub4": re.compile(r'(\W+)' + qm + r'$'),
             }
 
+    def _do_expand_array(self, array_name, depth=0):
+        if depth > self._depth:
+            raise Exception("deep recursion detected")
+        if not array_name in self._arrays:
+            raise Exception("array '%s' not defined" % (array_name))
+        ret = list(self._arrays[array_name])
+        for array in self._arrays[array_name]:
+            if array.startswith('@'):
+                ret.remove(array)
+                expanded = self._do_expand_array(array[1:], depth+1)
+                ret.extend(expanded)
+
+        return set(ret)
+
+    def _expand_array(self, array_name):
+        ret = self._arrays[array_name] if array_name in self._arrays else []
+        try:
+            ret = self._do_expand_array(array_name)
+        except Exception as e:
+            self._warn("Error expanding array '%s': %s" % (array_name, e.message))
+        # return self._arrays[array_name]
+        return ret
+
+
     def _reply_regexp(self, user, regexp):
         """Prepares a trigger for the regular expression engine."""
 
@@ -1997,7 +2014,7 @@ the value is unset at the end of the `reply()` method)."""
         for array in arrays:
             rep = ''
             if array in self._arrays:
-                rep = r'(?:' + '|'.join(self._arrays[array]) + ')'
+                rep = r'(?:' + '|'.join(self._expand_array(array)) + ')'
             regexp = re.sub(r'\@' + re.escape(array) + r'\b', rep, regexp)
 
         # Filter in bot variables.

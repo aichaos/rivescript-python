@@ -247,6 +247,9 @@ class TriggerTests(RiveScriptTestCase):
 
             + i have a @colors *
             - Tell me more about your <star>.
+
+            + i like @fruits
+            - What?
         """)
         self.reply("What color is my red shirt?", "Your shirt is red.")
         self.reply("What color is my blue car?", "Your car is blue.")
@@ -256,7 +259,55 @@ class TriggerTests(RiveScriptTestCase):
         self.reply("What color was my red shirt?", "It was red.")
         self.reply("I have a blue car.", "Tell me more about your car.")
         self.reply("I have a cyan car.", RS_ERR_MATCH)
+        self.reply("I like apples.", RS_ERR_MATCH)
 
+    def test_nested_arrays(self):
+        self.new("""
+            ! array primary = red green blue
+            ! array secondary = magenta cyan yellow
+            ! array monochrome = gray grey white
+            ! array rgb = @primary @secondary black
+            ! array colors = @rgb @monochrome orange brown pink
+
+            ! array animals = @birds @parrots dog
+            ! array birds = chicken pigeon @animals
+            ! array parrots = bluebonnet|budgerigar|ceram lory
+
+            ! array female_singers = rihanna|ellie goulding|natasha khan
+            ! array stars = @male_singers @female_singers
+
+            + my bike is (@monochrome) *
+            - I like monochrome bikes. Especially <star>!
+
+            + is (@colors|beige) a color
+            - Yes, <star> is a color.
+
+            + is (@rgb) an rgb color
+            - Yes, <star> is an RGB color!
+
+            + my pet (@parrots) is called (*)
+            - I like parrots! {sentence}<star2>{/sentence}... what a nice name for a <star1>.
+
+            + my pet (@animals) is called (*)
+            - {sentence}<star2>{/sentence}: what a nice name for a <star1>.
+
+            + my favorite star is (@stars)
+            - I like <star>, too!
+
+            + my (@animals) is (*)
+            - Why do you say your <star1> is <star2>?
+
+        """)
+        self.reply('My bike is grey and very fast.', 'I like monochrome bikes. Especially grey!')
+        self.reply('Is red a color?', 'Yes, red is a color.')
+        self.reply('Is beige a color?', 'Yes, beige is a color.')
+        self.reply('Is carrot a color?', RS_ERR_MATCH)
+        self.reply('Is black an RGB color?', 'Yes, black is an RGB color!')
+        self.reply('Is pink an RGB color?', RS_ERR_MATCH)
+        self.reply('My pet bluebonnet is called Stacy.', 'I like parrots! Stacy... what a nice name for a bluebonnet.')
+        self.reply('My pet pigeon is called Lucy', RS_ERR_MATCH)
+        self.reply('I like Rihanna.', RS_ERR_MATCH)
+        self.reply('My dog is dumb!', 'Why do you say your dog is dumb?')
 
     def test_weighted_triggers(self):
         self.new("""
