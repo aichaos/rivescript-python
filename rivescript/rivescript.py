@@ -1945,6 +1945,36 @@ the value is unset at the end of the `reply()` method)."""
                 "sub4": re.compile(r'(\W+)' + qm + r'$'),
             }
 
+    def _do_expand_array(self, array_name, depth=0):
+        """ Do recurrent array expansion, returning a set of keywords.
+
+        Exception is thrown when there are cyclical dependencies between
+        arrays or if the @array name references an undefined array."""
+        if depth > self._depth:
+            raise Exception("deep recursion detected")
+        if not array_name in self._arrays:
+            raise Exception("array '%s' not defined" % (array_name))
+        ret = list(self._arrays[array_name])
+        for array in self._arrays[array_name]:
+            if array.startswith('@'):
+                ret.remove(array)
+                expanded = self._do_expand_array(array[1:], depth+1)
+                ret.extend(expanded)
+
+        return set(ret)
+
+    def _expand_array(self, array_name):
+        """ Expand variables and return a set of keywords.
+
+        Warning is issued when exceptions occur."""
+        ret = self._arrays[array_name] if array_name in self._arrays else []
+        try:
+            ret = self._do_expand_array(array_name)
+        except Exception as e:
+            self._warn("Error expanding array '%s': %s" % (array_name, str(e)))
+        return ret
+
+
     def _reply_regexp(self, user, regexp):
         """Prepares a trigger for the regular expression engine."""
 
@@ -1990,7 +2020,7 @@ the value is unset at the end of the `reply()` method)."""
         for array in arrays:
             rep = ''
             if array in self._arrays:
-                rep = r'(?:' + '|'.join(self._arrays[array]) + ')'
+                rep = r'(?:' + '|'.join(self._expand_array(array)) + ')'
             regexp = re.sub(r'\@' + re.escape(array) + r'\b', rep, regexp)
 
         # Filter in bot variables.
