@@ -1964,7 +1964,7 @@ the value is unset at the end of the `reply()` method)."""
         try:
             ret = self._do_expand_array(array_name)
         except Exception as e:
-            self._warn("Error expanding array '%s': %s" % (array_name, e.message))
+            self._warn("Error expanding array '%s': %s" % (array_name, str(e)))
         # return self._arrays[array_name]
         return ret
 
