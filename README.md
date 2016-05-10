@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/aichaos/rivescript-python.svg?branch=master)](https://travis-ci.org/aichaos/rivescript-python)
 
-## INTRODUCTION
+## Introduction
 
 This is a RiveScript interpreter for the Python programming language. RiveScript
 is a scripting language for chatterbots, making it easy to write
@@ -10,7 +10,7 @@ trigger/response pairs for building up a bot's intelligence.
 
 This library is compatible with both Python 2 and Python 3.
 
-## INSTALLATION
+## Installation
 
 This module is available on [PyPI](https://pypi.python.org/) and can be
 installed via pip:
@@ -20,7 +20,7 @@ installed via pip:
 To install manually, download or clone the git repository and run
 `python setup.py install`
 
-## EXAMPLES
+## Examples
 
 There are examples available in the
 [eg/](https://github.com/aichaos/rivescript-python/tree/master/eg) directory of
@@ -28,7 +28,7 @@ this project on GitHub that show how to interface with a RiveScript bot in a
 variety of ways--such as through the Twilio SMS API--and other code snippets and
 useful tricks.
 
-## USAGE
+## Usage
 
 The `rivescript` module can be executed as a stand-alone Python script, or
 included in other Python code. When executed directly, it launches an
@@ -57,7 +57,7 @@ while True:
 The scripts `example.py` and `example3.py` provide simple examples for using
 RiveScript as a library for Python 2 and 3, respectively.
 
-## UTF-8 SUPPORT
+## UTF-8 Support
 
 RiveScript supports Unicode but it is not enabled by default. Enable it by
 passing a `True` value for the `utf8` option in the constructor, or by using the
@@ -82,7 +82,7 @@ are converted (if needed) to Python's `unicode` data type. So, while it's
 good practice to make sure you're providing Unicode strings to the bot, the
 library will have you covered if you forget.
 
-## JSON MODE
+## JSON Mode
 
 The `rivescript` package, when run stand-alone, supports "JSON Mode", where
 you communicate with the bot using JSON. This is useful for third-party
@@ -94,13 +94,13 @@ Just run it like: `python rivescript --json /path/to/brain`
 Print a JSON encoded data structure into the standard input. The format should
 look like this:
 
-	{
-		"username": "localuser",
-		"message": "Hello bot!",
-		"vars": {
-			"name": "Aiden"
-		}
-	}
+  {
+    "username": "localuser",
+    "message": "Hello bot!",
+    "vars": {
+      "name": "Aiden"
+    }
+  }
 
 After sending this, you can send an `EOF` signal and the bot will respond with
 a JSON response and then exit. Or, you can keep the session open, by sending
@@ -110,18 +110,27 @@ interactions.
 
 The bot's response will be formatted like so:
 
-	{
-		"status": "ok",
-		"reply": "Hello, human!",
-		"vars": {
-			"name": "Aiden"
-		}
-	}
+  {
+    "status": "ok",
+    "reply": "Hello, human!",
+    "vars": {
+      "name": "Aiden"
+    }
+  }
 
 The `status` will be `ok` on success, or `error` if there was an error. The
 `reply` is the bot's response (or an error message on error).
 
-## LICENSE
+## Contributors
+
+* [Noah Petherbridge](https://github.com/kirsle)
+* [Danilo Bargen](https://github.com/dbrgn)
+* [FujiMakoto](https://github.com/FujiMakoto)
+* [Julien Syx](https://github.com/Seraf)
+* [Pablo](https://github.com/flogiston)
+* [Peixuan (Shawn) Ding](https://github.com/dinever)
+
+## License
 
 ```
 The MIT License (MIT)
