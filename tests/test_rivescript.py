@@ -291,7 +291,7 @@ class TriggerTests(RiveScriptTestCase):
             + my pet (@animals) is called (*)
             - {sentence}<star2>{/sentence}: what a nice name for a <star1>.
 
-            + my favorite star is (@stars)
+            + i like (@stars)
             - I like <star>, too!
 
             + my (@animals) is (*)

@@ -1946,6 +1946,10 @@ the value is unset at the end of the `reply()` method)."""
             }
 
     def _do_expand_array(self, array_name, depth=0):
+        """ Do recurrent array expansion, returning a set of keywords.
+
+        Exception is thrown when there are cyclical dependencies between
+        arrays or if the @array name references an undefined array."""
         if depth > self._depth:
             raise Exception("deep recursion detected")
         if not array_name in self._arrays:
@@ -1960,12 +1964,14 @@ the value is unset at the end of the `reply()` method)."""
         return set(ret)
 
     def _expand_array(self, array_name):
+        """ Expand variables and return a set of keywords.
+
+        Warning is issued when exceptions occur."""
         ret = self._arrays[array_name] if array_name in self._arrays else []
         try:
             ret = self._do_expand_array(array_name)
         except Exception as e:
             self._warn("Error expanding array '%s': %s" % (array_name, str(e)))
-        # return self._arrays[array_name]
         return ret
 
 
