@@ -74,7 +74,7 @@ rivescript.rivescript.RiveScript.set_handler	rivescript.rivescript.RiveScript-cl
 rivescript.rivescript.RiveScript.set_variable	rivescript.rivescript.RiveScript-class.html#set_variable
 rivescript.rivescript.RiveScript._get_topic_tree	rivescript.rivescript.RiveScript-class.html#_get_topic_tree
 rivescript.rivescript.RiveScript._substitute	rivescript.rivescript.RiveScript-class.html#_substitute
-rivescript.rivescript.RiveScript._find_trigger_by_inheritance	rivescript.rivescript.RiveScript-class.html#_find_trigger_by_inheritance
+rivescript.rivescript.RiveScript._expand_array	rivescript.rivescript.RiveScript-class.html#_expand_array
 rivescript.rivescript.RiveScript.deparse	rivescript.rivescript.RiveScript-class.html#deparse
 rivescript.rivescript.RiveScript.write	rivescript.rivescript.RiveScript-class.html#write
 rivescript.rivescript.RiveScript._precompile_substitution	rivescript.rivescript.RiveScript-class.html#_precompile_substitution
@@ -86,9 +86,11 @@ rivescript.rivescript.RiveScript._precompile_regexp	rivescript.rivescript.RiveSc
 rivescript.rivescript.RiveScript._initTT	rivescript.rivescript.RiveScript-class.html#_initTT
 rivescript.rivescript.RiveScript.clear_uservars	rivescript.rivescript.RiveScript-class.html#clear_uservars
 rivescript.rivescript.RiveScript.last_match	rivescript.rivescript.RiveScript-class.html#last_match
+rivescript.rivescript.RiveScript._do_expand_array	rivescript.rivescript.RiveScript-class.html#_do_expand_array
 rivescript.rivescript.RiveScript.trigger_info	rivescript.rivescript.RiveScript-class.html#trigger_info
 rivescript.rivescript.RiveScript.freeze_uservars	rivescript.rivescript.RiveScript-class.html#freeze_uservars
 rivescript.rivescript.RiveScript._topic_triggers	rivescript.rivescript.RiveScript-class.html#_topic_triggers
+rivescript.rivescript.RiveScript._find_trigger_by_inheritance	rivescript.rivescript.RiveScript-class.html#_find_trigger_by_inheritance
 rivescript.rivescript.RiveScript.get_uservars	rivescript.rivescript.RiveScript-class.html#get_uservars
 rivescript.rivescript.RiveScript.set_person	rivescript.rivescript.RiveScript-class.html#set_person
 rivescript.rivescript.RiveScript._is_atomic	rivescript.rivescript.RiveScript-class.html#_is_atomic
