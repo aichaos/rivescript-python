@@ -60,9 +60,8 @@ class PyRiveObjects(object):
     def load(self, name, code):
         """Prepare a Python code object given by the RiveScript interpreter.
 
-        Args:
-            name (str): The name of the Python object macro.
-            code ([]str): The Python source code for the object macro.
+        :param str name: The name of the Python object macro.
+        :param []str code: The Python source code for the object macro.
         """
         # We need to make a dynamic Python method.
         source = "def RSOBJ(rs, args):\n"

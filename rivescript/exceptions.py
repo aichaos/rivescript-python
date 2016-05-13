@@ -44,6 +44,16 @@ class RiveScriptError(Exception):
 class NoMatchError(RiveScriptError):
     """No reply could be matched.
 
+    This means that no trigger was a match for the user's message. To avoid
+    this error, add a trigger that only consists of a wildcard::
+
+        + *
+        - I do not know how to reply to that.
+
+    The lone-wildcard trigger acts as a catch-all fallback trigger and will
+    ensure that every message the user could send will match at least one
+    trigger.
+
     The text version is ``[ERR: No reply matched]``
     """
     def __init__(self):
@@ -53,6 +63,14 @@ class NoMatchError(RiveScriptError):
 class NoReplyError(RiveScriptError):
     """No reply could be found.
 
+    This means that the user's message matched a trigger, but the trigger
+    didn't yield any response for the user. For example, if a trigger was
+    followed only by ``*Conditions`` and none of them were true and there were
+    no normal replies to fall back on, this error can come up.
+
+    To avoid this error, always make sure you have at least one ``-Reply``
+    for every trigger.
+
     The text version is ``[ERR: No reply found]``.
     """
     def __init__(self):
@@ -60,7 +78,10 @@ class NoReplyError(RiveScriptError):
 
 
 class ObjectError(RiveScriptError):
-    """An error occurred when executing a Python object.
+    """An error occurred when executing a Python object macro.
+
+    This will usually be some kind of run-time error, like a
+    ``ZeroDivisionError`` or ``IndexError`` for example.
 
     The text version is ``[ERR: Error when executing Python object]``
     """
@@ -70,6 +91,23 @@ class ObjectError(RiveScriptError):
 
 class DeepRecursionError(RiveScriptError):
     """A deep recursion condition was detected and a reply can't be given.
+
+    This error can occur when you have triggers that redirect to each other
+    in a circle, for example::
+
+        + one
+        @ two
+
+        + two
+        @ one
+
+    By default, RiveScript will only recursively look for a trigger up to
+    50 levels deep before giving up. This should be a large enough window for
+    most use cases, but if you need to increase this limit you can do so by
+    setting a higher value for the ``depth`` parameter to the constructor or
+    changing it in your RiveScript source code, for example::
+
+        ! global depth = 75
 
     The text version is ``[ERR: Deep recursion detected]``
     """
