@@ -35,57 +35,43 @@ import codecs
 
 from . import __version__
 from . import python
+from .regexp import RE
+from .exceptions import (
+    RS_ERR_MATCH, RS_ERR_REPLY, RS_ERR_DEEP_RECURSION, RS_ERR_OBJECT,
+    RS_ERR_OBJECT_HANDLER, RS_ERR_OBJECT_MISSING, RiveScriptError,
+    NoMatchError, NoReplyError, ObjectError, DeepRecursionError,
+    NoDefaultRandomTopicError, RepliesNotSortedError
+)
 
-# Common regular expressions.
-class RE(object):
-    equals      = re.compile('\s*=\s*')
-    ws          = re.compile('\s+')
-    objend      = re.compile('^\s*<\s*object')
-    weight      = re.compile('\{weight=(\d+)\}')
-    inherit     = re.compile('\{inherits=(\d+)\}')
-    wilds       = re.compile('[\s\*\#\_]+')
-    nasties     = re.compile('[^A-Za-z0-9 ]')
-    crlf        = re.compile('<crlf>')
-    literal_w   = re.compile(r'\\w')
-    array       = re.compile(r'\@(.+?)\b')
-    def_syntax  = re.compile(r'^.+(?:\s+.+|)\s*=\s*.+?$')
-    name_syntax = re.compile(r'[^a-z0-9_\-\s]')
-    utf8_trig   = re.compile(r'[A-Z\\.]')
-    trig_syntax = re.compile(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]')
-    cond_syntax = re.compile(r'^.+?\s*(?:==|eq|!=|ne|<>|<|<=|>|>=)\s*.+?=>.+?$')
-    utf8_meta   = re.compile(r'[\\<>]')
-    utf8_punct  = re.compile(r'[.?,!;:@#$%^&*()]')
-    cond_split  = re.compile(r'\s*=>\s*')
-    cond_parse  = re.compile(r'^(.+?)\s+(==|eq|!=|ne|<>|<|<=|>|>=)\s+(.+?)$')
-    topic_tag   = re.compile(r'\{topic=(.+?)\}')
-    set_tag     = re.compile(r'<set (.+?)=(.+?)>')
-    bot_tag     = re.compile(r'<bot (.+?)>')
-    get_tag     = re.compile(r'<get (.+?)>')
-    star_tags   = re.compile(r'<star(\d+)>')
-    botstars    = re.compile(r'<botstar(\d+)>')
-    input_tags  = re.compile(r'<input([1-9])>')
-    reply_tags  = re.compile(r'<reply([1-9])>')
-    random_tags = re.compile(r'\{random\}(.+?)\{/random\}')
-    redir_tag   = re.compile(r'\{@(.+?)\}')
-    tag_search  = re.compile(r'<([^<]+?)>')
-    placeholder = re.compile(r'\x00(\d+)\x00')
-    zero_star   = re.compile(r'^\*$')
-    optionals   = re.compile(r'\[(.+?)\]')
+# These constants come from the exceptions submodule but should be exportable
+# from this one. Pyflakes gives warnings about them not being used, so...
+_ = RS_ERR_MATCH
+_ = RS_ERR_REPLY
+_ = RS_ERR_DEEP_RECURSION
 
 # Version of RiveScript we support.
 rs_version = 2.0
 
-# Exportable constants.
-RS_ERR_MATCH = "[ERR: No reply matched]"
-RS_ERR_REPLY = "[ERR: No reply found]"
-RS_ERR_DEEP_RECURSION = "[ERR: Deep recursion detected]"
-RS_ERR_OBJECT = "[ERR: Error when executing Python object]"
-RS_ERR_OBJECT_HANDLER = "[ERR: No Object Handler]"
-RS_ERR_OBJECT_MISSING = "[ERR: Object Not Found]"
-
-
 class RiveScript(object):
-    """A RiveScript interpreter for Python 2 and 3."""
+    """A RiveScript interpreter for Python 2 and 3.
+
+    :param bool debug: Set to True to enable verbose logging.
+
+    :param bool strict: Enable strict mode.
+        Strict mode causes RiveScript syntax errors to be fatal.
+        This option is ``True`` by default.
+
+    :param str log: Specify a log file to write debug output to.
+        This can redirect debug lines to a file instead of ``STDOUT``.
+
+    :param int depth: Specify the recursion depth limit.
+        This is how many times RiveScript will recursively follow redirects
+        before giving up with a ``DeepRecursionError`` exception.
+        The default is ``50``.
+
+    :param bool utf8: Enable UTF-8 mode.
+        The default is ``False``.
+    """
 
     # Concatenation mode characters.
     _concat_modes = dict(
@@ -99,13 +85,7 @@ class RiveScript(object):
     ############################################################################
 
     def __init__(self, debug=False, strict=True, depth=50, log="", utf8=False):
-        """Initialize a new RiveScript interpreter.
-
-bool debug:  Specify a debug mode.
-bool strict: Strict mode (RS syntax errors are fatal)
-str  log:    Specify a log file for debug output to go to (instead of STDOUT).
-int  depth:  Specify the recursion depth limit.
-bool utf8:   Enable UTF-8 support."""
+        """Initialize a new RiveScript interpreter."""
 
         ###
         # User configurable fields.
@@ -159,7 +139,8 @@ bool utf8:   Enable UTF-8 support."""
     def VERSION(self=None):
         """Return the version number of the RiveScript library.
 
-This may be called as either a class method or a method of a RiveScript object."""
+        This may be called as either a class method or a method of a RiveScript
+        object instance."""
         return __version__
 
     def _say(self, message):
@@ -187,8 +168,11 @@ This may be called as either a class method or a method of a RiveScript object."
     def load_directory(self, directory, ext=None):
         """Load RiveScript documents from a directory.
 
-        Provide `ext` as a list of extensions to search for. The default list
-        is `.rive`, `.rs`"""
+        :param str directory: The directory of RiveScript documents to load
+            replies from.
+        :param []str ext: List of file extensions to consider as RiveScript
+            documents. The default is ``[".rive", ".rs"]``.
+        """
         self._say("Loading from directory: " + directory)
 
         if ext is None:
@@ -210,7 +194,10 @@ This may be called as either a class method or a method of a RiveScript object."
                     break
 
     def load_file(self, filename):
-        """Load and parse a RiveScript document."""
+        """Load and parse a RiveScript document.
+
+        :param str filename: The path to a RiveScript file.
+        """
         self._say("Loading file: " + filename)
 
         fh    = codecs.open(filename, 'r', 'utf-8')
@@ -223,15 +210,20 @@ This may be called as either a class method or a method of a RiveScript object."
     def stream(self, code):
         """Stream in RiveScript source code dynamically.
 
-        `code` can either be a string containing RiveScript code or an array
-        of lines of RiveScript code."""
+        :param code: Either a string containing RiveScript code or an array of
+            lines of RiveScript code.
+        """
         self._say("Streaming code.")
         if type(code) in [str, text_type]:
             code = code.split("\n")
         self._parse("stream()", code)
 
     def _parse(self, fname, code):
-        """Parse RiveScript code into memory."""
+        """Parse RiveScript code into memory.
+
+        :param str fname: The arbitrary file name used for syntax reporting.
+        :param []str code: Lines of RiveScript source code to parse.
+        """
         self._say("Parsing code")
 
         # Track temporary variables.
@@ -646,9 +638,15 @@ This may be called as either a class method or a method of a RiveScript object."
                 continue
 
     def check_syntax(self, cmd, line):
-        """Syntax check a RiveScript command and line.
+        """Syntax check a line of RiveScript code.
 
-Returns a syntax error string on error; None otherwise."""
+        :param str cmd: The command symbol for the line of code, such as one
+            of ``+``, ``-``, ``*``, ``>``, etc.
+        :param str line: The remainder of the line of code, such as the text of
+            a trigger or reply.
+
+        :return: A string syntax error message or ``None`` if no errors.
+        """
 
         # Run syntax checks based on the type of command.
         if cmd == '!':
@@ -741,11 +739,15 @@ Returns a syntax error string on error; None otherwise."""
         return None
 
     def deparse(self):
-        """Return the in-memory RiveScript document as a Python data structure.
+        """Dump the in-memory RiveScript brain as a Python data structure.
 
-        This would be useful for developing a user interface for editing
-        RiveScript replies without having to edit the RiveScript code
-        manually."""
+        This would be useful, for example, to develop a user interface for
+        editing RiveScript replies without having to edit the RiveScript
+        source code directly.
+
+        :return dict: JSON-serializable Python data structure containing the
+            contents of all RiveScript replies currently loaded in memory.
+        """
 
         # Data to return.
         result = {
@@ -829,13 +831,20 @@ Returns a syntax error string on error; None otherwise."""
 
         Pass either a file name (string) or a file handle object.
 
-        This uses `deparse()` to dump a representation of the loaded data and
+        This uses ``deparse()`` to dump a representation of the loaded data and
         writes it to the destination file. If you provide your own data as the
-        `deparsed` argument, it will use that data instead of calling
-        `deparse()` itself. This way you can use `deparse()`, edit the data,
+        ``deparsed`` argument, it will use that data instead of calling
+        ``deparse()`` itself. This way you can use ``deparse()``, edit the data,
         and use that to write the RiveScript document (for example, to be used
         by a user interface for editing RiveScript without writing the code
-        directly)."""
+        directly).
+
+        :param fh: Either a file name ``str`` or a file handle object of a file
+            opened in write mode.
+        :param optional dict deparsed: A data structure in the same format as
+            what ``deparse()`` returns. If not passed, this value will come from
+            the current in-memory data from ``deparse()``.
+        """
 
         # Passed a string instead of a file handle?
         if type(fh) is str:
@@ -866,7 +875,8 @@ Returns a syntax error string on error; None otherwise."""
 
                     # Word-wrap the result, target width is 78 chars minus the
                     # kind, var, and spaces and equals sign.
-                    width = 78 - len(kind) - len(var) - 4
+                    # TODO: not implemented yet.
+                    # width = 78 - len(kind) - len(var) - 4
 
                     if needs_pipes:
                         data = self._write_wrapped("|".join(data), sep="|")
@@ -921,7 +931,12 @@ Returns a syntax error string on error; None otherwise."""
         return True
 
     def _copy_trigger(self, trig, data, previous=None):
-        """Make copies of all data below a trigger."""
+        """Make copies of all data below a trigger.
+
+        :param str trig: The trigger key.
+        :param dict data: The data under that trigger.
+        :param previous: The ``%Previous`` for the trigger.
+        """
         # Copied data.
         dest = {}
 
@@ -947,7 +962,12 @@ Returns a syntax error string on error; None otherwise."""
         return dest
 
     def _write_triggers(self, fh, triggers, indent=""):
-        """Write triggers to a file handle."""
+        """Write triggers to a file handle.
+
+        :param fh: The file handle.
+        :param dict triggers: The triggers to write to the file.
+        :param str indent: The indentation (spaces) to prefix each line with.
+        """
 
         for trig in sorted(triggers.keys()):
             fh.write(indent + "+ " + self._write_wrapped(trig, indent=indent) + "\n")
@@ -970,7 +990,14 @@ Returns a syntax error string on error; None otherwise."""
             fh.write("\n")
 
     def _write_wrapped(self, line, sep=" ", indent="", width=78):
-        """Word-wrap a line of RiveScript code for being written to a file."""
+        """Word-wrap a line of RiveScript code for being written to a file.
+
+        :param str line: The original line of text to word-wrap.
+        :param str sep: The word separator.
+        :param str indent: The indentation to use (as a set of spaces).
+        :param int width: The character width to constrain each line to.
+
+        :return str: The reformatted line(s)."""
 
         words = line.split(sep)
         lines = []
@@ -1003,7 +1030,13 @@ Returns a syntax error string on error; None otherwise."""
         return result
 
     def _initTT(self, toplevel, topic, trigger, what=''):
-        """Initialize a Topic Tree data structure."""
+        """Initialize a Topic Tree data structure.
+
+        :param str toplevel: One of ``topics``, ``thats`` or ``syntax``
+        :param str topic: The topic name.
+        :param str trigger: The trigger text.
+        :param str what: Trigger text or ``thats`` depending on context.
+        """
         if toplevel == 'topics':
             if topic not in self._topics:
                 self._topics[topic] = {}
@@ -1038,7 +1071,16 @@ Returns a syntax error string on error; None otherwise."""
     ############################################################################
 
     def sort_replies(self, thats=False):
-        """Sort the loaded triggers."""
+        """Sort the loaded triggers.
+
+        Don't send any parameters when you call this function.
+
+        :param private bool thats: You shouldn't use this parameter, it's used
+            internally. Sorting is done in two passes: first the normal triggers
+            are sorted, and then triggers that have a ``%Previous`` command.
+            The ``thats`` argument is used to sort the latter, and this function
+            automatically does so, so don't worry about this argument.
+        """
         # This method can sort both triggers and that's.
         triglvl = None
         sortlvl = None
@@ -1119,7 +1161,28 @@ Returns a syntax error string on error; None otherwise."""
                 self._sorted["that_trig"][topic][bottrig] = triggers
 
     def _sort_trigger_set(self, triggers):
-        """Sort a group of triggers in optimal sorting order."""
+        """Sort a group of triggers in optimal sorting order.
+
+        The optimal sorting order is, briefly:
+        * Atomic triggers (containing nothing but plain words and alternation
+          groups) are on top, with triggers containing the most words coming
+          first. Triggers with equal word counts are sorted by length, and then
+          alphabetically if they have the same length.
+        * Triggers containing optionals are sorted next, by word count like
+          atomic triggers.
+        * Triggers containing wildcards are next, with ``_`` (alphabetic)
+          wildcards on top, then ``#`` (numeric) and finally ``*``.
+        * At the bottom of the sorted list are triggers consisting of only a
+          single wildcard, in the order: ``_``, ``#``, ``*``.
+
+        Triggers that have ``{weight}`` tags are grouped together by weight
+        value and sorted amongst themselves. Higher weighted groups are then
+        ordered before lower weighted groups regardless of the normal sorting
+        algorithm.
+
+        Triggers that come from topics which inherit other topics are also
+        sorted with higher priority than triggers from the inherited topics.
+        """
 
         # Create a priority map.
         prior = {
@@ -1286,27 +1349,29 @@ Returns a syntax error string on error; None otherwise."""
     def set_handler(self, language, obj):
         """Define a custom language handler for RiveScript objects.
 
-language: The lowercased name of the programming language,
-          e.g. python, javascript, perl
-obj:      An instance of a class object that provides the following interface:
+        Pass in a ``None`` value for the object to delete an existing handler (for
+        example, to prevent Python code from being able to be run by default).
 
-    class MyObjectHandler:
-        def __init__(self):
-            pass
-        def load(self, name, code):
-            # name = the name of the object from the RiveScript code
-            # code = the source code of the object
-        def call(self, rs, name, fields):
-            # rs     = the current RiveScript interpreter object
-            # name   = the name of the object being called
-            # fields = array of arguments passed to the object
-            return reply
+        Look in the ``eg`` folder of the rivescript-python distribution for
+        an example script that sets up a JavaScript language handler.
 
-Pass in a None value for the object to delete an existing handler (for example,
-to prevent Python code from being able to be run by default).
+        :param str language: The lowercased name of the programming language.
+            Examples: python, javascript, perl
+        :param class obj: An instance of an implementation class object.
+            It should provide the following interface::
 
-Look in the `eg` folder of the rivescript-python distribution for an example
-script that sets up a JavaScript language handler."""
+                class MyObjectHandler:
+                    def __init__(self):
+                        pass
+                    def load(self, name, code):
+                        # name = the name of the object from the RiveScript code
+                        # code = the source code of the object
+                    def call(self, rs, name, fields):
+                        # rs     = the current RiveScript interpreter object
+                        # name   = the name of the object being called
+                        # fields = array of arguments passed to the object
+                        return reply
+    """
 
         # Allow them to delete a handler too.
         if obj is None:
@@ -1318,12 +1383,17 @@ script that sets up a JavaScript language handler."""
     def set_subroutine(self, name, code):
         """Define a Python object from your program.
 
-This is equivalent to having an object defined in the RiveScript code, except
-your Python code is defining it instead. `name` is the name of the object, and
-`code` is a Python function (a `def`) that accepts rs,args as its parameters.
+        This is equivalent to having an object defined in the RiveScript code,
+        except your Python code is defining it instead.
 
-This method is only available if there is a Python handler set up (which there
-is by default, unless you've called set_handler("python", None))."""
+        :param str name: The name of the object macro.
+        :param def code: A Python function with a method signature of
+            ``(rs, args)``
+
+        This method is only available if there is a Python handler set up
+        (which there is by default, unless you've called
+        ``set_handler("python", None)``).
+        """
 
         # Do we have a Python handler?
         if 'python' in self._handlers:
@@ -1335,7 +1405,12 @@ is by default, unless you've called set_handler("python", None))."""
     def set_global(self, name, value):
         """Set a global variable.
 
-Equivalent to `! global` in RiveScript code. Set to None to delete."""
+        Equivalent to ``! global`` in RiveScript code.
+
+        :param str name: The name of the variable to set.
+        :param str value: The value of the variable.
+            Set this to ``None`` to delete the variable.
+        """
         if value is None:
             # Unset the variable.
             if name in self._gvars:
@@ -1345,7 +1420,12 @@ Equivalent to `! global` in RiveScript code. Set to None to delete."""
     def set_variable(self, name, value):
         """Set a bot variable.
 
-Equivalent to `! var` in RiveScript code. Set to None to delete."""
+        Equivalent to ``! var`` in RiveScript code.
+
+        :param str name: The name of the variable to set.
+        :param str value: The value of the variable.
+            Set this to ``None`` to delete the variable.
+        """
         if value is None:
             # Unset the variable.
             if name in self._bvars:
@@ -1355,7 +1435,12 @@ Equivalent to `! var` in RiveScript code. Set to None to delete."""
     def set_substitution(self, what, rep):
         """Set a substitution.
 
-Equivalent to `! sub` in RiveScript code. Set to None to delete."""
+        Equivalent to ``! sub`` in RiveScript code.
+
+        :param str what: The original text to replace.
+        :param str rep: The text to replace it with.
+            Set this to ``None`` to delete the substitution.
+        """
         if rep is None:
             # Unset the variable.
             if what in self._subs:
@@ -1365,7 +1450,12 @@ Equivalent to `! sub` in RiveScript code. Set to None to delete."""
     def set_person(self, what, rep):
         """Set a person substitution.
 
-Equivalent to `! person` in RiveScript code. Set to None to delete."""
+        Equivalent to ``! person`` in RiveScript code.
+
+        :param str what: The original text to replace.
+        :param str rep: The text to replace it with.
+            Set this to ``None`` to delete the substitution.
+        """
         if rep is None:
             # Unset the variable.
             if what in self._person:
@@ -1373,7 +1463,14 @@ Equivalent to `! person` in RiveScript code. Set to None to delete."""
         self._person[what] = rep
 
     def set_uservar(self, user, name, value):
-        """Set a variable for a user."""
+        """Set a variable for a user.
+
+        This is like the ``<set>`` tag in RiveScript code.
+
+        :param str user: The user ID to set a variable for.
+        :param str name: The name of the variable to set.
+        :param str value: The value to set there.
+        """
 
         if user not in self._users:
             self._users[user] = {"topic": "random"}
@@ -1383,8 +1480,16 @@ Equivalent to `! person` in RiveScript code. Set to None to delete."""
     def get_uservar(self, user, name):
         """Get a variable about a user.
 
-If the user has no data at all, returns None. If the user doesn't have a value
-set for the variable you want, returns the string 'undefined'."""
+        :param str user: The user ID to look up a variable for.
+        :param str name: The name of the variable to get.
+
+        :return: The user variable, or ``None`` or ``"undefined"``:
+
+            * If the user has no data at all, this returns ``None``.
+            * If the user doesn't have this variable set, this returns the
+              string ``"undefined"``.
+            * Otherwise this returns the string value of the variable.
+        """
 
         if user in self._users:
             if name in self._users[user]:
@@ -1397,8 +1502,17 @@ set for the variable you want, returns the string 'undefined'."""
     def get_uservars(self, user=None):
         """Get all variables about a user (or all users).
 
-If no username is passed, returns the entire user database structure. Otherwise,
-only returns the variables for the given user, or None if none exist."""
+        :param optional str user: The user ID to retrieve all variables for.
+            If not passed, this function will return all data for all users.
+
+        :return dict: All the user variables.
+
+            * If a ``user`` was passed, this is a ``dict`` of key/value pairs
+              of that user's variables. If the user doesn't exist in memory,
+              this returns ``None``.
+            * Otherwise, this returns a ``dict`` of key/value pairs that map
+              user IDs to their variables (a ``dict`` of ``dict``).
+        """
 
         if user is None:
             # All the users!
@@ -1413,8 +1527,9 @@ only returns the variables for the given user, or None if none exist."""
     def clear_uservars(self, user=None):
         """Delete all variables about a user (or all users).
 
-If no username is passed, deletes all variables about all users. Otherwise, only
-deletes all variables for the given user."""
+        :param str user: The user ID to clear variables for, or else clear all
+            variables for all users if not provided.
+        """
 
         if user is None:
             # All the users!
@@ -1426,8 +1541,11 @@ deletes all variables for the given user."""
     def freeze_uservars(self, user):
         """Freeze the variable state for a user.
 
-This will clone and preserve a user's entire variable state, so that it can be
-restored later with `thaw_uservars`."""
+        This will clone and preserve a user's entire variable state, so that it
+        can be restored later with ``thaw_uservars()``.
+
+        :param str user: The user ID to freeze variables for.
+        """
 
         if user in self._users:
             # Clone the user's data.
@@ -1438,11 +1556,14 @@ restored later with `thaw_uservars`."""
     def thaw_uservars(self, user, action="thaw"):
         """Thaw a user's frozen variables.
 
-The `action` can be one of the following options:
+        :param str action: The action to perform when thawing the variables:
 
-    discard: Don't restore the user's variables, just delete the frozen copy.
-    keep:    Keep the frozen copy after restoring the variables.
-    thaw:    Restore the variables, then delete the frozen copy (default)."""
+            * ``discard``: Don't restore the user's variables, just delete the
+              frozen copy.
+            * ``keep``: Keep the frozen copy after restoring the variables.
+            * ``thaw``: Restore the variables, then delete the frozen copy
+              (this is the default).
+        """
 
         if user in self._freeze:
             # What are we doing?
@@ -1466,29 +1587,39 @@ The `action` can be one of the following options:
     def last_match(self, user):
         """Get the last trigger matched for the user.
 
-This will return the raw trigger text that the user's last message matched. If
-there was no match, this will return None."""
+        :param str user: The user ID to get the last matched trigger for.
+        :return str: The raw trigger text (tags and all) of the trigger that
+            the user most recently matched. If there was no match to their
+            last message, this returns ``None`` instead.
+        """
         return self.get_uservar(user, "__lastmatch__")
 
     def trigger_info(self, trigger=None, dump=False):
         """Get information about a trigger.
 
-Pass in a raw trigger to find out what file name and line number it appeared at.
-This is useful for e.g. tracking down the location of the trigger last matched
-by the user via last_match(). Returns a list of matching triggers, containing
-their topics, filenames and line numbers. Returns None if there weren't
-any matches found.
+        Pass in a raw trigger to find out what file name and line number it
+        appeared at. This is useful for e.g. tracking down the location of the
+        trigger last matched by the user via ``last_match()``. Returns a list
+        of matching triggers, containing their topics, filenames and line
+        numbers. Returns ``None`` if there weren't any matches found.
 
-The keys in the trigger info is as follows:
+        The keys in the trigger info is as follows:
 
-* category: Either 'topic' (for normal) or 'thats' (for %Previous triggers)
-* topic: The topic name
-* trigger: The raw trigger text
-* filename: The filename the trigger was found in.
-* lineno: The line number the trigger was found on.
+        * ``category``: Either 'topic' (for normal) or 'thats'
+          (for %Previous triggers)
+        * ``topic``: The topic name
+        * ``trigger``: The raw trigger text
+        * ``filename``: The filename the trigger was found in.
+        * ``lineno``: The line number the trigger was found on.
 
-Pass in a true value for `dump`, and the entire syntax tracking
-tree is returned."""
+        Pass in a true value for ``dump``, and the entire syntax tracking
+        tree is returned.
+
+        :param str trigger: The raw trigger text to look up.
+        :param bool dump: Whether to dump the entire syntax tracking tree.
+
+        :return: A list of matching triggers or ``None`` if no matches.
+        """
         if dump:
             return self._syntax
 
@@ -1515,12 +1646,13 @@ tree is returned."""
     def current_user(self):
         """Retrieve the user ID of the current user talking to your bot.
 
-This is mostly useful inside of a Python object macro to get the user ID of the
-person who caused the object macro to be invoked (i.e. to set a variable for
-that user from within the object).
+        This is mostly useful inside of a Python object macro to get the user
+        ID of the person who caused the object macro to be invoked (i.e. to
+        set a variable for that user from within the object).
 
-This will return None if used outside of the context of getting a reply (i.e.
-the value is unset at the end of the `reply()` method)."""
+        This will return ``None`` if used outside of the context of getting a
+        reply (the value is unset at the end of the ``reply()`` method).
+        """
         if self._current_user is None:
             # They're doing it wrong.
             self._warn("current_user() is meant to be used from within a Python object macro!")
@@ -1531,7 +1663,24 @@ the value is unset at the end of the `reply()` method)."""
     ############################################################################
 
     def reply(self, user, msg, errors_as_replies=True):
-        """Fetch a reply from the RiveScript brain."""
+        """Fetch a reply from the RiveScript brain.
+
+        :param str user: A unique user ID for the person requesting a reply.
+            This could be e.g. a screen name or nickname. It's used internally
+            to store user variables (including topic and history), so if your
+            bot has multiple users each one should have a unique ID.
+        :param str msg: The user's message. This is allowed to contain
+            punctuation and such, but any extraneous data such as HTML tags
+            should be removed in advance.
+        :param bool errors_as_replies: When errors are encountered (such as a
+            deep recursion error, no reply matched, etc.) this will make the
+            reply be a text representation of the error message. If you set
+            this to ``False``, errors will instead raise an exception, such as
+            a ``DeepRecursionError`` or ``NoReplyError``. By default, no
+            exceptions are raised and errors are set in the reply instead.
+
+        :return str: The reply output.
+        """
         self._say("Get reply to [" + user + "] " + msg)
 
         # Store the current user in case an object macro needs it.
@@ -1583,7 +1732,17 @@ the value is unset at the end of the `reply()` method)."""
         return reply
 
     def _format_message(self, msg, botreply=False):
-        """Format a user's message for safe processing."""
+        """Format a user's message for safe processing.
+
+        This runs substitutions on the message and strips out any remaining
+        symbols (depending on UTF-8 mode).
+
+        :param str msg: The user's message.
+        :param bool botreply: Whether this formatting is being done for the
+            bot's last reply (e.g. in a ``%Previous`` command).
+
+        :return str: The formatted message.
+        """
 
         # Make sure the string is Unicode for Python 2.
         if sys.version_info[0] < 3 and isinstance(msg, str):
@@ -1611,6 +1770,19 @@ the value is unset at the end of the `reply()` method)."""
         return msg
 
     def _getreply(self, user, msg, context='normal', step=0, ignore_object_errors=True):
+        """The internal reply getter function.
+
+        DO NOT CALL THIS YOURSELF.
+
+        :param str user: The user ID as passed to ``reply()``.
+        :param str msg: The formatted user message.
+        :param str context: The reply context, one of ``begin`` or ``normal``.
+        :param int step: The recursion depth counter.
+        :param bool ignore_object_errors: Whether to ignore errors from within
+            Python object macros and not raise an ``ObjectError`` exception.
+
+        :return str: The reply output.
+        """
         # Needed to sort replies?
         if 'topics' not in self._sorted:
             raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
@@ -1887,7 +2059,12 @@ the value is unset at the end of the `reply()` method)."""
         return reply
 
     def _substitute(self, msg, kind):
-        """Run a kind of substitution on a message."""
+        """Run a kind of substitution on a message.
+
+        :param str msg: The message to run substitutions against.
+        :param str kind: The kind of substitution to run,
+            one of ``subs`` or ``person``.
+        """
 
         # Safety checking.
         if 'lists' not in self._sorted:
@@ -1934,7 +2111,11 @@ the value is unset at the end of the `reply()` method)."""
 
         This will speed up the substitutions that happen at the beginning of
         the reply fetching process. With the default brain, this took the
-        time for _substitute down from 0.08s to 0.02s"""
+        time for _substitute down from 0.08s to 0.02s
+
+        :param str kind: One of ``sub``, ``person``.
+        :param str pattern: The substitution pattern.
+        """
         if pattern not in self._regexc[kind]:
             qm = re.escape(pattern)
             self._regexc[kind][pattern] = {
@@ -1946,10 +2127,16 @@ the value is unset at the end of the `reply()` method)."""
             }
 
     def _do_expand_array(self, array_name, depth=0):
-        """ Do recurrent array expansion, returning a set of keywords.
+        """Do recurrent array expansion, returning a set of keywords.
 
         Exception is thrown when there are cyclical dependencies between
-        arrays or if the @array name references an undefined array."""
+        arrays or if the ``@array`` name references an undefined array.
+
+        :param str array_name: The name of the array to expand.
+        :param int depth: The recursion depth counter.
+
+        :return set: The final set of array entries.
+        """
         if depth > self._depth:
             raise Exception("deep recursion detected")
         if not array_name in self._arrays:
@@ -1964,7 +2151,11 @@ the value is unset at the end of the `reply()` method)."""
         return set(ret)
 
     def _expand_array(self, array_name):
-        """ Expand variables and return a set of keywords.
+        """Expand variables and return a set of keywords.
+
+        :param str array_name: The name of the array to expand.
+
+        :return list: The final array contents.
 
         Warning is issued when exceptions occur."""
         ret = self._arrays[array_name] if array_name in self._arrays else []
@@ -1976,7 +2167,12 @@ the value is unset at the end of the `reply()` method)."""
 
 
     def _reply_regexp(self, user, regexp):
-        """Prepares a trigger for the regular expression engine."""
+        """Prepares a trigger for the regular expression engine.
+
+        :param str user: The user ID invoking a reply.
+        :param str regexp: The original trigger text to be turned into a regexp.
+
+        :return regexp: The final regexp object."""
 
         if regexp in self._regexc["trigger"]:
             # Already compiled this one!
@@ -2057,8 +2253,11 @@ the value is unset at the end of the `reply()` method)."""
         """Precompile the regex for most triggers.
 
         If the trigger is non-atomic, and doesn't include dynamic tags like
-        `<bot>`, `<get>`, `<input>/<reply>` or arrays, it can be precompiled
-        and save time when matching."""
+        ``<bot>``, ``<get>``, ``<input>/<reply>`` or arrays, it can be
+        precompiled and save time when matching.
+
+        :param str trigger: The trigger text to attempt to precompile.
+        """
         if self._is_atomic(trigger):
             return  # Don't need a regexp for atomic triggers.
 
@@ -2070,7 +2269,20 @@ the value is unset at the end of the `reply()` method)."""
         self._regexc["trigger"][trigger] = self._reply_regexp(None, trigger)
 
     def _process_tags(self, user, msg, reply, st=[], bst=[], depth=0, ignore_object_errors=True):
-        """Post process tags in a message."""
+        """Post process tags in a message.
+
+        :param str user: The user ID.
+        :param str msg: The user's formatted message.
+        :param str reply: The raw RiveScript reply for the message.
+        :param []str st: The array of ``<star>`` matches from the trigger.
+        :param []str bst: The array of ``<botstar>`` matches from a
+            ``%Previous`` command.
+        :param int depth: The recursion depth counter.
+        :param bool ignore_object_errors: Whether to ignore errors in Python
+            object macros instead of raising an ``ObjectError`` exception.
+
+        :return str: The final reply after tags have been processed.
+        """
         stars = ['']
         stars.extend(st)
         botstars = ['']
@@ -2279,7 +2491,14 @@ the value is unset at the end of the `reply()` method)."""
         return reply
 
     def _string_format(self, msg, method):
-        """Format a string (upper, lower, formal, sentence)."""
+        """Format a string (upper, lower, formal, sentence).
+
+        :param str msg: The user's message.
+        :param str method: One of ``uppercase``, ``lowercase``,
+            ``sentence`` or ``formal``.
+
+        :return str: The reformatted string.
+        """
         if method == "uppercase":
             return msg.upper()
         elif method == "lowercase":
@@ -2294,7 +2513,18 @@ the value is unset at the end of the `reply()` method)."""
     ############################################################################
 
     def _topic_triggers(self, topic, triglvl, depth=0, inheritance=0, inherited=False):
-        """Recursively scan a topic and return a list of all triggers."""
+        """Recursively scan a topic and return a list of all triggers.
+
+        :param str topic: The original topic name.
+        :param dict triglvl: A reference to where the triggers are located,
+            e.g. normal triggers vs. ones with ``%Previous``.
+        :param int depth: The recursion depth counter.
+        :param int inheritance: The inheritance level counter, for topics that
+            inherit other topics.
+        :param bool inherited: Whether the current topic is inherited by others.
+
+        :return []str: List of all triggers found.
+        """
 
         # Break if we're in too deep.
         if depth > self._depth:
@@ -2360,7 +2590,14 @@ the value is unset at the end of the `reply()` method)."""
         return triggers
 
     def _find_trigger_by_inheritance(self, topic, trig, depth=0):
-        """Locate the replies for a trigger in an inherited/included topic."""
+        """Locate the replies for a trigger in an inherited/included topic.
+
+        :param str topic: The topic to search in.
+        :param str trig: The trigger we're looking for.
+        :param int depth: The recursion depth counter.
+
+        :return dict: The trigger's details.
+        """
 
         # This sub was called because the user matched a trigger from the sorted
         # array, but the trigger doesn't belong to their topic, and is instead
@@ -2408,7 +2645,13 @@ the value is unset at the end of the `reply()` method)."""
         return None
 
     def _get_topic_tree(self, topic, depth=0):
-        """Given one topic, get the list of all included/inherited topics."""
+        """Given one topic, get the list of all included/inherited topics.
+
+        :param str topic: The topic to start the search at.
+        :param int depth: The recursion depth counter.
+
+        :return []str: Array of topics.
+        """
 
         # Break if we're in too deep.
         if depth > self._depth:
@@ -2437,7 +2680,17 @@ the value is unset at the end of the `reply()` method)."""
     ############################################################################
 
     def _is_atomic(self, trigger):
-        """Determine if a trigger is atomic or not."""
+        """Determine if a trigger is atomic or not.
+
+        In this context we're deciding whether or not the trigger needs to use
+        the regular expression engine for testing. So any trigger that contains
+        nothing but plain words is considered atomic, whereas a trigger with any
+        "regexp-like" parts (even alternations) is not.
+
+        :param trigger: The trigger to test.
+
+        :return bool: Whether it's atomic or not.
+        """
 
         # Atomic triggers don't contain any wildcards or parenthesis or anything
         # of the sort. We don't need to test the full character set, just left
@@ -2450,7 +2703,13 @@ the value is unset at the end of the `reply()` method)."""
         return True
 
     def _word_count(self, trigger, all=False):
-        """Count the words that aren't wildcards in a trigger."""
+        """Count the words that aren't wildcards in a trigger.
+
+        :param str trigger: The trigger to count words for.
+        :param bool all: Count purely based on whitespace separators, or
+            consider wildcards not to be their own words.
+
+        :return int: The word count."""
         words = []
         if all:
             words = re.split(RE.ws, trigger)
@@ -2501,52 +2760,6 @@ the value is unset at the end of the `reply()` method)."""
 
         print("=== Syntax Tree ===")
         pp.pprint(self._syntax)
-
-
-################################################################################
-# Exception Classes                                                            #
-################################################################################
-
-class RiveScriptError(Exception):
-    """RiveScript base exception class"""
-    def __init__(self, error_message=None):
-        super(RiveScriptError, self).__init__(error_message)
-        self.error_message = error_message
-
-
-class NoMatchError(RiveScriptError):
-    """No reply could be matched"""
-    def __init__(self):
-        super(NoMatchError, self).__init__(RS_ERR_MATCH)
-
-
-class NoReplyError(RiveScriptError):
-    """No reply could be found"""
-    def __init__(self):
-        super(NoReplyError, self).__init__(RS_ERR_REPLY)
-
-
-class ObjectError(RiveScriptError):
-    """An error occurred when executing a Python object"""
-    def __init__(self, error_message=RS_ERR_OBJECT):
-        super(ObjectError, self).__init__(error_message)
-
-
-class DeepRecursionError(RiveScriptError):
-    """Prevented an infinite loop / deep recursion, unable to retrieve a reply for this message"""
-    def __init__(self):
-        super(DeepRecursionError, self).__init__(RS_ERR_DEEP_RECURSION)
-
-
-class NoDefaultRandomTopicError(Exception):
-    """No default topic 'random' could be found, critical error"""
-    pass
-
-
-class RepliesNotSortedError(Exception):
-    """sort_replies() was not called after the RiveScript documents were loaded, critical error"""
-    pass
-
 
 ################################################################################
 # Interactive Mode                                                             #
