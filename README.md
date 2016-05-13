@@ -1,6 +1,6 @@
 # RiveScript-Python
 
-[![Build Status](https://travis-ci.org/aichaos/rivescript-python.svg?branch=master)](https://travis-ci.org/aichaos/rivescript-python)
+[![Build Status][1]][2] [![Read the docs][3]][4]
 
 ## Introduction
 
@@ -9,6 +9,10 @@ is a scripting language for chatterbots, making it easy to write
 trigger/response pairs for building up a bot's intelligence.
 
 This library is compatible with both Python 2 and Python 3.
+
+## Documentation
+
+Documentation is available at <http://rivescript.readthedocs.org/>
 
 ## Installation
 
@@ -160,3 +164,8 @@ SEE ALSO
 --------
 
 The official RiveScript website, http://www.rivescript.com/
+
+[1]: https://travis-ci.org/aichaos/rivescript-python.svg?branch=master
+[2]: https://travis-ci.org/aichaos/rivescript-python
+[3]: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
+[4]: http://rivescript.rtfd.io/
