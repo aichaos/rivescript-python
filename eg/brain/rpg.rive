@@ -167,7 +167,7 @@
 	^ life support system comes on, which includes an anesthesia to put you to sleep\s
 	^ for the duration of the long flight to Mars.\n\n
 	^ When you awaken, you are on Mars. The space shuttle seems to have crash-landed.\s
-	^ There is a space suit here.{topic=crashed}
+	^ There is a space suit here.{topic=crashed}{@look}
 < topic
 
 // Crashed on Mars

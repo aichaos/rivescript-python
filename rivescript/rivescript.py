@@ -36,6 +36,15 @@ import codecs
 from . import __version__
 from . import python
 
+# Configure readline all interactive prompts
+import readline
+import rlcompleter
+
+if 'libedit' in readline.__doc__:
+    readline.parse_and_bind("bind ^I rl_complete")     # MacOS X
+else:
+    readline.parse_and_bind("tab: complete")
+
 # Common regular expressions.
 class RE(object):
     equals      = re.compile('\s*=\s*')
@@ -120,8 +129,9 @@ bool utf8:   Enable UTF-8 support."""
         self.unicode_punctuation = re.compile(r'[.,!?;:]')
 
         # Misc.
-        self._strict = strict  # Strict mode
-        self._depth  = depth   # Recursion depth limit
+        self._strict    = strict  # Strict mode
+        self._depth     = depth   # Recursion depth limit
+        self._callbacks = {}      # Callbacks
 
         ###
         # Internal fields.
@@ -1379,6 +1389,7 @@ Equivalent to `! person` in RiveScript code. Set to None to delete."""
             self._users[user] = {"topic": "random"}
 
         self._users[user][name] = value
+        self._fire_event('uservar', user, name, value)
 
     def get_uservar(self, user, name):
         """Get a variable about a user.
@@ -1525,6 +1536,65 @@ the value is unset at the end of the `reply()` method)."""
             # They're doing it wrong.
             self._warn("current_user() is meant to be used from within a Python object macro!")
         return self._current_user
+
+
+    def on(self, event_name, callback):
+        """Register an event callback.
+
+        Supported events (`event_name`):
+
+        * 'topic' - fired on topic change: `callback(user, topic)` or on 
+        redirect: `callback(user, topic, redirect=target)`
+
+        * 'uservar' - fired when user variable is set: callback(user, name, value)
+
+        Pass `None` as `callback` to clear it.
+        """
+        if not callback:
+            if event_name in self._callbacks:
+                self._say("Clearing callback for event '{}'".format(event_name))
+                del self._callbacks[event_name]
+            else:
+                self._warn("Callback for event '{}' is not set".format(event_name))
+        elif callable(callback):
+            self._say("Setting callback for event '{}'".format(event_name))
+            self._callbacks[event_name] = callback
+        else:
+            self._warn("Refusing to set callback for event '{}': {} is not callable".format(event_name, callback))
+
+
+    def _fire_event(self, event_name, *args, **kwargs):
+        """Call callback function for event if set."""
+        self._say("Fire event '{}' with args: {} {}".format(event_name, args, kwargs))
+        if event_name in self._callbacks:
+            try:
+                self._callbacks[event_name].__call__(*args, **kwargs)
+            except Exception as e:
+                self._warn("Error while executing callback for event '{}': {}".format(event_name, str(e)))
+
+    def get_topic(self, user):
+        """Get user's current topic."""
+        if user in self._users:
+            return self._users[user]['topic']
+        else:
+            self._warn("Cannot get topic: user '{}' does not exist".format(user))
+            return None
+
+    def set_topic(self, user, topic):
+        """Set user's topic."""
+        if topic in self._topics:
+            if not user in self._users:
+                self._users[user] = {}
+            self._say("Setting topic of user '{}' to '{}'".format(user, topic))
+            self._users[user]['topic'] = topic
+            self._fire_event('topic', user, topic)
+        else:
+            self._warn("Cannot set topic for user '{}': topic '{}' does not exist".format(user,topic))
+
+    def redirect(self, user, target):
+        """Redirect within current topic. Returns reply from the redirected trigger."""
+        return self._getreply(user, target)
+
 
     ############################################################################
     # Reply Fetching Methods                                                   #
@@ -1871,14 +1941,13 @@ the value is unset at the end of the `reply()` method)."""
             # later!
             reTopic = re.findall(RE.topic_tag, reply)
             for match in reTopic:
-                self._say("Setting user's topic to " + match)
-                self._users[user]["topic"] = match
+                self.set_topic(user, match)
                 reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
             reSet = re.findall(RE.set_tag, reply)
             for match in reSet:
                 self._say("Set uservar " + str(match[0]) + "=" + str(match[1]))
-                self._users[user][match[0]] = match[1]
+                self.set_uservar(user, match[0], match[1])
                 reply = reply.replace('<set {key}={value}>'.format(key=match[0], value=match[1]), '')
         else:
             # Process more tags if not in BEGIN.
@@ -1946,10 +2015,11 @@ the value is unset at the end of the `reply()` method)."""
             }
 
     def _do_expand_array(self, array_name, depth=0):
-        """ Do recurrent array expansion, returning a set of keywords.
+        """Do recurrent array expansion, returning a set of keywords.
 
         Exception is thrown when there are cyclical dependencies between
-        arrays or if the @array name references an undefined array."""
+        arrays or if the @array name references an undefined array.
+        """
         if depth > self._depth:
             raise Exception("deep recursion detected")
         if not array_name in self._arrays:
@@ -1964,9 +2034,10 @@ the value is unset at the end of the `reply()` method)."""
         return set(ret)
 
     def _expand_array(self, array_name):
-        """ Expand variables and return a set of keywords.
+        """Expand variables and return a set of keywords.
 
-        Warning is issued when exceptions occur."""
+        Warning is issued when exceptions occur.
+        """
         ret = self._arrays[array_name] if array_name in self._arrays else []
         try:
             ret = self._do_expand_array(array_name)
@@ -2179,7 +2250,7 @@ the value is unset at the end of the `reply()` method)."""
                 # <set> user vars.
                 parts = data.split("=")
                 self._say("Set uservar " + text_type(parts[0]) + "=" + text_type(parts[1]))
-                self._users[user][parts[0]] = parts[1]
+                self.set_uservar(user, parts[0], parts[1])
             elif tag in ["add", "sub", "mult", "div"]:
                 # Math operator tags.
                 parts = data.split("=")
@@ -2228,8 +2299,7 @@ the value is unset at the end of the `reply()` method)."""
         # Topic setter.
         reTopic = re.findall(RE.topic_tag, reply)
         for match in reTopic:
-            self._say("Setting user's topic to " + match)
-            self._users[user]["topic"] = match
+            self.set_topic(user, match)
             reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
         # Inline redirecter.
@@ -2239,6 +2309,7 @@ the value is unset at the end of the `reply()` method)."""
             at = match.strip()
             subreply = self._getreply(user, at, step=(depth + 1))
             reply = reply.replace('{{@{match}}}'.format(match=match), subreply)
+            self._fire_event('topic', user, self.get_topic(user), redirect=at)
 
         # Object caller.
         reply = reply.replace("{__call__}", "<call>")
