@@ -1669,7 +1669,6 @@ class RiveScript(object):
             self._warn("current_user() is meant to be used from within a Python object macro!")
         return self._current_user
 
-
     def on(self, event_name, callback):
         """Register an event callback.
 
@@ -1694,18 +1693,12 @@ class RiveScript(object):
         else:
             self._warn("Refusing to set callback for event '{}': {} is not callable".format(event_name, callback))
 
-
-    def _fire_event(self, event_name, *args, **kwargs):
-        """Call callback function for event if set."""
-        self._say("Fire event '{}' with args: {} {}".format(event_name, args, kwargs))
-        if event_name in self._callbacks:
-            try:
-                self._callbacks[event_name].__call__(*args, **kwargs)
-            except Exception as e:
-                self._warn("Error while executing callback for event '{}': {}".format(event_name, str(e)))
-
     def get_topic(self, user):
-        """Get user's current topic."""
+        """Get user's current topic.
+
+        :param str user: User name
+        :return: Topic or ``None`` if user does not exist.
+        """
         if user in self._users:
             return self._users[user]['topic']
         else:
@@ -1713,7 +1706,11 @@ class RiveScript(object):
             return None
 
     def set_topic(self, user, topic):
-        """Set user's topic."""
+        """Set user's topic.
+
+        :param str user: User name
+        :param str topic: New topic
+        """
         if topic in self._topics:
             if not user in self._users:
                 self._users[user] = {}
@@ -2797,6 +2794,15 @@ class RiveScript(object):
         """Formats a string for ASCII regex matching."""
         s = re.sub(RE.nasties, '', s)
         return s
+
+    def _fire_event(self, event_name, *args, **kwargs):
+        """Call callback function for event if it's been set."""
+        self._say("Fire event '{}' with args: {} {}".format(event_name, args, kwargs))
+        if event_name in self._callbacks:
+            try:
+                self._callbacks[event_name].__call__(*args, **kwargs)
+            except Exception as e:
+                self._warn("Error while executing callback for event '{}': {}".format(event_name, str(e)))
 
     def _dump(self):
         """For debugging, dump the entire data structure."""
