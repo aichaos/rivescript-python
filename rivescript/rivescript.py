@@ -32,6 +32,7 @@ import random
 import pprint
 import copy
 import codecs
+from collections import deque
 
 # Configure readline all interactive prompts
 import readline
@@ -93,7 +94,7 @@ class RiveScript(object):
     # Initialization and Utility Methods                                       #
     ############################################################################
 
-    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=False):
+    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=False, history_length=8):
         """Initialize a new RiveScript interpreter."""
 
         ###
@@ -109,9 +110,10 @@ class RiveScript(object):
         self.unicode_punctuation = re.compile(r'[.,!?;:]')
 
         # Misc.
-        self._strict    = strict  # Strict mode
-        self._depth     = depth   # Recursion depth limit
-        self._callbacks = {}      # Callbacks
+        self._strict         = strict          # Strict mode
+        self._depth          = depth           # Recursion depth limit
+        self._callbacks      = {}              # Callbacks
+        self._history_length = history_length
 
         ###
         # Internal fields.
@@ -1786,12 +1788,8 @@ class RiveScript(object):
                 reply = e.error_message
 
         # Save their reply history.
-        oldInput = self._users[user]['__history__']['input'][:8]
-        self._users[user]['__history__']['input'] = [msg]
-        self._users[user]['__history__']['input'].extend(oldInput)
-        oldReply = self._users[user]['__history__']['reply'][:8]
-        self._users[user]['__history__']['reply'] = [reply]
-        self._users[user]['__history__']['reply'].extend(oldReply)
+        self._users[user]['__history__']['input'].appendleft(msg)
+        self._users[user]['__history__']['reply'].appendleft(reply)
 
         # Unset the current user.
         self._current_user = None
@@ -1880,16 +1878,8 @@ class RiveScript(object):
         # Initialize this user's history.
         if '__history__' not in self._users[user]:
             self._users[user]['__history__'] = {
-                'input': [
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined'
-                ],
-                'reply': [
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined'
-                ]
+                'input': deque(['undefined'] * self._history_length, maxlen=self._history_length),
+                'reply': deque(['undefined'] * self._history_length, maxlen=self._history_length)
             }
 
         # More topic sanity checking.
