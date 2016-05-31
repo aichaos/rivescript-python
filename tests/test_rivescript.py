@@ -409,8 +409,6 @@ class ReplyTests(RiveScriptTestCase):
         for greeting in ["hello", "hey", "hi there"]:
             self.reply(greeting, "Hi there!")
 
-        self.assertEqual(self.rs.redirect(self.username, 'howdy'), "Howdy.")
-
 
     def test_conditionals(self):
         self.new("""

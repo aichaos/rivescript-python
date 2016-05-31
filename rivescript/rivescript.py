@@ -1818,10 +1818,6 @@ class RiveScript(object):
         else:
             self._warn("Cannot set topic for user '{}': topic '{}' does not exist".format(user,topic))
 
-    def redirect(self, user, target):
-        """Redirect within current topic. Returns reply from the redirected trigger."""
-        return self._getreply(user, target)
-
 
     ############################################################################
     # Reply Fetching Methods                                                   #
