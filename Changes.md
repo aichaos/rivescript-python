@@ -1,5 +1,14 @@
 Revision history for the Python package RiveScript.
 
+1.12.2  May 31 2016
+  - Fix a couple of bugs with `set_uservars()`.
+
+1.12.1  May 31 2016
+  - Added API functions: `get_global(name)`, `get_variable(name)`, and
+    `set_uservars(user || dict[, dict])` -- the latter is for setting many
+    variables for a user at once, or for setting many variables for many users.
+    Refer to the API documentation for details.
+
 1.12.0  May 10 2016
   - Add support for nested arrays, like `!array colors = @rgb white black`
     (PR #22)

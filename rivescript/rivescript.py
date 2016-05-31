@@ -1388,7 +1388,7 @@ class RiveScript(object):
                         # name   = the name of the object being called
                         # fields = array of arguments passed to the object
                         return reply
-    """
+        """
 
         # Allow them to delete a handler too.
         if obj is None:
@@ -1434,6 +1434,14 @@ class RiveScript(object):
                 del self._gvars[name]
         self._gvars[name] = value
 
+    def get_global(self, name):
+        """Retrieve the current value of a global variable.
+
+        :param str name: The name of the variable to get.
+        :return str: The value of the variable or ``"undefined"``.
+        """
+        return self._gvars.get(name, "undefined")
+
     def set_variable(self, name, value):
         """Set a bot variable.
 
@@ -1448,6 +1456,14 @@ class RiveScript(object):
             if name in self._bvars:
                 del self._bvars[name]
         self._bvars[name] = value
+
+    def get_variable(self, name):
+        """Retrieve the current value of a bot variable.
+
+        :param str name: The name of the variable to get.
+        :return str: The value of the variable or ``"undefined"``.
+        """
+        return self._bvars.get(name, "undefined")
 
     def set_substitution(self, what, rep):
         """Set a substitution.
@@ -1494,6 +1510,81 @@ class RiveScript(object):
 
         self._users[user][name] = value
         self._fire_event('uservar', user, name, value)
+
+    def set_uservars(self, user, data=None):
+        """Set many variables for a user, or set many variables for many users.
+
+        This function can be called in two ways::
+
+            # Set a dict of variables for a single user.
+            rs.set_uservars(username, vars)
+
+            # Set a nested dict of variables for many users.
+            rs.set_uservars(many_vars)
+
+        In the first syntax, ``vars`` is a simple dict of key/value string
+        pairs. In the second syntax, ``many_vars`` is a structure like this::
+
+            {
+                "username1": {
+                    "key": "value",
+                },
+                "username2": {
+                    "key": "value",
+                },
+            }
+
+        This way you can export *all* user variables via ``get_uservars()``
+        and then re-import them all at once, instead of setting them once per
+        user.
+
+        :param optional str user: The user ID to set many variables for.
+            Skip this parameter to set many variables for many users instead.
+        :param dict data: The dictionary of key/value pairs for user variables,
+            or else a dict of dicts mapping usernames to key/value pairs.
+
+        This may raise a ``TypeError`` exception if you pass it invalid data
+        types. Note that only the standard ``dict`` type is accepted, but not
+        variants like ``OrderedDict``, so if you have a dict-like type you
+        should cast it to ``dict`` first.
+        """
+
+        # Check the parameters to see how we're being used.
+        if type(user) is dict and data is None:
+            # Setting many variables for many users.
+            for uid, uservars in user.items():
+                if type(uservars) is not dict:
+                    raise TypeError(
+                        "In set_uservars(many_vars) syntax, the many_vars dict "
+                        "must be in the format of `many_vars['username'] = "
+                        "dict(key=value)`, but the contents of many_vars['{}']"
+                        " is not a dict.".format(uid)
+                    )
+
+                if not uid in self._users:
+                    self._users[uid] = dict(topic="random")
+
+                for key, value in uservars.items():
+                    self._users[uid][key] = value
+
+        elif type(user) in [text_type, str] and type(data) is dict:
+            # Setting variables for a single user.
+            if not user in self._users:
+                self._users[user] = dict(topic="random")
+
+            for key, value in data.items():
+                self._users[user][key] = value
+
+        else:
+            raise TypeError(
+                "set_uservars() may only be called with types ({str}, dict) or "
+                "(dict<{str}, dict>) but you called it with types ({a}, {b})"
+                .format(
+                    str="unicode" if sys.version_info[0] < 3 else "str",
+                    a=type(user),
+                    b=type(data),
+                ),
+            )
 
     def get_uservar(self, user, name):
         """Get a variable about a user.
@@ -1816,7 +1907,7 @@ class RiveScript(object):
 
         # Make sure the string is Unicode for Python 2.
         if sys.version_info[0] < 3 and isinstance(msg, str):
-            msg = msg.decode('utf8')
+            msg = msg.decode()
 
         # Lowercase it.
         msg = msg.lower()
@@ -1961,7 +2052,7 @@ class RiveScript(object):
             for trig in self._sorted["topics"][topic]:
                 # Process the triggers.
                 regexp = self._reply_regexp(user, trig)
-                self._say("Try to match %r against %r (%r)" % (msg, trig, regexp))
+                self._say("Try to match %r against %r (%r)" % (msg, trig, regexp.pattern))
 
                 # Python's regular expression engine is slow. Try a verbatim
                 # match if this is an atomic trigger.
