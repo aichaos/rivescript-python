@@ -34,14 +34,19 @@ import copy
 import codecs
 from collections import deque
 
-# Configure readline all interactive prompts
-import readline
-import rlcompleter
-
-if 'libedit' in readline.__doc__:
-    readline.parse_and_bind("bind ^I rl_complete")     # MacOS X
+# Configure readline for all interactive prompts
+try:
+    import readline
+except ImportError:
+    # Windows
+    import pyreadline as readline
 else:
-    readline.parse_and_bind("tab: complete")
+    # Unix
+    import rlcompleter
+    if(sys.platform == 'darwin'):
+        readline.parse_and_bind("bind ^I rl_complete")
+    else:
+        readline.parse_and_bind("tab: complete")
 
 from . import __version__
 from . import python
