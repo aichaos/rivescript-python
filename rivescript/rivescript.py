@@ -1549,16 +1549,22 @@ class RiveScript(object):
                 for key, value in uservars.items():
                     self._users[uid][key] = value
 
-        elif type(user) in [text_type] and type(data) is dict:
+        elif type(user) in [text_type, str] and type(data) is dict:
             # Setting variables for a single user.
+            if not user in self._users:
+                self._users[user] = dict(topic="random")
+
             for key, value in data.items():
                 self._users[user][key] = value
 
         else:
             raise TypeError(
-                "set_uservars() may only be called with types (str, dict) or "
-                "(dict<str, dict>) but you called it with types ({}, {})".format(
-                    type(user), type(data),
+                "set_uservars() may only be called with types ({str}, dict) or "
+                "(dict<{str}, dict>) but you called it with types ({a}, {b})"
+                .format(
+                    str="unicode" if sys.version_info[0] < 3 else "str",
+                    a=type(user),
+                    b=type(data),
                 ),
             )
 
@@ -1831,7 +1837,7 @@ class RiveScript(object):
 
         # Make sure the string is Unicode for Python 2.
         if sys.version_info[0] < 3 and isinstance(msg, str):
-            msg = msg.decode('utf8')
+            msg = msg.decode()
 
         # Lowercase it.
         msg = msg.lower()

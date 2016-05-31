@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import json
 import re
 import unittest
 from collections import OrderedDict
@@ -752,6 +753,17 @@ class APITest(RiveScriptTestCase):
 
         # Non-existing users return None, not "undefined"
         self.assertEqual(self.rs.get_uservar("fake", "name"), None)
+
+        # Test setting vars from exported vars.
+        exported = self.rs.get_uservars("localuser")
+        self.assertEqual(self.rs.set_uservars("localuser", exported), None)
+
+        # Test setting vars from JSON.
+        self.assertEqual(self.rs.set_uservars("localuser",
+            json.loads('{"gender": "ambiguous"}')), None)
+
+        # Test setting user variables for users that don't exist yet.
+        self.assertEqual(self.rs.set_uservars("newbie", {"name": "Newbie"}), None)
 
         # Test calling with (str, None)
         with self.assertRaises(TypeError):
