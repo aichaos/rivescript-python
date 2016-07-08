@@ -39,7 +39,7 @@ __status__     = 'Production'
 __docformat__  = 'plaintext'
 
 __all__      = ['rivescript']
-__version__  = '1.12.2'
+__version__  = '1.12.3'
 
 from .rivescript import RiveScript, RiveScriptError, NoMatchError, NoReplyError,\
     ObjectError, DeepRecursionError, NoDefaultRandomTopicError, RepliesNotSortedError

@@ -1,5 +1,9 @@
 Revision history for the Python package RiveScript.
 
+1.12.3  Jul 8 2016
+  - Fix the Python object macro handler to use `six.text_type` on the return
+    value, allowing Python 2 objects to return Unicode strings.
+
 1.12.2  May 31 2016
   - Fix a couple of bugs with `set_uservars()`.
 
