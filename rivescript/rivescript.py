@@ -2293,7 +2293,7 @@ class RiveScript(object):
             # non-matching.
             pipes = '|'.join(new)
             pipes = re.sub(self._quotemeta(r'(.+?)'), '(?:.+?)', pipes)
-            pipes = re.sub(self._quotemeta(r'(\\d+?)'), '(?:\d+?)', pipes)
+            pipes = re.sub(self._quotemeta(r'(\d+?)'), '(?:\d+?)', pipes)
             pipes = re.sub(self._quotemeta(r'([A-Za-z]+?)'), '(?:[A-Za-z]+?)', pipes)
 
             regexp = re.sub(r'\s*\[' + self._quotemeta(match) + '\]\s*',
