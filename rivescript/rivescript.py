@@ -2292,9 +2292,9 @@ class RiveScript(object):
             # If this optional had a star or anything in it, make it
             # non-matching.
             pipes = '|'.join(new)
-            pipes = re.sub(re.escape('(.+?)'), '(?:.+?)', pipes)
-            pipes = re.sub(re.escape('(\d+?)'), '(?:\d+?)', pipes)
-            pipes = re.sub(re.escape('([A-Za-z]+?)'), '(?:[A-Za-z]+?)', pipes)
+            pipes = re.sub(re.escape(r'(.+?)'), '(?:.+?)', pipes)
+            pipes = re.sub(re.escape(r'(\\d+?)'), '(?:\d+?)', pipes)
+            pipes = re.sub(re.escape(r'([A-Za-z]+?)'), '(?:[A-Za-z]+?)', pipes)
 
             regexp = re.sub(r'\s*\[' + re.escape(match) + '\]\s*',
                 '(?:' + pipes + r'|(?:\\s|\\b))', regexp)
