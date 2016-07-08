@@ -24,6 +24,7 @@
 
 # Python3 compat
 from __future__ import print_function, unicode_literals
+from six import text_type
 
 __docformat__ = 'plaintext'
 
@@ -98,7 +99,7 @@ class PyRiveObjects(object):
                 reply = ''
         except Exception as e:
             raise PythonObjectError("Error executing Python object: " + str(e))
-        return str(reply)
+        return text_type(reply)
 
 
 class PythonObjectError(Exception):

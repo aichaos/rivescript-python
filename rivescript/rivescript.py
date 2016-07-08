@@ -2208,7 +2208,7 @@ class RiveScript(object):
         :param str pattern: The substitution pattern.
         """
         if pattern not in self._regexc[kind]:
-            qm = re.escape(pattern)
+            qm = self._quotemeta(pattern)
             self._regexc[kind][pattern] = {
                 "qm": qm,
                 "sub1": re.compile(r'^' + qm + r'$'),
@@ -2292,11 +2292,11 @@ class RiveScript(object):
             # If this optional had a star or anything in it, make it
             # non-matching.
             pipes = '|'.join(new)
-            pipes = re.sub(re.escape('(.+?)'), '(?:.+?)', pipes)
-            pipes = re.sub(re.escape('(\d+?)'), '(?:\d+?)', pipes)
-            pipes = re.sub(re.escape('([A-Za-z]+?)'), '(?:[A-Za-z]+?)', pipes)
+            pipes = re.sub(self._quotemeta(r'(.+?)'), '(?:.+?)', pipes)
+            pipes = re.sub(self._quotemeta(r'(\d+?)'), '(?:\d+?)', pipes)
+            pipes = re.sub(self._quotemeta(r'([A-Za-z]+?)'), '(?:[A-Za-z]+?)', pipes)
 
-            regexp = re.sub(r'\s*\[' + re.escape(match) + '\]\s*',
+            regexp = re.sub(r'\s*\[' + self._quotemeta(match) + '\]\s*',
                 '(?:' + pipes + r'|(?:\\s|\\b))', regexp)
 
         # _ wildcards can't match numbers!
@@ -2308,7 +2308,7 @@ class RiveScript(object):
             rep = ''
             if array in self._arrays:
                 rep = r'(?:' + '|'.join(self._expand_array(array)) + ')'
-            regexp = re.sub(r'\@' + re.escape(array) + r'\b', rep, regexp)
+            regexp = re.sub(r'\@' + self._quotemeta(array) + r'\b', rep, regexp)
 
         # Filter in bot variables.
         bvars = re.findall(RE.bot_tag, regexp)
@@ -2769,6 +2769,20 @@ class RiveScript(object):
     ############################################################################
     # Miscellaneous Private Methods                                            #
     ############################################################################
+
+    def _quotemeta(self, s):
+        """Escape a string to make it safe for a regular expression.
+
+        This is used instead of ``self._quotemeta()`` because Python 3.6 obsoleted
+        the ``\d`` escape sequence for some reason for that function.
+
+        :param str s: The string to make regexp-safe.
+        :return str: The string with all regexp metacharacters escaped.
+        """
+        unsafe = list(r'\.+?[^]$(){}=!<>|:')
+        for char in unsafe:
+            s = s.replace(char, "\\{}".format(char))
+        return s
 
     def _is_atomic(self, trigger):
         """Determine if a trigger is atomic or not.
