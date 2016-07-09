@@ -402,6 +402,9 @@ class ReplyTests(RiveScriptTestCase):
 
             + hi there
             - {@hello}
+
+            + howdy
+            - Howdy.
         """)
         for greeting in ["hello", "hey", "hi there"]:
             self.reply(greeting, "Hi there!")
@@ -559,9 +562,12 @@ class TopicTest(RiveScriptTestCase):
         self.reply("Swear word!", "How rude! Apologize or I won't talk to you again.")
         self.reply("hello", "Say you're sorry!")
         self.reply("How are you?", "Say you're sorry!")
+        self.assertEqual(self.rs.get_topic(self.username), 'sorry')
         self.reply("Sorry!", "It's ok!")
         self.reply("hello", "Hi there!")
         self.reply("How are you?", "Catch-all.")
+        self.rs.set_topic(self.username, 'sorry')
+        self.reply("Hi there!", "Say you're sorry!")
 
 
     def test_topic_inheritence(self):
@@ -862,6 +868,64 @@ class UnicodeTest(RiveScriptTestCase):
         self.rs.unicode_punctuation = re.compile(r'xxx')
         self.reply("Hello bot", "Hello human!")
         self.reply("Hello, bot!", RS_ERR_MATCH)
+
+
+class EventCallbackTest(RiveScriptTestCase):
+    """Test event callbacks."""
+
+    def test_on_topic_cb(self):
+        self.new("""
+            + test
+            - Hi.{topic=test}
+
+            + testred
+            - Hi {topic=testred}{@start}
+
+            > topic test
+            + *
+            - Hello.
+            < topic
+
+            > topic testred
+            + start
+            - there!
+            < topic
+        """)
+        def topic_cb(user, topic, redirect=None):
+            self.topic_cb_user     = user
+            self.topic_cb_topic    = topic
+            self.topic_cb_redirect = redirect
+
+        self.rs.on('topic', topic_cb)
+
+        self.reply("test", "Hi.")
+        self.assertEqual(self.topic_cb_user, self.username)
+        self.assertEqual(self.topic_cb_topic, 'test')
+        self.assertEqual(self.topic_cb_redirect, None)
+
+        self.rs.set_topic(self.username, 'random')
+        self.reply("testred", "Hi there!")
+        self.assertEqual(self.topic_cb_user, self.username)
+        self.assertEqual(self.topic_cb_topic, 'testred')
+        self.assertEqual(self.topic_cb_redirect, 'start')
+
+
+    def test_on_uservar_cb(self):
+        self.new("""
+            + test
+            - Hi.<set test=123>
+        """)
+        def uservar_cb(user, name, value):
+            self.var_cb_user  = user
+            self.var_cb_name  = name
+            self.var_cb_value = value
+
+        self.rs.on('uservar', uservar_cb)
+
+        self.reply("test", "Hi.")
+        self.assertEqual(self.var_cb_user, self.username)
+        self.assertEqual(self.var_cb_name, "test")
+        self.assertEqual(self.var_cb_value, "123")
 
 
 if __name__ == "__main__":

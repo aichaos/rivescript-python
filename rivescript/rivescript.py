@@ -32,6 +32,21 @@ import random
 import pprint
 import copy
 import codecs
+from collections import deque
+
+# Configure readline for all interactive prompts
+try:
+    import readline
+except ImportError:
+    # Windows
+    import pyreadline as readline
+else:
+    # Unix
+    import rlcompleter
+    if(sys.platform == 'darwin'):
+        readline.parse_and_bind("bind ^I rl_complete")
+    else:
+        readline.parse_and_bind("tab: complete")
 
 from . import __version__
 from . import python
@@ -84,7 +99,7 @@ class RiveScript(object):
     # Initialization and Utility Methods                                       #
     ############################################################################
 
-    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=False):
+    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=False, history_length=8):
         """Initialize a new RiveScript interpreter."""
 
         ###
@@ -100,8 +115,10 @@ class RiveScript(object):
         self.unicode_punctuation = re.compile(r'[.,!?;:]')
 
         # Misc.
-        self._strict = strict  # Strict mode
-        self._depth  = depth   # Recursion depth limit
+        self._strict         = strict          # Strict mode
+        self._depth          = depth           # Recursion depth limit
+        self._callbacks      = {}              # Callbacks
+        self._history_length = history_length
 
         ###
         # Internal fields.
@@ -1492,6 +1509,7 @@ class RiveScript(object):
             self._users[user] = {"topic": "random"}
 
         self._users[user][name] = value
+        self._fire_event('uservar', user, name, value)
 
     def set_uservars(self, user, data=None):
         """Set many variables for a user, or set many variables for many users.
@@ -1749,6 +1767,58 @@ class RiveScript(object):
             self._warn("current_user() is meant to be used from within a Python object macro!")
         return self._current_user
 
+    def on(self, event_name, callback):
+        """Register an event callback.
+
+        Supported events (`event_name`):
+
+        * 'topic' - fired on topic change: `callback(user, topic)` or on 
+        redirect: `callback(user, topic, redirect=target)`
+
+        * 'uservar' - fired when user variable is set: callback(user, name, value)
+
+        Pass `None` as `callback` to clear it.
+        """
+        if not callback:
+            if event_name in self._callbacks:
+                self._say("Clearing callback for event '{}'".format(event_name))
+                del self._callbacks[event_name]
+            else:
+                self._warn("Callback for event '{}' is not set".format(event_name))
+        elif callable(callback):
+            self._say("Setting callback for event '{}'".format(event_name))
+            self._callbacks[event_name] = callback
+        else:
+            self._warn("Refusing to set callback for event '{}': {} is not callable".format(event_name, callback))
+
+    def get_topic(self, user):
+        """Get user's current topic.
+
+        :param str user: User name
+        :return: Topic or ``None`` if user does not exist.
+        """
+        if user in self._users:
+            return self._users[user]['topic']
+        else:
+            self._warn("Cannot get topic: user '{}' does not exist".format(user))
+            return None
+
+    def set_topic(self, user, topic):
+        """Set user's topic.
+
+        :param str user: User name
+        :param str topic: New topic
+        """
+        if topic in self._topics:
+            if not user in self._users:
+                self._users[user] = {}
+            self._say("Setting topic of user '{}' to '{}'".format(user, topic))
+            self._users[user]['topic'] = topic
+            self._fire_event('topic', user, topic)
+        else:
+            self._warn("Cannot set topic for user '{}': topic '{}' does not exist".format(user,topic))
+
+
     ############################################################################
     # Reply Fetching Methods                                                   #
     ############################################################################
@@ -1810,12 +1880,8 @@ class RiveScript(object):
                 reply = e.error_message
 
         # Save their reply history.
-        oldInput = self._users[user]['__history__']['input'][:8]
-        self._users[user]['__history__']['input'] = [msg]
-        self._users[user]['__history__']['input'].extend(oldInput)
-        oldReply = self._users[user]['__history__']['reply'][:8]
-        self._users[user]['__history__']['reply'] = [reply]
-        self._users[user]['__history__']['reply'].extend(oldReply)
+        self._users[user]['__history__']['input'].appendleft(msg)
+        self._users[user]['__history__']['reply'].appendleft(reply)
 
         # Unset the current user.
         self._current_user = None
@@ -1904,16 +1970,8 @@ class RiveScript(object):
         # Initialize this user's history.
         if '__history__' not in self._users[user]:
             self._users[user]['__history__'] = {
-                'input': [
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined'
-                ],
-                'reply': [
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined'
-                ]
+                'input': deque(['undefined'] * self._history_length, maxlen=self._history_length),
+                'reply': deque(['undefined'] * self._history_length, maxlen=self._history_length)
             }
 
         # More topic sanity checking.
@@ -2134,14 +2192,13 @@ class RiveScript(object):
             # later!
             reTopic = re.findall(RE.topic_tag, reply)
             for match in reTopic:
-                self._say("Setting user's topic to " + match)
-                self._users[user]["topic"] = match
+                self.set_topic(user, match)
                 reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
             reSet = re.findall(RE.set_tag, reply)
             for match in reSet:
                 self._say("Set uservar " + str(match[0]) + "=" + str(match[1]))
-                self._users[user][match[0]] = match[1]
+                self.set_uservar(user, match[0], match[1])
                 reply = reply.replace('<set {key}={value}>'.format(key=match[0], value=match[1]), '')
         else:
             # Process more tags if not in BEGIN.
@@ -2248,7 +2305,8 @@ class RiveScript(object):
 
         :return list: The final array contents.
 
-        Warning is issued when exceptions occur."""
+        Warning is issued when exceptions occur.
+        """
         ret = self._arrays[array_name] if array_name in self._arrays else []
         try:
             ret = self._do_expand_array(array_name)
@@ -2482,7 +2540,7 @@ class RiveScript(object):
                 # <set> user vars.
                 parts = data.split("=")
                 self._say("Set uservar " + text_type(parts[0]) + "=" + text_type(parts[1]))
-                self._users[user][parts[0]] = parts[1]
+                self.set_uservar(user, parts[0], parts[1])
             elif tag in ["add", "sub", "mult", "div"]:
                 # Math operator tags.
                 parts = data.split("=")
@@ -2531,8 +2589,7 @@ class RiveScript(object):
         # Topic setter.
         reTopic = re.findall(RE.topic_tag, reply)
         for match in reTopic:
-            self._say("Setting user's topic to " + match)
-            self._users[user]["topic"] = match
+            self.set_topic(user, match)
             reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
         # Inline redirecter.
@@ -2542,6 +2599,7 @@ class RiveScript(object):
             at = match.strip()
             subreply = self._getreply(user, at, step=(depth + 1))
             reply = reply.replace('{{@{match}}}'.format(match=match), subreply)
+            self._fire_event('topic', user, self.get_topic(user), redirect=at)
 
         # Object caller.
         reply = reply.replace("{__call__}", "<call>")
@@ -2818,6 +2876,15 @@ class RiveScript(object):
         """Formats a string for ASCII regex matching."""
         s = re.sub(RE.nasties, '', s)
         return s
+
+    def _fire_event(self, event_name, *args, **kwargs):
+        """Call callback function for event if it's been set."""
+        self._say("Fire event '{}' with args: {} {}".format(event_name, args, kwargs))
+        if event_name in self._callbacks:
+            try:
+                self._callbacks[event_name].__call__(*args, **kwargs)
+            except Exception as e:
+                self._warn("Error while executing callback for event '{}': {}".format(event_name, str(e)))
 
     def _dump(self):
         """For debugging, dump the entire data structure."""
