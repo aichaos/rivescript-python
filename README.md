@@ -40,6 +40,11 @@ interactive chat session:
 
     python rivescript ./eg/brain
 
+In case running RiveScript as a script is inconvenient (for example, when it's
+installed as a system module) you can use the `shell.py` script as an alias:
+
+    python shell.py eg/brain
+
 When used as a library, the synopsis is as follows:
 
 ```python
