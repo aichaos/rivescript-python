@@ -1,5 +1,14 @@
 Revision history for the Python package RiveScript.
 
+1.13.0  TBD
+  - Restructure the code to keep it on par with the JavaScript and Go versions:
+    - `rivescript.parser` now contains all the parsing code:
+      `parse()` and `check_syntax()` are moved here.
+  - Refactor the RiveScript interactive mode (`rivescript.interactive`) to use
+    argparse instead of getopt and add a pretty ASCII logo.
+  - Add `shell.py` as a possibly easier-to-access (and certainly
+    easier-to-discover) shortcut to running RiveScript's interactive mode.
+
 1.12.3  Jul 8 2016
   - Fix the Python object macro handler to use `six.text_type` on the return
     value, allowing Python 2 objects to return Unicode strings.

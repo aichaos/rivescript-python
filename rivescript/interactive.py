@@ -1,26 +1,9 @@
-#!/usr/bin/env python
-
-# The MIT License (MIT)
+# RiveScript-Python
 #
-# Copyright (c) 2016 Noah Petherbridge
+# This code is released under the MIT License.
+# See the "LICENSE" file for more information.
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# https://www.rivescript.com/
 
 from __future__ import print_function, unicode_literals
 
@@ -31,23 +14,13 @@ To run this, run: python rivescript
               or: python __main__.py
 The preferred method is the former."""
 
-__docformat__ = 'plaintext'
-
-import re
-import sys
-import getopt
+import argparse
 import json
+import re
+from six.moves import input
+from six import text_type
 
 from rivescript import RiveScript
-
-
-# Compatible wrapper for inputs.
-def _input(prompt=None):
-    if sys.version_info[0] < 3:
-        return raw_input(prompt).decode("utf-8")
-    else:
-        return input(prompt)
-
 
 def json_in(bot, buffer, stateful):
     # Prepare the response.
@@ -93,125 +66,67 @@ def json_in(bot, buffer, stateful):
 
 
 def interactive_mode():
-    # Get command line options.
-    options, remainder = [], []
-    try:
-        options, remainder = getopt.getopt(sys.argv[1:], 'dju', ['debug',
-                                                                'json',
-                                                                'utf8',
-                                                                'log=',
-                                                                'strict',
-                                                                'nostrict',
-                                                                'depth=',
-                                                                'help'])
-    except:
-        print("Unrecognized options given, try " + sys.argv[0] + " --help")
-        exit()
-
-    # Handle the options.
-    debug, depth, strict = False, 50, True
-    with_json, help, log = False, False, None
-    utf8 = False
-    for opt in options:
-        if opt[0] == '--debug' or opt[0] == '-d':
-            debug = True
-        elif opt[0] == '--strict':
-            strict = True
-        elif opt[0] == '--nostrict':
-            strict = False
-        elif opt[0] == '--json':
-            with_json = True
-        elif opt[0] == '--utf8' or opt[0] == '-u':
-            utf8 = True
-        elif opt[0] == '--help' or opt[0] == '-h':
-            help = True
-        elif opt[0] == '--depth':
-            depth = int(opt[1])
-        elif opt[0] == '--log':
-            log = opt[1]
-
-    # Help?
-    if help:
-        print("""Usage: rivescript [options] <directory>
-
-Options:
-
-    --debug, -d
-        Enable debug mode.
-
-    --log FILE
-        Log debug output to a file (instead of the console). Use this instead
-        of --debug.
-
-    --json, -j
-        Communicate using JSON. Useful for third party programs.
-
-    --strict, --nostrict
-        Enable or disable strict mode (enabled by default).
-
-    --depth=50
-        Set the recursion depth limit (default is 50).
-
-    --help
-        Display this help.
-
-JSON Mode:
-
-    In JSON mode, input and output is done using JSON data structures. The
-    format for incoming JSON data is as follows:
-
-    {
-        'username': 'localuser',
-        'message': 'Hello bot!',
-        'vars': {
-            'name': 'Aiden'
-        }
-    }
-
-    The format that would be expected from this script is:
-
-    {
-        'status': 'ok',
-        'reply': 'Hello, human!',
-        'vars': {
-            'name': 'Aiden'
-        }
-    }
-
-    If the calling program sends an EOF signal at the end of their JSON data,
-    this script will print its response and exit. To keep a session going,
-    send the string '__END__' on a line by itself at the end of your message.
-    The script will do the same after its response. The pipe can then be used
-    again for further interactions.""")
-        quit()
-
-    # Given a directory?
-    if len(remainder) == 0:
-        print("Usage: rivescript [options] <directory>")
-        print("Try rivescript --help")
-        quit()
-    root = remainder[0]
+    parser = argparse.ArgumentParser(description="RiveScript interactive mode.")
+    parser.add_argument("--debug", "-d",
+        help="Enable debug logging within RiveScript.",
+        action="store_true",
+    )
+    parser.add_argument("--json", "-j",
+        help="Enable JSON mode. In this mode, you communicate with the bot by "
+            "sending a JSON-encoded object with keys 'username', 'message' and "
+            "'vars' (an object of user variables) over standard input, and "
+            "then close the input (^D) or send the string '__END__' on a line "
+            "by itself. The bot will respond with a similarly formatted JSON "
+            "response over standard output, and then will either exit or send "
+            "'__END__' depending on how you ended your input.",
+        action="store_true",
+    )
+    parser.add_argument("--utf8", "-u",
+        help="Enable UTF-8 mode (default is disabled)",
+        action="store_true",
+    )
+    parser.add_argument("--log",
+        help="The path to a log file to send debugging output to (when debug "
+            "mode is enabled) instead of standard output.",
+        type=text_type,
+    )
+    parser.add_argument("--nostrict",
+        help="Disable strict mode (where syntax errors are fatal)",
+        action="store_true",
+    )
+    parser.add_argument("--depth",
+        help="Override the default recursion depth limit when fetching a reply "
+            "(default 50)",
+        type=int,
+        default=50,
+    )
+    parser.add_argument("path",
+        help="A directory containing RiveScript files (*.rive) to load.",
+        type=text_type,
+        # required=True,
+    )
+    args = parser.parse_args()
 
     # Make the bot.
     bot = RiveScript(
-        debug=debug,
-        strict=strict,
-        depth=depth,
-        utf8=utf8,
-        log=log
+        debug=args.debug,
+        strict=not args.nostrict,
+        depth=args.depth,
+        utf8=args.utf8,
+        log=args.log
     )
-    bot.load_directory(root)
+    bot.load_directory(args.path)
     bot.sort_replies()
 
     # Interactive mode?
-    if with_json:
+    if args.json:
         # Read from standard input.
         buffer = ""
         stateful = False
         while True:
             line = ""
             try:
-                line = _input()
+                line = input()
             except EOFError:
                 break
 
@@ -233,18 +148,22 @@ JSON Mode:
         json_in(bot, buffer, stateful)
         quit()
 
-    print("""RiveScript Interpreter (Python) -- Interactive Mode"
----------------------------------------------------"
-rivescript version: %s
-        Reply Root: %s
-
-You are now chatting with the RiveScript bot. Type a message and press Return"
-to send it. When finished, type '/quit' to exit the program."
-Type '/help' for other options."
-""" % (str(bot.VERSION()), root))
+    print(
+        "      .   .       \n"
+        "     .:...::      RiveScript Interpreter (Python)\n"
+        "    .::   ::.     Library Version: v{version}\n"
+        " ..:;;. ' .;;:..  \n"
+        "    .  '''  .     Type '/quit' to quit.\n"
+        "     :;,:,;:      Type '/help' for more options.\n"
+        "     :     :      \n"
+        "\n"
+        "Using the RiveScript bot found in: {path}\n"
+        "Type a message to the bot and press Return to send it.\n"
+        .format(version=bot.VERSION(), path=args.path)
+    )
 
     while True:
-        msg = _input("You> ")
+        msg = input("You> ")
 
         # Commands
         if msg == '/help':
