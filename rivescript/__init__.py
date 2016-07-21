@@ -20,7 +20,7 @@ __status__     = 'Production'
 __docformat__  = 'plaintext'
 
 __all__      = ['rivescript']
-__version__  = '1.12.4'
+__version__  = '1.13.0'
 
 from .rivescript import RiveScript
 from .exceptions import (

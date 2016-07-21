@@ -15,6 +15,14 @@ rs_version = 2.0
 class Parser(object):
     """The RiveScript language parser.
 
+    This class will soon become a stand-alone, public (developer) facing class
+    for simply parsing RiveScript code, running syntax checks, and getting a
+    data structure back. Currently, though, the `master` parameter must be a
+    Python class instance that has methods ``_say(self, message)`` and
+    ``_warn(self, message, fname='', lineno=0)``. If you want to use this class
+    in the mean time, you can create a small Python class that has these methods
+    and pass it as the ``master`` parameter.
+
     Parameters:
         master (RiveScript): A reference to the parent RiveScript bot instance,
             mostly useful for its debug methods like ``warn()``.

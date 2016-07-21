@@ -1,13 +1,24 @@
 Revision history for the Python package RiveScript.
 
-1.13.0  TBD
+1.13.0  Jul 21 2016
   - Restructure the code to keep it on par with the JavaScript and Go versions:
     - `rivescript.parser` now contains all the parsing code:
       `parse()` and `check_syntax()` are moved here.
+    - Triggers are stored internally in only one place now, like in the
+      JavaScript and Go versions. This makes some internal mappings simpler as
+      they now point to common references and don't duplicate data in memory.
+    - **Note:** Most of the new `rivescript.*` modules are still
+      private-use-only, even though many internal functions lost their
+      underscore prefixes. You should still only use the API functions exposed
+      by `rivescript.rivescript` or what is exported by the top level package.
+      The `rivescript.parser` API will be more public-facing in the future to
+      help with third party integrations (currently it still relies on a Python
+      object with methods `_say` and `_warn`).
   - Refactor the RiveScript interactive mode (`rivescript.interactive`) to use
     argparse instead of getopt and add a pretty ASCII logo.
   - Add `shell.py` as a possibly easier-to-access (and certainly
     easier-to-discover) shortcut to running RiveScript's interactive mode.
+    It accepts all the same options and works the same as before.
 
 1.12.3  Jul 8 2016
   - Fix the Python object macro handler to use `six.text_type` on the return
