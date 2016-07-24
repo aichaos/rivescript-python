@@ -15,19 +15,25 @@ rs_version = 2.0
 class Parser(object):
     """The RiveScript language parser.
 
-    This class will soon become a stand-alone, public (developer) facing class
-    for simply parsing RiveScript code, running syntax checks, and getting a
-    data structure back. Currently, though, the `master` parameter must be a
-    Python class instance that has methods ``_say(self, message)`` and
-    ``_warn(self, message, fname='', lineno=0)``. If you want to use this class
-    in the mean time, you can create a small Python class that has these methods
-    and pass it as the ``master`` parameter.
+    This module can be used as a stand-alone parser for third party developers
+    to use, if you want to be able to simply parse (and syntax check!)
+    RiveScript source code and get an "abstract syntax tree" back from it.
+
+    To that end, this module removed all dependencies on the parent RiveScript
+    class. When the RiveScript module uses this module, it passes its own debug
+    and warning functions as the ``on_debug`` and ``on_warn`` parameters, but
+    these parameters are completely optional.
 
     Parameters:
-        master (RiveScript): A reference to the parent RiveScript bot instance,
-            mostly useful for its debug methods like ``warn()``.
         strict (bool): Strict syntax checking (true by default).
         utf8 (bool): Enable UTF-8 mode (false by default).
+        on_debug (func): An optional function to send debug messages to. If not
+            provided, you won't be able to get debug output from this module.
+            The debug function's prototype is: ``def f(message)``
+        on_warn (func): An optional function to send warning/error messages to.
+            If not provided, you won't be able to get any warnings from
+            this module. The warn function's prototype
+            is ``def f(message, filename='', lineno='')``
     """
 
     # Concatenation mode characters.
@@ -37,16 +43,20 @@ class Parser(object):
         newline="\n",
     )
 
-    def __init__(self, master, strict=True, utf8=False):
-        self.master = master
-        self.strict = strict
-        self.utf8   = utf8
+    def __init__(self, strict=True, utf8=False, on_debug=None, on_warn=None):
+        self.strict   = strict
+        self.utf8     = utf8
+        self.on_debug = on_debug
+        self.on_warn  = on_warn
 
     # Proxy functions
     def say(self, *args, **kwargs):
-        self.master._say(*args, **kwargs)
+        if self.on_debug is not None:
+            self.on_debug(*args, **kwargs)
+
     def warn(self, *args, **kwargs):
-        self.master._warn(*args, **kwargs)
+        if self.on_warn is not None:
+            self.on_warn(*args, **kwargs)
 
     def parse(self, filename, code):
         """Read and parse a RiveScript document.

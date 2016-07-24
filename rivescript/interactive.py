@@ -7,13 +7,6 @@
 
 from __future__ import print_function, unicode_literals
 
-"""interactive.py: RiveScript's built-in interactive mode.
-
-To run this, run: python rivescript
-              or: python __init__.py
-              or: python __main__.py
-The preferred method is the former."""
-
 import argparse
 import json
 import re
@@ -66,6 +59,94 @@ def json_in(bot, buffer, stateful):
 
 
 def interactive_mode():
+    """The built-in RiveScript Interactive Mode.
+
+    This feature of RiveScript allows you to test and debug a chatbot in your
+    terminal window. There are two ways to invoke this mode::
+
+        # By running the Python RiveScript module directly:
+        python rivescript eg/brain
+
+        # By running the shell.py in the source distribution:
+        python shell.py eg/brain
+
+    The only required command line parameter is a filesystem path to a directory
+    containing RiveScript source files (with the ``*.rive`` file extension).
+
+    Additionally, it accepts command line flags.
+
+    Parameters:
+        --utf8: Enable UTF-8 mode.
+        --json: Use JSON to communicate with the bot instead of plain text.
+            See the JSON Mode documentation below for advanced details.
+        --debug: Enable verbose debug logging.
+        --log (str): The path to a text file you want the debug logging to
+            be written to. This is to be used in conjunction with ``--debug``,
+            for the case where you don't want your terminal window to be flooded
+            with debug messages.
+        --depth (int): Override the recursion depth limit (default ``50``).
+        --nostrict: Disable strict syntax checking when parsing the RiveScript
+            files. By default a syntax error raises an exception and will
+            terminate the interactive mode.
+        --help: Show the documentation of command line flags.
+        path (str): The path to a directory containing ``.rive`` files.
+
+    **JSON Mode**
+
+    By invoking the interactive mode with the ``--json`` (or ``-j``) flag,
+    the interactive mode will communicate with you via JSON messages. This
+    can be used as a "bridge" to enable the use of RiveScript from another
+    programming language that doesn't have its own native RiveScript
+    implementation.
+
+    For example, a program could open a shell pipe to the RiveScript interactive
+    mode and send/receive JSON payloads to communicate with the bot.
+
+    In JSON mode, you send a message to the bot in the following format::
+
+        {
+            "username": "str username",
+            "message": "str message",
+            "vars": {
+                "topic": "random",
+                "name": "Alice"
+            }
+        }
+
+    The ``username`` and ``message`` keys are required, and ``vars`` is a
+    key/value object of all the variables about the user.
+
+    After sending the JSON payload over standard input, you can either close the
+    input file handle (send the EOF signal; or Ctrl-D in a terminal), or send
+    the string ``__END__`` on a line of text by itself. This will cause the bot
+    to parse your payload, get a reply for the message, and respond with a
+    similar JSON payload::
+
+        {
+            "status": "ok",
+            "reply": "str response",
+            "vars": {
+                "topic": "random",
+                "name": "Alice"
+            }
+        }
+
+    The ``vars`` structure in the response contains all of the key/value pairs
+    the bot knows about the username you passed in. This will also contain a
+    lot of internal data, such as the user's history and last matched trigger.
+
+    To keep a stateful session, you should parse the ``vars`` returned by
+    RiveScript and pass them in with your next request so that the bot can
+    remember them for the next reply.
+
+    If you closed the filehandle (Ctrl-D, EOF) after your input payload, the
+    interactive mode will exit after giving the response. If, on the other
+    hand, you sent the string ``__END__`` on a line by itself after your
+    payload, the RiveScript interactive mode will do the same after its response
+    is returned. This way, you can re-use the shell pipe to send and receive
+    many messages over a single session.
+    """
+
     parser = argparse.ArgumentParser(description="RiveScript interactive mode.")
     parser.add_argument("--debug", "-d",
         help="Enable debug logging within RiveScript.",
