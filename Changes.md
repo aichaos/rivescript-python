@@ -1,5 +1,26 @@
 Revision history for the Python package RiveScript.
 
+1.14.0  Jul 23 2016
+  - Make the session manager pluggable and replaceable. RiveScript still uses
+    an in-memory store for user variables, but this can be swapped out with a
+    replacement that puts user variables somewhere else, like Redis or MySQL.
+    The constructor accepts a `session_manager` parameter to use your own
+    session manager based on the `rivescript.sessions.SessionManager` class.
+  - Make the RiveScript Parser module (`rivescript.parser`) more developer
+    friendly by removing the parent RiveScript module as a dependency. The
+    parser can be used as a stand-alone module if all you want to do is parse
+    and validate RiveScript code.
+  - The `log` parameter to the constructor may now be an already opened file
+    handle (opened in write or append mode) instead of a string, if you already
+    have a file handle ready.
+  - Add two examples to the `eg` directory:
+    - `eg/sessions` replaces the in-memory session store with one that uses
+      a Redis cache instead.
+    - `eg/parser` shows how to use the RiveScript Parser module.
+  - Fix a bug where atomic triggers that contain a `{weight}` tag were unable
+    to be matched properly.
+  - Reorganize the unit tests into many smaller files instead of one large one.
+
 1.13.0  Jul 21 2016
   - Restructure the code to keep it on par with the JavaScript and Go versions:
     - `rivescript.parser` now contains all the parsing code:
