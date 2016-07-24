@@ -86,12 +86,15 @@ class Brain(object):
                 reply = e.error_message
 
         # Save their reply history.
-        oldInput = self.master._users[user]['__history__']['input'][:8]
-        self.master._users[user]['__history__']['input'] = [msg]
-        self.master._users[user]['__history__']['input'].extend(oldInput)
-        oldReply = self.master._users[user]['__history__']['reply'][:8]
-        self.master._users[user]['__history__']['reply'] = [reply]
-        self.master._users[user]['__history__']['reply'].extend(oldReply)
+        history = self.master.get_uservar(user, "__history__")
+        if type(history) is dict:
+            oldInput = history["input"][:8]
+            history["input"] = [msg]
+            history["input"].extend(oldInput)
+            oldReply = history["reply"][:8]
+            history["reply"] = [reply]
+            history["reply"].extend(oldReply)
+            self.master.set_uservar(user, "__history__", history)
 
         # Unset the current user.
         self._current_user = None
@@ -155,11 +158,12 @@ class Brain(object):
             raise RepliesNotSortedError("You must call sort_replies() once you are done loading RiveScript documents")
 
         # Initialize the user's profile?
-        if user not in self.master._users:
-            self.master._users[user] = {'topic': 'random'}
+        topic = self.master.get_uservar(user, "topic")
+        if topic in [None, "undefined"]:
+            topic = "random"
+            self.master.set_uservar(user, "topic", topic)
 
         # Collect data on the user.
-        topic     = self.master._users[user]['topic']
         stars     = []
         thatstars = []  # For %Previous's.
         reply     = ''
@@ -167,7 +171,8 @@ class Brain(object):
         # Avoid letting them fall into a missing topic.
         if topic not in self.master._topics:
             self.warn("User " + user + " was in an empty topic named '" + topic + "'")
-            topic = self.master._users[user]['topic'] = 'random'
+            topic = "random"
+            self.master.set_uservar(user, "topic", topic)
 
         # Avoid deep recursion.
         if step > self.master._depth:
@@ -178,19 +183,10 @@ class Brain(object):
             topic = '__begin__'
 
         # Initialize this user's history.
-        if '__history__' not in self.master._users[user]:
-            self.master._users[user]['__history__'] = {
-                'input': [
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined'
-                ],
-                'reply': [
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined', 'undefined', 'undefined', 'undefined',
-                    'undefined'
-                ]
-            }
+        history = self.master.get_uservar(user, "__history__")
+        if type(history) is not dict or "input" not in history or "reply" not in history:
+            history = self.default_history()
+            self.master.set_uservar(user, "__history__", history)
 
         # More topic sanity checking.
         if topic not in self.master._topics:
@@ -221,7 +217,7 @@ class Brain(object):
                     self.say("There is a %Previous in this topic!")
 
                     # Do we have history yet?
-                    lastReply = self.master._users[user]["__history__"]["reply"][0]
+                    lastReply = history["reply"][0]
 
                     # Format the bot's last reply the same way as the human's.
                     lastReply = self.format_message(lastReply, botreply=True)
@@ -301,7 +297,7 @@ class Brain(object):
 
         # Store what trigger they matched on. If their matched trigger is None,
         # this will be too, which is great.
-        self.master._users[user]["__lastmatch__"] = matchedTrigger
+        self.master.set_uservar(user, "__lastmatch__", matchedTrigger)
 
         if matched:
             for nil in [1]:
@@ -406,13 +402,13 @@ class Brain(object):
             reTopic = re.findall(RE.topic_tag, reply)
             for match in reTopic:
                 self.say("Setting user's topic to " + match)
-                self.master._users[user]["topic"] = match
+                self.master.set_uservar(user, "topic", match)
                 reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
             reSet = re.findall(RE.set_tag, reply)
             for match in reSet:
                 self.say("Set uservar " + str(match[0]) + "=" + str(match[1]))
-                self.master._users[user][match[0]] = match[1]
+                self.master.set_uservar(user, match[0], match[1])
                 reply = reply.replace('<set {key}={value}>'.format(key=match[0], value=match[1]), '')
         else:
             # Process more tags if not in BEGIN.
@@ -485,20 +481,22 @@ class Brain(object):
         uvars = re.findall(RE.get_tag, regexp)
         for var in uvars:
             rep = ''
-            if var in self.master._users[user]:
-                rep = utils.strip_nasties(self.master._users[user][var])
+            value = self.master.get_uservar(user, var)
+            if value not in [None, "undefined"]:
+                rep = utils.strip_nasties(value)
             regexp = regexp.replace('<get {var}>'.format(var=var), rep)
 
         # Filter in <input> and <reply> tags. This is a slow process, so only
         # do it if we have to!
         if '<input' in regexp or '<reply' in regexp:
+            history = self.master.get_uservar(user, "__history__")
             for type in ['input', 'reply']:
                 tags = re.findall(r'<' + type + r'([0-9])>', regexp)
                 for index in tags:
-                    rep = self.format_message(self.master._users[user]['__history__'][type][int(index) - 1])
+                    rep = self.format_message(history[type][int(index) - 1])
                     regexp = regexp.replace('<{type}{index}>'.format(type=type, index=index), rep)
                 regexp = regexp.replace('<{type}>'.format(type=type),
-                                        self.format_message(self.master._users[user]['__history__'][type][0]))
+                                        self.format_message(history[type][0]))
                 # TODO: the Perl version doesn't do just <input>/<reply> in trigs!
 
         return re.compile(r'^' + regexp + r'$')
@@ -590,16 +588,19 @@ class Brain(object):
                     reply = reply.replace('<botstar{match}>'.format(match=match), botstars[int(match)])
 
         # <input> and <reply>
-        reply = reply.replace('<input>', self.master._users[user]['__history__']['input'][0])
-        reply = reply.replace('<reply>', self.master._users[user]['__history__']['reply'][0])
+        history = self.master.get_uservar(user, "__history__")
+        if type(history) is not dict:
+            history = self.default_history()
+        reply = reply.replace('<input>', history['input'][0])
+        reply = reply.replace('<reply>', history['reply'][0])
         reInput = re.findall(RE.input_tags, reply)
         for match in reInput:
             reply = reply.replace('<input{match}>'.format(match=match),
-                                  self.master._users[user]['__history__']['input'][int(match) - 1])
+                                  history['input'][int(match) - 1])
         reReply = re.findall(RE.reply_tags, reply)
         for match in reReply:
             reply = reply.replace('<reply{match}>'.format(match=match),
-                                  self.master._users[user]['__history__']['reply'][int(match) - 1])
+                                  history['reply'][int(match) - 1])
 
         # <id> and escape codes.
         reply = reply.replace('<id>', user)
@@ -665,25 +666,26 @@ class Brain(object):
                 # <set> user vars.
                 parts = data.split("=")
                 self.say("Set uservar " + text_type(parts[0]) + "=" + text_type(parts[1]))
-                self.master._users[user][parts[0]] = parts[1]
+                self.master.set_uservar(user, parts[0], parts[1])
             elif tag in ["add", "sub", "mult", "div"]:
                 # Math operator tags.
                 parts = data.split("=")
                 var   = parts[0]
                 value = parts[1]
+                curv  = self.master.get_uservar(user, var)
 
                 # Sanity check the value.
                 try:
                     value = int(value)
-                    if var not in self.master._users[user]:
+                    if curv in [None, "undefined"]:
                         # Initialize it.
-                        self.master._users[user][var] = 0
+                        curv = 0
                 except:
                     insert = "[ERR: Math can't '{}' non-numeric value '{}']".format(tag, value)
 
                 # Attempt the operation.
                 try:
-                    orig = int(self.master._users[user][var])
+                    orig = int(curv)
                     new  = 0
                     if tag == "add":
                         new = orig + value
@@ -693,11 +695,11 @@ class Brain(object):
                         new = orig * value
                     elif tag == "div":
                         new = orig / value
-                    self.master._users[user][var] = new
+                    self.master.set_uservar(user, var, new)
                 except:
-                    insert = "[ERR: Math couldn't '{}' to value '{}']".format(tag, self.master._users[user][var])
+                    insert = "[ERR: Math couldn't '{}' to value '{}']".format(tag, curv)
             elif tag == "get":
-                insert = self.master._users[user].get(data, "undefined")
+                insert = self.master.get_uservar(user, data)
             else:
                 # Unrecognized tag.
                 insert = "\x00{}\x01".format(match)
@@ -715,7 +717,7 @@ class Brain(object):
         reTopic = re.findall(RE.topic_tag, reply)
         for match in reTopic:
             self.say("Setting user's topic to " + match)
-            self.master._users[user]["topic"] = match
+            self.master.set_uservar(user, "topic", match)
             reply = reply.replace('{{topic={match}}}'.format(match=match), '')
 
         # Inline redirecter.
@@ -811,3 +813,9 @@ class Brain(object):
 
         # Strip & return.
         return msg.strip()
+
+    def default_history(self):
+        return {
+            "input": ["undefined"] * 9,
+            "reply": ["undefined"] * 9,
+        }

@@ -11,7 +11,6 @@ import sys
 import os
 import re
 import pprint
-import copy
 import codecs
 
 from . import __version__
@@ -21,6 +20,7 @@ from . import inheritance as inherit_utils
 from . import utils
 from .brain import Brain
 from .parser import Parser
+from .sessions import MemorySessionStorage
 from .exceptions import (
     RS_ERR_MATCH, RS_ERR_REPLY, RS_ERR_DEEP_RECURSION
 )
@@ -34,29 +34,37 @@ _ = RS_ERR_DEEP_RECURSION
 class RiveScript(object):
     """A RiveScript interpreter for Python 2 and 3.
 
-    :param bool debug: Set to True to enable verbose logging.
-
-    :param bool strict: Enable strict mode.
-        Strict mode causes RiveScript syntax errors to be fatal.
-        This option is ``True`` by default.
-
-    :param str log: Specify a log file to write debug output to.
-        This can redirect debug lines to a file instead of ``STDOUT``.
-
-    :param int depth: Specify the recursion depth limit.
-        This is how many times RiveScript will recursively follow redirects
-        before giving up with a ``DeepRecursionError`` exception.
-        The default is ``50``.
-
-    :param bool utf8: Enable UTF-8 mode.
-        The default is ``False``.
+    Parameters:
+        debug (bool): Set to ``True`` to enable verbose logging to standard out.
+        strict (bool): Enable strict mode. Strict mode causes RiveScript syntax
+            errors to raise an exception at parse time. Strict mode is on
+            (``True``) by default.
+        log (str or fh): Specify a path to a file or a filehandle opened in
+            write mode to direct log output to. This can send debug logging to
+            a file rather than to ``STDOUT``.
+        depth (int): Set the recursion depth limit. This is how many times
+            RiveScript will recursively follow redirects before giving up with
+            a ``DeepRecursionError`` exception. The default is ``50``.
+        utf8 (bool): Enable UTF-8 mode. When this mode is enabled, triggers in
+            RiveScript code are permitted to contain foreign and special
+            symbols. Additionally, user messages are allowed to contain most
+            symbols instead of having all symbols stripped away. This is
+            considered an experimental feature because all of the edge cases of
+            supporting Unicode haven't been fully tested. This option
+            is ``False`` by default.
+        session_manager (SessionManager): By default RiveScript uses an
+            in-memory session manager to keep track of user variables and state
+            information. If you have your own session manager that you'd like
+            to use instead, pass its instantiated class instance as this
+            parameter.
     """
 
     ############################################################################
     # Initialization and Utility Methods                                       #
     ############################################################################
 
-    def __init__(self, debug=False, strict=True, depth=50, log="", utf8=False):
+    def __init__(self, debug=False, strict=True, depth=50, log=None,
+                 utf8=False, session_manager=None):
         """Initialize a new RiveScript interpreter."""
 
         ###
@@ -65,7 +73,12 @@ class RiveScript(object):
 
         # Debugging
         self._debug = debug   # Debug mode
-        self._log   = log     # Debug log file
+        self._log   = log     # Debug log file.
+
+        # If the log file was given as a string, turn it into a filehandle.
+        if log is not None:
+            if type(log) in [text_type, str]:
+                self._log = codecs.open(log, "a", "utf-8")
 
         # Unicode stuff
         self._utf8               = utf8  # UTF-8 mode
@@ -83,8 +96,6 @@ class RiveScript(object):
         self._sub      = {}      # 'sub' variables
         self._person   = {}      # 'person' variables
         self._array    = {}      # 'array' variables
-        self._users    = {}      # 'user' variables
-        self._freeze   = {}      # frozen 'user' variables
         self._includes = {}      # included topics
         self._lineage  = {}      # inherited topics
         self._handlers = {}      # Object handlers
@@ -99,11 +110,17 @@ class RiveScript(object):
             "person":  {},
         }
 
+        # Initialize the session manager.
+        if session_manager is None:
+            session_manager = MemorySessionStorage(master=self)
+        self._session  = session_manager
+
         # Internal helpers.
         self._parser = Parser(
-            master=self,
             strict=self._strict,
             utf8=self._utf8,
+            on_debug=lambda message: self._say(message),
+            on_warn=lambda message, filename, lineno: self._warn(message, filename, lineno),
         )
         self._brain = Brain(
             master=self,
@@ -125,13 +142,11 @@ class RiveScript(object):
         return __version__
 
     def _say(self, message):
-        if self._debug:
+        if self._debug and not self._log:
             print("[RS] {}".format(message))
         if self._log:
             # Log it to the file.
-            fh = open(self._log, 'a')
-            fh.write("[RS] " + message + "\n")
-            fh.close()
+            self._log.write("[RS] " + message + "\n")
 
     def _warn(self, message, fname='', lineno=0):
         header = "[RS]"
@@ -739,11 +754,7 @@ class RiveScript(object):
         :param str name: The name of the variable to set.
         :param str value: The value to set there.
         """
-
-        if user not in self._users:
-            self._users[user] = {"topic": "random"}
-
-        self._users[user][name] = value
+        self._session.set(user, {name: value})
 
     def set_uservars(self, user, data=None):
         """Set many variables for a user, or set many variables for many users.
@@ -795,19 +806,11 @@ class RiveScript(object):
                         " is not a dict.".format(uid)
                     )
 
-                if not uid in self._users:
-                    self._users[uid] = dict(topic="random")
-
-                for key, value in uservars.items():
-                    self._users[uid][key] = value
+                self._session.set(uid, uservars)
 
         elif type(user) in [text_type, str] and type(data) is dict:
             # Setting variables for a single user.
-            if not user in self._users:
-                self._users[user] = dict(topic="random")
-
-            for key, value in data.items():
-                self._users[user][key] = value
+            self._session.set(user, data)
 
         else:
             raise TypeError(
@@ -833,14 +836,7 @@ class RiveScript(object):
               string ``"undefined"``.
             * Otherwise this returns the string value of the variable.
         """
-
-        if user in self._users:
-            if name in self._users[user]:
-                return self._users[user][name]
-            else:
-                return "undefined"
-        else:
-            return None
+        return self._session.get(user, name)
 
     def get_uservars(self, user=None):
         """Get all variables about a user (or all users).
@@ -859,13 +855,10 @@ class RiveScript(object):
 
         if user is None:
             # All the users!
-            return self._users
-        elif user in self._users:
-            # Just this one!
-            return self._users[user]
+            return self._session.get_all()
         else:
-            # No info.
-            return None
+            # Just this one!
+            return self._session.get_any(user)
 
     def clear_uservars(self, user=None):
         """Delete all variables about a user (or all users).
@@ -876,10 +869,10 @@ class RiveScript(object):
 
         if user is None:
             # All the users!
-            self._users = {}
-        elif user in self._users:
+            self._session.reset_all()
+        else:
             # Just this one.
-            self._users[user] = {}
+            self._session.reset(user)
 
     def freeze_uservars(self, user):
         """Freeze the variable state for a user.
@@ -889,12 +882,7 @@ class RiveScript(object):
 
         :param str user: The user ID to freeze variables for.
         """
-
-        if user in self._users:
-            # Clone the user's data.
-            self._freeze[user] = copy.deepcopy(self._users[user])
-        else:
-            self._warn("Can't freeze vars for user " + user + ": not found!")
+        self._session.freeze(user)
 
     def thaw_uservars(self, user, action="thaw"):
         """Thaw a user's frozen variables.
@@ -907,25 +895,7 @@ class RiveScript(object):
             * ``thaw``: Restore the variables, then delete the frozen copy
               (this is the default).
         """
-
-        if user in self._freeze:
-            # What are we doing?
-            if action == "thaw":
-                # Thawing them out.
-                self.clear_uservars(user)
-                self._users[user] = copy.deepcopy(self._freeze[user])
-                del self._freeze[user]
-            elif action == "discard":
-                # Just discard the frozen copy.
-                del self._freeze[user]
-            elif action == "keep":
-                # Keep the frozen copy afterward.
-                self.clear_uservars(user)
-                self._users[user] = copy.deepcopy(self._freeze[user])
-            else:
-                self._warn("Unsupported thaw action")
-        else:
-            self._warn("Can't thaw vars for user " + user + ": not found!")
+        self._session.thaw(user, action)
 
     def last_match(self, user):
         """Get the last trigger matched for the user.

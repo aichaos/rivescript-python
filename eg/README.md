@@ -19,6 +19,10 @@ RiveScript-Python.
 
 ## Code Snippets
 
+* [sessions](sessions/) - Demonstrates replacing the default in-memory session
+  storage with ones that support persistent back-end storage systems.
+* [parser](parser/) - Use the `rivescript.parser` module to parse RiveScript
+  code yourself.
 * [js-objects](js-objects/) - Demonstrates adding JavaScript object macro
   support to RiveScript-Python. This example assumes a Python RiveScript bot is
   serving its responses via a web front-end, so that the JS macros are being
