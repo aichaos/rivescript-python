@@ -112,7 +112,7 @@ class RiveScript(object):
 
         # Initialize the session manager.
         if session_manager is None:
-            session_manager = MemorySessionStorage(master=self)
+            session_manager = MemorySessionStorage(warn=self._warn)
         self._session  = session_manager
 
         # Internal helpers.
