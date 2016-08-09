@@ -1,5 +1,8 @@
 Revision history for the Python package RiveScript.
 
+1.14.1  Aug 9 2016
+  - Fix a regression when handling Unicode strings under Python 2 (bug #40).
+
 1.14.0  Jul 23 2016
   - Make the session manager pluggable and replaceable. RiveScript still uses
     an in-memory store for user variables, but this can be swapped out with a
