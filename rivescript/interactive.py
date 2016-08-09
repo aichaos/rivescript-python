@@ -11,7 +11,7 @@ import argparse
 import json
 import re
 from six.moves import input
-from six import text_type
+from six import text_type, PY2
 
 from rivescript import RiveScript
 
@@ -245,6 +245,9 @@ def interactive_mode():
 
     while True:
         msg = input("You> ")
+        if PY2:
+            # For Python 2 only: cast the message to Unicode.
+            msg = msg.decode("utf-8")
 
         # Commands
         if msg == '/help':

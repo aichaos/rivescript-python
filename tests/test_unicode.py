@@ -20,6 +20,12 @@ class UnicodeTest(RiveScriptTestCase):
             + ブラッキー
             - エーフィ
 
+            + my favorite game is *
+            - <set game=<formal>>When did you first start playing <get game>?
+
+            + what is my favorite game
+            - Wasn't it <get game>?
+
             // Make sure %Previous continues working in UTF-8 mode.
             + knock knock
             - Who's there?
@@ -51,6 +57,8 @@ class UnicodeTest(RiveScriptTestCase):
 
         self.reply("äh", "What's the matter?")
         self.reply("ブラッキー", "エーフィ")
+        self.reply("My favorite game is Pokémon", "When did you first start playing Pokémon?")
+        self.reply("What is my favorite game?", "Wasn't it Pokémon?")
         self.reply("knock knock", "Who's there?")
         self.reply("Orange", "Orange who?")
         self.reply("banana", "Haha! Banana!")
