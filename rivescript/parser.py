@@ -5,6 +5,7 @@
 #
 # https://www.rivescript.com/
 
+from __future__ import unicode_literals
 from .regexp import RE
 
 import re
