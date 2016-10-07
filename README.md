@@ -1,6 +1,6 @@
 # RiveScript-Python
 
-[![Build Status][1]][2] [![Read the docs][3]][4]
+[![Build Status][1]][2] [![Read the docs][3]][4] [![PyPI][5]][6]
 
 ## Introduction
 
@@ -174,3 +174,5 @@ The official RiveScript website, http://www.rivescript.com/
 [2]: https://travis-ci.org/aichaos/rivescript-python
 [3]: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
 [4]: http://rivescript.rtfd.io/
+[5]: https://img.shields.io/pypi/v/rivescript.svg
+[6]: https://pypi.python.org/pypi/rivescript/
