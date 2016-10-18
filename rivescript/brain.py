@@ -705,7 +705,7 @@ class Brain(object):
                 # Unrecognized tag.
                 insert = "\x00{}\x01".format(match)
 
-            reply = reply.replace("<{}>".format(match), insert)
+            reply = reply.replace("<{}>".format(match), text_type(insert))
 
         # Restore unrecognized tags.
         reply = reply.replace("\x00", "<").replace("\x01", ">")

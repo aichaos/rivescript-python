@@ -1,5 +1,8 @@
 Revision history for the Python package RiveScript.
 
+1.14.2  Oct 18 2016
+  - Fix numeric tags like `<add>` raising a `TypeError` exception.
+
 1.14.1  Aug 9 2016
   - Fix a regression when handling Unicode strings under Python 2 (bug #40).
 
