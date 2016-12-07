@@ -75,3 +75,18 @@ class SessionTests(RiveScriptTestCase):
         self.reply("Who am I?", "Aren't you Bob?")
         self.rs.thaw_uservars(self.username, "discard")
         self.reply("Who am I?", "Aren't you Bob?")
+        
+    def test_lastmatch(self):
+        """Test the bug __lastmatch__ return u"undefined" is solved"""
+        self.new("""
+                    ! version = 2.0
+                    + helo
+                    - hello
+                """)
+        self.uservar('__lastmatch__', None) # Before any user input and reply, no match.
+        self.reply("helo", "hello") # For matched case
+        self.uservar('__lastmatch__','helo')
+        self.reply("helo you","[ERR: No reply matched]") # For not-matched case
+        self.uservar('__lastmatch__', None)
+        self.reply("helo again","[ERR: No reply matched]") # For not-matched case again
+        self.uservar('__lastmatch__', None)
