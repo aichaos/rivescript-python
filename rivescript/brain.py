@@ -226,7 +226,7 @@ class Brain(object):
 
                     # See if it's a match.
                     for trig in self.master._sorted["thats"][top]:
-                        pattern = trig[0]
+                        pattern = trig[1]["previous"]
                         botside = self.reply_regexp(user, pattern)
                         self.say("Try to match lastReply (" + lastReply + ") to " + pattern)
 

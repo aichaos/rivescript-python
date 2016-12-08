@@ -83,7 +83,7 @@ def get_topic_triggers(rs, topic, thats, depth=0, inheritance=0, inherited=False
         if topic in rs._thats.keys():
             for curtrig in rs._thats[topic].keys():
                 for previous, pointer in rs._thats[topic][curtrig].items():
-                    inThisTopic.append([ previous, pointer ])
+                    inThisTopic.append([ pointer["trigger"], pointer ])
 
     # Does this topic include others?
     if topic in rs._includes:
