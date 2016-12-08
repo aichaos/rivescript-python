@@ -15,7 +15,6 @@ from .exceptions import (
 from . import python
 from . import inheritance as inherit_utils
 from . import utils
-import random
 import re
 from six import text_type
 import sys
@@ -385,7 +384,7 @@ class Brain(object):
                         bucket.append(text)
 
                 # Get a random reply.
-                reply = random.choice(bucket)
+                reply = utils.random_choice(bucket)
                 break
 
         # Still no reply?
@@ -614,9 +613,9 @@ class Brain(object):
         for match in reRandom:
             output = ''
             if '|' in match:
-                output = random.choice(match.split('|'))
+                output = utils.random_choice(match.split('|'))
             else:
-                output = random.choice(match.split(' '))
+                output = utils.random_choice(match.split(' '))
             reply = reply.replace('{{random}}{match}{{/random}}'.format(match=match), output)
 
         # Person Substitutions and String Formatting.

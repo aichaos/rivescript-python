@@ -7,6 +7,7 @@
 
 from __future__ import unicode_literals
 from .regexp import RE
+import random
 import re
 import string
 
@@ -76,3 +77,19 @@ def string_format(msg, method):
         return msg.capitalize()
     elif method == "formal":
         return string.capwords(msg)
+
+def random_choice(bucket):
+    """Safely get a random choice from a list.
+
+    If the list is zero-length, this just returns an empty string rather than
+    raise an exception.
+
+    Parameters:
+        bucket (list): A list to randomly choose from.
+
+    Returns:
+        str: The random choice. Blank string if the list was empty.
+    """
+    if len(bucket) == 0:
+        return ""
+    return random.choice(bucket)
