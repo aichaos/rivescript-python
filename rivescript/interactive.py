@@ -26,9 +26,10 @@ def json_in(bot, buffer, stateful):
     # Decode the incoming JSON.
     try:
         incoming = json.loads(buffer)
-    except:
+    except Exception as e:
         resp['status'] = 'error'
         resp['reply'] = 'Failed to decode incoming JSON data.'
+        resp['error'] = text_type(e)
         print(json.dumps(resp))
         if stateful:
             print("__END__")

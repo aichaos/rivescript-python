@@ -15,7 +15,6 @@ from .exceptions import (
 from . import python
 from . import inheritance as inherit_utils
 from . import utils
-import random
 import re
 from six import text_type
 import sys
@@ -226,7 +225,7 @@ class Brain(object):
 
                     # See if it's a match.
                     for trig in self.master._sorted["thats"][top]:
-                        pattern = trig[0]
+                        pattern = trig[1]["previous"]
                         botside = self.reply_regexp(user, pattern)
                         self.say("Try to match lastReply (" + lastReply + ") to " + pattern)
 
@@ -385,7 +384,7 @@ class Brain(object):
                         bucket.append(text)
 
                 # Get a random reply.
-                reply = random.choice(bucket)
+                reply = utils.random_choice(bucket)
                 break
 
         # Still no reply?
@@ -576,17 +575,17 @@ class Brain(object):
         # Weight and <star> tags.
         reply = re.sub(RE.weight, '', reply)  # Leftover {weight}s
         if len(stars) > 0:
-            reply = reply.replace('<star>', stars[1])
+            reply = reply.replace('<star>', text_type(stars[1]))
             reStars = re.findall(RE.star_tags, reply)
             for match in reStars:
                 if int(match) < len(stars):
-                    reply = reply.replace('<star{match}>'.format(match=match), stars[int(match)])
+                    reply = reply.replace('<star{match}>'.format(match=match), text_type(stars[int(match)]))
         if len(botstars) > 0:
             reply = reply.replace('<botstar>', botstars[1])
             reStars = re.findall(RE.botstars, reply)
             for match in reStars:
                 if int(match) < len(botstars):
-                    reply = reply.replace('<botstar{match}>'.format(match=match), botstars[int(match)])
+                    reply = reply.replace('<botstar{match}>'.format(match=match), text_type(botstars[int(match)]))
 
         # <input> and <reply>
         history = self.master.get_uservar(user, "__history__")
@@ -614,9 +613,9 @@ class Brain(object):
         for match in reRandom:
             output = ''
             if '|' in match:
-                output = random.choice(match.split('|'))
+                output = utils.random_choice(match.split('|'))
             else:
-                output = random.choice(match.split(' '))
+                output = utils.random_choice(match.split(' '))
             reply = reply.replace('{{random}}{match}{{/random}}'.format(match=match), output)
 
         # Person Substitutions and String Formatting.

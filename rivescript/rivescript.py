@@ -595,13 +595,13 @@ class RiveScript(object):
             alltrig = inherit_utils.get_topic_triggers(self, topic, False)
 
             # Sort them.
-            self._sorted["topics"][topic] = sorting.sort_trigger_set(alltrig, True)
+            self._sorted["topics"][topic] = sorting.sort_trigger_set(alltrig, True, self._say)
 
             # Get all of the %Previous triggers for this topic.
             that_triggers = inherit_utils.get_topic_triggers(self, topic, True)
 
             # And sort them, too.
-            self._sorted["thats"][topic] = sorting.sort_trigger_set(that_triggers, False)
+            self._sorted["thats"][topic] = sorting.sort_trigger_set(that_triggers, False, self._say)
 
         # And sort the substitution lists.
         if not "lists" in self._sorted:
