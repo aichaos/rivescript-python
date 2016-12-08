@@ -576,17 +576,17 @@ class Brain(object):
         # Weight and <star> tags.
         reply = re.sub(RE.weight, '', reply)  # Leftover {weight}s
         if len(stars) > 0:
-            reply = reply.replace('<star>', stars[1])
+            reply = reply.replace('<star>', text_type(stars[1]))
             reStars = re.findall(RE.star_tags, reply)
             for match in reStars:
                 if int(match) < len(stars):
-                    reply = reply.replace('<star{match}>'.format(match=match), stars[int(match)])
+                    reply = reply.replace('<star{match}>'.format(match=match), text_type(stars[int(match)]))
         if len(botstars) > 0:
             reply = reply.replace('<botstar>', botstars[1])
             reStars = re.findall(RE.botstars, reply)
             for match in reStars:
                 if int(match) < len(botstars):
-                    reply = reply.replace('<botstar{match}>'.format(match=match), botstars[int(match)])
+                    reply = reply.replace('<botstar{match}>'.format(match=match), text_type(botstars[int(match)]))
 
         # <input> and <reply>
         history = self.master.get_uservar(user, "__history__")
