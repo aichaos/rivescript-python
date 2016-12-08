@@ -1,5 +1,21 @@
 Revision history for the Python package RiveScript.
 
+1.14.3  Dec  8 2016
+  - Fix sorting algorithm for triggers with `%Previous`, making their sort order
+    deterministic and correct regardless of the order they appeared in the
+    source file (PR #60; bug #59)
+  - Fix a possible crash when interpolating a `<star>` tag when the trigger
+    had captured no stars. In this cases the `<star>` tag will become the string
+    `"None"`; it is a user error that this situation arises anyway and this fix
+    just prevents Python from crashing (bugs #51 and #54)
+  - Fix a possible crash when calling `random.choice` on an empty list by
+    wrapping it in a safety function at `rivescript.utils.random_choice`
+    (bug #36)
+  - Better error reporting on the JSON Interactive Mode: if there is an
+    exception raised when decoding the input JSON, the output JSON now contains
+    an `error` key with the text of the exception to help diagnose what went
+    wrong.
+
 1.14.2  Oct 18 2016
   - Fix numeric tags like `<add>` raising a `TypeError` exception.
 
