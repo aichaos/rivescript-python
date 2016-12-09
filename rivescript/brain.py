@@ -136,7 +136,8 @@ class Brain(object):
         else:
             # For everything else, strip all non-alphanumerics.
             msg = utils.strip_nasties(msg)
-
+            msg = msg.strip() # Strip leading and trailing white space
+            msg = RE.ws.sub(" ",msg) # Replace the multiple whitespaces by single whitespace
         return msg
 
     def _getreply(self, user, msg, context='normal', step=0, ignore_object_errors=True):
