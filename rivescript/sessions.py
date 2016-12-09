@@ -194,10 +194,10 @@ class MemorySessionStorage(SessionManager):
             else:
                 self._users[username][key] = value
 
-    def get(self, username, key):
+    def get(self, username, key, default="undefined"):
         if not username in self._users:
             return None
-        return self._users[username].get(key, "undefined")
+        return self._users[username].get(key, default)
 
     def get_any(self, username):
         if not username in self._users:
