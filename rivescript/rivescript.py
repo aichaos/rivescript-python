@@ -109,7 +109,7 @@ class RiveScript(object):
             "sub":    {},
             "person":  {},
         }
-
+        
         # Initialize the session manager.
         if session_manager is None:
             session_manager = MemorySessionStorage(warn=self._warn)
@@ -836,7 +836,10 @@ class RiveScript(object):
               string ``"undefined"``.
             * Otherwise this returns the string value of the variable.
         """
-        return self._session.get(user, name)
+        if name == '__lastmatch__':  # Treat var `__lastmatch__` since it can't receive "undefined" value
+            return self.last_match(user)
+        else:
+            return self._session.get(user, name)
 
     def get_uservars(self, user=None):
         """Get all variables about a user (or all users).
@@ -905,7 +908,7 @@ class RiveScript(object):
             the user most recently matched. If there was no match to their
             last message, this returns ``None`` instead.
         """
-        return self.get_uservar(user, "__lastmatch__")
+        return self._session.get(user, "__lastmatch__", None) # Get directly to `get` function
 
     def trigger_info(self, trigger=None, dump=False):
         """Get information about a trigger.
