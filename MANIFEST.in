@@ -5,6 +5,7 @@ include Changes.md
 include README.md
 include LICENSE
 recursive-include brain *.rive
-recursive-include eg *.py *.rive
+recursive-include eg *.*
+recursive-include tests *.py
 include example.py
 include example3.py
