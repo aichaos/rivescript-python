@@ -617,7 +617,7 @@ class Brain(object):
                 output = utils.random_choice(match.split('|'))
             else:
                 output = utils.random_choice(match.split(' '))
-            reply = reply.replace('{{random}}{match}{{/random}}'.format(match=match), output)
+            reply = reply.replace('{{random}}{match}{{/random}}'.format(match=match), output, 1) # Replace 1st match
 
         # Person Substitutions and String Formatting.
         for item in ['person', 'formal', 'sentence', 'uppercase',  'lowercase']:
