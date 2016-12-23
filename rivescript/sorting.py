@@ -34,7 +34,7 @@ class TriggerObj(object):
             option: Number of optional tags ("[man]" in "hey [man]")
         """
 
-    def __init__(self, pattern, index, weight, inherit = sys.maxint):
+    def __init__(self, pattern, index, weight, inherit = sys.maxsize):
         self.alphabet = pattern  # Sort according to alphabet order i.e. haha < hihi
         self.index = index  # For rearrange items in the sorted array
         self.weight = - weight  # Negative weight to place i.e. -100 < 0
