@@ -9,6 +9,43 @@ from __future__ import unicode_literals
 from .regexp import RE
 from . import utils
 import re
+from operator import itemgetter, attrgetter
+import sys
+
+
+class TriggerObj(object):
+    """An object represent trigger for ease of sorting.
+
+    In RiveScript sorting rule, some of sorting criteria are ascending for example alphabetical or inherit whereas other
+    criteria are descending order for example word counts. In Python multiple level sort, the sort direction set by
+    parameter `reverse` is applied to all criteria. So in our implementation, some parameters are set to negative to
+    keep search direction consistent among all criteria.
+
+        Parameters:
+            pattern: Trigger pattern in string format i.e. "* hey [man]"
+            index: Unique positional index of the object in the original list
+            weight: Pattern weight ``{weight}``
+            inherit: Pattern inherit level, extracted from i.e. "{inherit=1}hi"
+            wordcount: Length of pattern by wordcount
+            len: Length of pattern by character count
+            star: Number of wildcards (``*``), excluding alphabetical wildcards, and numeric wildcards
+            pound: Number of numeric wildcards (``#``)
+            under: Number of alphabetical wildcards (``_``)
+            option: Number of optional tags ("[man]" in "hey [man]")
+        """
+
+    def __init__(self, pattern, index, weight, inherit = sys.maxsize):
+        self.alphabet = pattern  # Sort according to alphabet order i.e. haha < hihi
+        self.index = index  # For rearrange items in the sorted array
+        self.weight = - weight  # Negative weight to place i.e. -100 < 0
+        self.inherit = inherit  # Low inherit takes precedence i.e. 0 < 1
+        self.wordcount = - utils.word_count(pattern)  # Length -2 < -1
+        self.len = -len(self.alphabet)  # Length -10 < -5
+        self.star =  self.alphabet.count('*')  # Number of wildcards 0 < 1
+        self.pound = self.alphabet.count('#')  # Number of numeric wildcards 0 < 1
+        self.under = self.alphabet.count('_') # Number of alphabetical wildcards 0 < 1
+        self.option = self.alphabet.count('[')  # Assume that the template is properly formatted 0 < 1
+
 
 def sort_trigger_set(triggers, exclude_previous=True, say=None):
     """Sort a group of triggers in optimal sorting order.
@@ -46,124 +83,36 @@ def sort_trigger_set(triggers, exclude_previous=True, say=None):
     # ["trigger text", pointer to trigger data]
     # So this code will use e.g. `trig[0]` when referring to the trigger text.
 
-    # Create a priority map.
-    prior = {
-        0: []  # Default priority=0
-    }
+    # Create a list of trigger objects map.
+    trigger_object_list = []
+    for index, trig in enumerate(triggers):
 
-    for trig in triggers:
         if exclude_previous and trig[1]["previous"]:
             continue
 
+        pattern = trig[0]  # Extract only the text of the trigger, with possible tag of inherit
+
+        # See if it has a weight tag
         match, weight = re.search(RE.weight, trig[0]), 0
+        if match:  # Value of math is not None if there is a match.
+            weight = int(match.group(1))  # Get the weight from the tag ``{weight}``
+
+        # See if it has an inherits tag.
+        match = re.search(RE.inherit, pattern)
         if match:
-            weight = int(match.group(1))
-        if weight not in prior:
-            prior[weight] = []
+            inherit = int(match.group(1))  # Get inherit value from the tag ``{inherit}``
+            say("\t\t\tTrigger belongs to a topic which inherits other topics: level=" + str(inherit))
+            triggers[index][0] = pattern = re.sub(RE.inherit, "", pattern)  # Remove the inherit tag if any
+        else:
+            inherit = sys.maxsize  # If not found any inherit, set it to the maximum value, to place it last in the sort
 
-        prior[weight].append(trig)
+        trigger_object_list.append(TriggerObj(pattern, index, weight, inherit))
 
-    # Keep a running list of sorted triggers for this topic.
-    running = []
-
-    # Sort them by priority.
-    for p in sorted(prior.keys(), reverse=True):
-        say("\tSorting triggers with priority " + str(p))
-
-        # So, some of these triggers may include {inherits} tags, if they
-        # came form a topic which inherits another topic. Lower inherits
-        # values mean higher priority on the stack.
-        inherits = -1          # -1 means no {inherits} tag
-        highest_inherits = -1  # highest inheritance number seen
-
-        # Loop through and categorize these triggers.
-        track = {
-            inherits: init_sort_track()
-        }
-
-        for trig in prior[p]:
-            pattern = trig[0]
-            say("\t\tLooking at trigger: " + pattern)
-
-            # See if it has an inherits tag.
-            match = re.search(RE.inherit, pattern)
-            if match:
-                inherits = int(match.group(1))
-                if inherits > highest_inherits:
-                    highest_inherits = inherits
-                say("\t\t\tTrigger belongs to a topic which inherits other topics: level=" + str(inherits))
-                pattern = re.sub(RE.inherit, "", pattern)
-                trig[0] = pattern
-            else:
-                inherits = -1
-
-            # If this is the first time we've seen this inheritance level,
-            # initialize its track structure.
-            if inherits not in track:
-                track[inherits] = init_sort_track()
-
-            # Start inspecting the trigger's contents.
-            if '_' in pattern:
-                # Alphabetic wildcard included.
-                cnt = utils.word_count(pattern)
-                say("\t\t\tHas a _ wildcard with " + str(cnt) + " words.")
-                if cnt > 1:
-                    if cnt not in track[inherits]['alpha']:
-                        track[inherits]['alpha'][cnt] = []
-                    track[inherits]['alpha'][cnt].append(trig)
-                else:
-                    track[inherits]['under'].append(trig)
-            elif '#' in pattern:
-                # Numeric wildcard included.
-                cnt = utils.word_count(pattern)
-                say("\t\t\tHas a # wildcard with " + str(cnt) + " words.")
-                if cnt > 1:
-                    if cnt not in track[inherits]['number']:
-                        track[inherits]['number'][cnt] = []
-                    track[inherits]['number'][cnt].append(trig)
-                else:
-                    track[inherits]['pound'].append(trig)
-            elif '*' in pattern:
-                # Wildcard included.
-                cnt = utils.word_count(pattern)
-                say("\t\t\tHas a * wildcard with " + str(cnt) + " words.")
-                if cnt > 1:
-                    if cnt not in track[inherits]['wild']:
-                        track[inherits]['wild'][cnt] = []
-                    track[inherits]['wild'][cnt].append(trig)
-                else:
-                    track[inherits]['star'].append(trig)
-            elif '[' in pattern:
-                # Optionals included.
-                cnt = utils.word_count(pattern)
-                say("\t\t\tHas optionals and " + str(cnt) + " words.")
-                if cnt not in track[inherits]['option']:
-                    track[inherits]['option'][cnt] = []
-                track[inherits]['option'][cnt].append(trig)
-            else:
-                # Totally atomic.
-                cnt = utils.word_count(pattern)
-                say("\t\t\tTotally atomic and " + str(cnt) + " words.")
-                if cnt not in track[inherits]['atomic']:
-                    track[inherits]['atomic'][cnt] = []
-                track[inherits]['atomic'][cnt].append(trig)
-
-        # Move the no-{inherits} triggers to the bottom of the stack.
-        track[highest_inherits + 1] = track[-1]
-        del(track[-1])
-
-        # Add this group to the sort list.
-        for ip in sorted(track.keys()):
-            say("ip=" + str(ip))
-            for kind in ['atomic', 'option', 'alpha', 'number', 'wild']:
-                for wordcnt in sorted(track[ip][kind], reverse=True):
-                    # Triggers with a matching word count should be sorted
-                    # by length, descending.
-                    running.extend(sorted(track[ip][kind][wordcnt], key=len, reverse=True))
-            running.extend(sorted(track[ip]['under'], key=len, reverse=True))
-            running.extend(sorted(track[ip]['pound'], key=len, reverse=True))
-            running.extend(sorted(track[ip]['star'], key=len, reverse=True))
-    return running
+    # Priority order of sorting criteria: weight, inherit, star, pound, under, option, wordcount, len, alphabet
+    sorted_list = sorted(trigger_object_list,
+                         key=attrgetter('weight', 'inherit', 'star', 'pound',
+                                        'under', 'option', 'wordcount', 'len', 'alphabet'))
+    return [triggers[item.index] for item in sorted_list]
 
 def sort_list(items):
     """Sort a simple list by number of words and length."""
