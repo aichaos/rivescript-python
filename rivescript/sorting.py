@@ -104,7 +104,7 @@ def sort_trigger_set(triggers, exclude_previous=True, say=None):
             say("\t\t\tTrigger belongs to a topic which inherits other topics: level=" + str(inherit))
             triggers[index][0] = pattern = re.sub(RE.inherit, "", pattern)  # Remove the inherit tag if any
         else:
-            inherit = sys.maxint  # If not found any inherit, set it to the maximum value, to place it last in the sort
+            inherit = sys.maxsize  # If not found any inherit, set it to the maximum value, to place it last in the sort
 
         trigger_object_list.append(TriggerObj(pattern, index, weight, inherit))
 
