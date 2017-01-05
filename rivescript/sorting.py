@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from .regexp import RE
 from . import utils
 import re
-from operator import itemgetter, attrgetter
+from operator import attrgetter
 import sys
 
 
@@ -31,7 +31,7 @@ class TriggerObj(object):
             star: Number of wildcards (``*``), excluding alphabetical wildcards, and numeric wildcards
             pound: Number of numeric wildcards (``#``)
             under: Number of alphabetical wildcards (``_``)
-            option: Number of optional tags ("[man]" in "hey [man]")
+            option: Number of optional tags ("[man]" in "hey [man]"), assume that the template is properly formatted
         """
 
     def __init__(self, pattern, index, weight, inherit = sys.maxsize):
@@ -39,12 +39,22 @@ class TriggerObj(object):
         self.index = index  # For rearrange items in the sorted array
         self.weight = - weight  # Negative weight to place i.e. -100 < 0
         self.inherit = inherit  # Low inherit takes precedence i.e. 0 < 1
-        self.wordcount = - utils.word_count(pattern)  # Length -2 < -1
-        self.len = -len(self.alphabet)  # Length -10 < -5
-        self.star =  self.alphabet.count('*')  # Number of wildcards 0 < 1
-        self.pound = self.alphabet.count('#')  # Number of numeric wildcards 0 < 1
-        self.under = self.alphabet.count('_') # Number of alphabetical wildcards 0 < 1
-        self.option = self.alphabet.count('[')  # Assume that the template is properly formatted 0 < 1
+        self.wordcount = - utils.word_count(pattern)  # Length -2 < -1. Use `utils` for counting choice of wildcards
+        self.len    = -len(self.alphabet)  # Length -10 < -5
+        self.star   = self.alphabet.count('*')  # Number of wildcards 0 < 1
+        self.pound  = self.alphabet.count('#')  # Number of numeric wildcards 0 < 1
+        self.under  = self.alphabet.count('_')  # Number of alphabetical wildcards 0 < 1
+        self.option = self.alphabet.count('[') + self.alphabet.count('(')  # Number of option 0 < 1
+
+        if self.star > 0:
+            if self.pound == 0 & self.under == 0 & self.option == 0:  # Place single star last in the rank
+                self.pound = sys.maxsize
+                self.under = sys.maxsize
+                self.option = sys.maxsize
+                if self.wordcount == 0:  # The special case for single star "*", or a grey case "* *"
+                    self.wordcount = sys.maxsize  # Make sure template "hello *" > "*"
+                    # Without any words number of stars does not matter, they all mean match any.
+                    self.star = sys.maxsize  # Make sure "*" is last in the list, "* love *" > "*"
 
 
 def sort_trigger_set(triggers, exclude_previous=True, say=None):
