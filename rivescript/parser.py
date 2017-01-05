@@ -164,6 +164,7 @@ class Parser(object):
 
             line = line.strip()  # Trim excess space. We do it down here so we
                                  # don't mess up python objects!
+            line = RE.ws.sub(" ", line)  # Replace the multiple whitespaces by single whitespace
 
             # Look for comments.
             if line[:2] == '//':  # A single-line comment.
