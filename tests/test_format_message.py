@@ -17,3 +17,15 @@ class MessageFormatTests(RiveScriptTestCase):
         self.reply("  hello bot   ", "hello human") # Strip leading and trailing whitespaces
         self.reply("  hello   bot   ", "hello human") # Replace the multiple whitespaces by single whitespace
         self.reply("hello      bot!!!???   ", "hello human") # Strip nasties
+
+    def test_format_triggers(self):
+        self.new("""
+            + hi there
+            -    hi   there
+
+            +hi  here
+            -hi  here
+
+        """)
+        self.reply("hi there", "hi there")
+        self.reply("hi  here", "hi here")
