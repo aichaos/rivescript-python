@@ -437,7 +437,7 @@ class Brain(object):
         regexp = regexp.replace('*', '(.+?)')   # Convert * into (.+?)
         regexp = regexp.replace('#', '(\d+?)')  # Convert # into (\d+?)
         regexp = regexp.replace('_', '(\w+?)')  # Convert _ into (\w+?)
-        regexp = re.sub(r'\{weight=\d+\}', '', regexp)  # Remove {weight} tags
+        regexp = re.sub(r'\s*\{weight=\d+\}', '', regexp)  # Remove {weight} tags, allow spaces before the bracket
         regexp = regexp.replace('<zerowidthstar>', r'(.*?)')
 
         # Optionals.
