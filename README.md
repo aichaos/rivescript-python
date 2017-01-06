@@ -12,7 +12,10 @@ This library is compatible with both Python 2 and Python 3.
 
 ## Documentation
 
-Documentation is available at <http://rivescript.readthedocs.org/>
+Module documentation is available at <http://rivescript.readthedocs.org/>
+
+Also check out the [**RiveScript Community Wiki**](https://github.com/aichaos/rivescript/wiki)
+for common design patterns and tips & tricks for RiveScript.
 
 ## Installation
 
