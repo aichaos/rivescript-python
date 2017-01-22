@@ -182,12 +182,13 @@ class RiveScript(object):
             self._warn("Error: " + directory + " is not a directory.")
             return
 
-        for item in os.listdir(directory):
-            for extension in ext:
-                if item.lower().endswith(extension):
-                    # Load this file.
-                    self.load_file(os.path.join(directory, item))
-                    break
+        for root, subdirs, files in os.walk(directory):
+            for file in files:
+                for extension in ext:
+                    if file.lower().endswith(extension):
+                        # Load this file.
+                        self.load_file(os.path.join(root, file))
+                        break
 
     def load_file(self, filename):
         """Load and parse a RiveScript document.
