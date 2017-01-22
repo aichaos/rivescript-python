@@ -182,7 +182,7 @@ class RiveScript(object):
             self._warn("Error: " + directory + " is not a directory.")
             return
 
-        for root, subdirs, files in os.walk(rs_directory):
+        for root, subdirs, files in os.walk(directory):
             for file in files:
                 for extension in ext:
                     if file.lower().endswith(extension):
