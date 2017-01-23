@@ -136,8 +136,10 @@ The `status` will be `ok` on success, or `error` if there was an error. The
 ## Contributors
 
 * [Noah Petherbridge](https://github.com/kirsle)
+* [Arash Saidi](https://github.com/arashsa)
 * [Danilo Bargen](https://github.com/dbrgn)
 * [FujiMakoto](https://github.com/FujiMakoto)
+* [Hung Tu Dinh](https://github.com/Dinh-Hung-Tu)
 * [Julien Syx](https://github.com/Seraf)
 * [Pablo](https://github.com/flogiston)
 * [Peixuan (Shawn) Ding](https://github.com/dinever)
