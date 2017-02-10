@@ -228,7 +228,7 @@ class Brain(object):
                     for trig in self.master._sorted["thats"][top]:
                         pattern = trig[1]["previous"]
                         botside = self.reply_regexp(user, pattern)
-                        self.say("Try to match lastReply (" + lastReply + ") to " + pattern)
+                        self.say("Try to match lastReply ({}) to {} ({})".format(lastReply, pattern, repr(botside)))
 
                         # Match??
                         match = re.match(botside, lastReply)
@@ -307,6 +307,7 @@ class Brain(object):
                     self.say("Redirecting us to " + matched["redirect"])
                     redirect = self.process_tags(user, msg, matched["redirect"], stars, thatstars, step,
                                                   ignore_object_errors)
+                    redirect = redirect.lower()
                     self.say("Pretend user said: " + redirect)
                     reply = self._getreply(user, redirect, step=(step + 1), ignore_object_errors=ignore_object_errors)
                     break
@@ -500,7 +501,7 @@ class Brain(object):
                                         self.format_message(history[type][0]))
                 # TODO: the Perl version doesn't do just <input>/<reply> in trigs!
 
-        return re.compile(r'^' + regexp + r'$')
+        return re.compile(r'^' + regexp.lower() + r'$')
 
     def do_expand_array(self, array_name, depth=0):
         """Do recurrent array expansion, returning a set of keywords.
