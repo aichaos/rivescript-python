@@ -476,7 +476,7 @@ class Brain(object):
         for var in bvars:
             rep = ''
             if var in self.master._var:
-                rep = utils.strip_nasties(self.master._var[var])
+                rep = self.format_message(self.master._var[var])
             regexp = regexp.replace('<bot {var}>'.format(var=var), rep)
 
         # Filter in user variables.
