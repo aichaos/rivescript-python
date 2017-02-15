@@ -535,13 +535,13 @@ class Parser(object):
             if parts[0] == "begin" and len(parts) > 1:
                 return "The 'begin' label takes no additional arguments, should be verbatim '> begin'"
             elif parts[0] == "topic":
-                match = re.match(RE.name_syntax, line)
-                if match:
+                search = re.search(RE.name_syntax, line)
+                if search:
                     return "Topics should be lowercased and contain only numbers and letters"
             elif parts[0] == "object":
-                match = re.match(RE.name_syntax, line)
-                if match:
-                    return "Objects can only contain numbers and letters"
+                search = re.search(RE.name_syntax, line)
+                if search:
+                    return "Objects can only contain numbers and letters"  # TODO Acceptance of uppercase letter?
         elif cmd == '+' or cmd == '%' or cmd == '@':
             # + Trigger, % Previous, @ Redirect
             #   This one is strict. The triggers are to be run through the regexp engine,
@@ -585,12 +585,12 @@ class Parser(object):
 
             # In UTF-8 mode, most symbols are allowed.
             if self.utf8:
-                match = re.match(RE.utf8_trig, line)
-                if match:
+                search = re.search(RE.utf8_trig, line)
+                if search:
                     return "Triggers can't contain uppercase letters, backslashes or dots in UTF-8 mode."
             else:
-                match = re.match(RE.trig_syntax, line)
-                if match:
+                search = re.search(RE.trig_syntax, line)
+                if search:
                     return "Triggers may only contain lowercase letters, numbers, and these symbols: ( | ) [ ] * _ # @ { } < > ="
         elif cmd == '-' or cmd == '^' or cmd == '/':
             # - Trigger, ^ Continue, / Comment
