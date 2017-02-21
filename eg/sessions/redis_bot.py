@@ -3,11 +3,25 @@
 from __future__ import unicode_literals, print_function, absolute_import
 from six.moves import input
 import sys
+
+# Manipulate sys.path to be able to import rivescript from this local git
+# repository.
+import os
+sys.path.append(os.path.join(
+    os.path.dirname(__file__),
+    "..", "..",
+))
+sys.path.append(os.path.join(
+    os.path.dirname(__file__),
+    "..", "..",
+    "contrib", "redis",
+))
+
 from rivescript import RiveScript
-from redis_storage import RedisSessionStorage
+from rivescript_redis import RedisSessionManager
 
 bot = RiveScript(
-    session_manager=RedisSessionStorage(),
+    session_manager=RedisSessionManager(),
 )
 bot.load_directory("../brain")
 bot.sort_replies()
