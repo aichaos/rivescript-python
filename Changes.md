@@ -2,6 +2,12 @@
 
 Revision history for the Python package RiveScript.
 
+## 1.14.5 - Feb 20 2017
+
+- Bugfix when storing the user's `last_match` variable when a `%Previous` is
+  active (it was storing a regexp object and not a string), to help third party
+  session drivers (e.g. Redis) to work.
+
 ## 1.14.4 - Dec 14 2016
 
 - Fix the `last_match()` function so that it returns `None` when there was no

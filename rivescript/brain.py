@@ -246,7 +246,7 @@ class Brain(object):
                             if match:
                                 self.say("Found a match!")
                                 matched = trig[1]
-                                matchedTrigger = subtrig
+                                matchedTrigger = user_side["trigger"]
                                 foundMatch = True
 
                                 # Get the stars!
