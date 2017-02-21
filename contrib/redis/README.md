@@ -4,7 +4,7 @@ This module installs support for using a [Redis cache](https://redis.io/) to
 store user variables for RiveScript.
 
 ```bash
-pip install rivescript-redis
+pip install rivescript_redis
 ```
 
 By default, RiveScript keeps user variables in an in-memory dictionary. This
