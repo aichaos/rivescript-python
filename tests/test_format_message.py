@@ -32,22 +32,28 @@ class MessageFormatTests(RiveScriptTestCase):
 
     def test_invalid_character_raise_exception(self):
         self.assertRaises(Exception, self.new, """
-                                + $hello
-                                - hi
-                            """)  # This test passes with `match`, which only check at the beginning
+            + $hello
+            - hi
+        """)  # This test passes with `match`, which only check at the beginning
         self.assertRaises(Exception, self.new, """
-                        + hello$
-                        - hi
-                    """)   # This test does not pass because the beginning is good, no $
+            + hello$
+            - hi
+        """)   # This test does not pass because the beginning is good, no $
         self.assertRaises(Exception, self.new, """
-                            > topic Greetings
-                                + hello
-                                - hi
-                            <topics
-                            """)
+            > topic Greetings
+                + hello
+                - hi
+            <topics
+        """)
         self.assertRaises(Exception, self.new, """
-                                    > object hash %perl
-                                      my ($rs, $args) = @_;
-                                      my $method = shift @{$args};
-                                    <object
-                                    """)  # Test for character violation in object, no %
+            > object hash %perl
+                my ($rs, $args) = @_;
+                my $method = shift @{$args};
+            <object
+        """)  # Test for character violation in object, no %
+        self.new("""
+            > object hash Perl
+                my ($rs, $args) = @_;
+                my $method = shift @{$args};
+            <object
+        """) # No exception raised for uppercase character in object

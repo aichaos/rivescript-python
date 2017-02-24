@@ -24,6 +24,7 @@ class RE(object):
     array       = re.compile(r'\@(.+?)\b')
     def_syntax  = re.compile(r'^.+(?:\s+.+|)\s*=\s*.+?$')
     name_syntax = re.compile(r'[^a-z0-9_\-\s]')
+    obj_syntax  = re.compile(r'[^A-Za-z0-9_\-\s]')
     utf8_trig   = re.compile(r'[A-Z\\.]')
     trig_syntax = re.compile(r'[^a-z0-9(\|)\[\]*_#@{}<>=\s]')
     cond_syntax = re.compile(r'^.+?\s*(?:==|eq|!=|ne|<>|<|<=|>|>=)\s*.+?=>.+?$')

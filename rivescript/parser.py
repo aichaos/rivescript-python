@@ -539,9 +539,9 @@ class Parser(object):
                 if search:
                     return "Topics should be lowercased and contain only numbers and letters"
             elif parts[0] == "object":
-                search = re.search(RE.name_syntax, line)
+                search = re.search(RE.obj_syntax, line) # Upper case is allowed
                 if search:
-                    return "Objects can only contain numbers and letters"  # TODO Acceptance of uppercase letter?
+                    return "Objects can only contain numbers and letters"
         elif cmd == '+' or cmd == '%' or cmd == '@':
             # + Trigger, % Previous, @ Redirect
             #   This one is strict. The triggers are to be run through the regexp engine,
