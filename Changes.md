@@ -2,6 +2,12 @@
 
 Revision history for the Python package RiveScript.
 
+## 1.14.6 - Mar 23 2017
+
+- Fix regexp for validating RiveScript syntax to use `re.search` instead of
+  `re.match` (bug #82).
+- Allow object macros to contain capital letters in their names (PR #83).
+
 ## 1.14.5 - Feb 20 2017
 
 - Bugfix when storing the user's `last_match` variable when a `%Previous` is
