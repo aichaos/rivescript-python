@@ -86,9 +86,9 @@ class SessionTests(RiveScriptTestCase):
         self.uservar('__lastmatch__', None) # Before any user input and reply, no match.
         self.reply("helo", "hello") # For matched case
         self.uservar('__lastmatch__','helo')
-        self.reply("helo you","[ERR: No reply matched]") # For not-matched case
+        self.reply("helo you","[ERR: No Reply Matched]") # For not-matched case
         self.uservar('__lastmatch__', None)
-        self.reply("helo again","[ERR: No reply matched]") # For not-matched case again
+        self.reply("helo again","[ERR: No Reply Matched]") # For not-matched case again
         self.uservar('__lastmatch__', None)
         self.reply("helo", "hello")  # For matched case again
         self.uservar('__lastmatch__', 'helo')
