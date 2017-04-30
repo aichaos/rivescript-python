@@ -461,7 +461,7 @@ class Brain(object):
                 '(?:' + pipes + r'|(?:\\s|\\b))', regexp)
 
         # _ wildcards can't match numbers!
-        regexp = re.sub(RE.literal_w, r'[^\s\d]', regexp)
+        regexp = re.sub(RE.literal_w, '[^\s\d]', regexp)
 
         # Filter in arrays.
         arrays = re.findall(RE.array, regexp)
