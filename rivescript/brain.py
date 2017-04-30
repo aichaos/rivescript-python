@@ -5,7 +5,7 @@
 #
 # https://www.rivescript.com/
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
 from .regexp import RE
 from .exceptions import (
     RiveScriptError, RepliesNotSortedError, NoDefaultRandomTopicError,
@@ -438,7 +438,7 @@ class Brain(object):
         regexp = regexp.replace('*', '(.+?)')   # Convert * into (.+?)
         regexp = regexp.replace('#', '(\d+?)')  # Convert # into (\d+?)
         regexp = regexp.replace('_', '(\w+?)')  # Convert _ into (\w+?)
-        regexp = re.sub(r'\s*\{weight=\d+\}', '', regexp)  # Remove {weight} tags, allow spaces before the bracket
+        regexp = re.sub(RE.weight, '', regexp)  # Remove {weight} tags, allow spaces before the bracket
         regexp = regexp.replace('<zerowidthstar>', r'(.*?)')
 
         # Optionals.
@@ -461,7 +461,7 @@ class Brain(object):
                 '(?:' + pipes + r'|(?:\\s|\\b))', regexp)
 
         # _ wildcards can't match numbers!
-        regexp = re.sub(RE.literal_w, r'[A-Za-z]', regexp)
+        regexp = re.sub(RE.literal_w, r'[^\s\d]', regexp)
 
         # Filter in arrays.
         arrays = re.findall(RE.array, regexp)
@@ -565,6 +565,16 @@ class Brain(object):
             stars.append("undefined")
         if len(botstars) == 1:
             botstars.append("undefined")
+
+        matcher = re.findall(RE.reply_array, reply)
+        for match in matcher:
+            name = match
+            if name in self.master._array:
+                result = "{random}" + "|".join(self.master._array[name]) + "{/random}"
+            else:
+                result = "\x00@" + name + "\x00"
+            reply = reply.replace("(@"+name+")", result)
+        reply = re.sub(RE.ph_array, r'(@\1)', reply)
 
         # Tag shortcuts.
         reply = reply.replace('<person>', '{person}<star>{/person}')
@@ -696,7 +706,7 @@ class Brain(object):
                     elif tag == "mult":
                         new = orig * value
                     elif tag == "div":
-                        new = orig / value
+                        new = orig // value
                     self.master.set_uservar(user, var, new)
                 except:
                     insert = "[ERR: Math couldn't '{}' to value '{}']".format(tag, curv)

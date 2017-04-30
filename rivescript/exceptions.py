@@ -10,8 +10,8 @@ from __future__ import unicode_literals
 """Exception classes for RiveScript."""
 
 # Exportable constants.
-RS_ERR_MATCH = "[ERR: No reply matched]"
-RS_ERR_REPLY = "[ERR: No reply found]"
+RS_ERR_MATCH = "[ERR: No Reply Matched]"
+RS_ERR_REPLY = "[ERR: No Reply Found]"
 RS_ERR_DEEP_RECURSION = "[ERR: Deep recursion detected]"
 RS_ERR_OBJECT = "[ERR: Error when executing Python object]"
 RS_ERR_OBJECT_HANDLER = "[ERR: No Object Handler]"
