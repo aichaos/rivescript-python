@@ -47,7 +47,7 @@ class TriggerObj(object):
         self.option = self.alphabet.count('[') + self.alphabet.count('(')  # Number of option 0 < 1
 
         if self.star > 0:
-            if self.pound == 0 & self.under == 0 & self.option == 0:  # Place single star last in the rank
+            if (self.pound == 0) & (self.under == 0) & (self.option == 0):  # Place single star last in the rank
                 self.pound = sys.maxsize
                 self.under = sys.maxsize
                 self.option = sys.maxsize
