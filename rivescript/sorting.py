@@ -56,6 +56,13 @@ class TriggerObj(object):
                     # Without any words number of stars does not matter, they all mean match any.
                     self.star = sys.maxsize  # Make sure "*" is last in the list, "* love *" > "*"
 
+            # Special handle for the case "[*]", since self.len is not re-set, self.len = -2 < 0. Thus, "[*]" > "*"
+            elif (self.option == 1) & (self.wordcount == -2):
+                self.wordcount = sys.maxsize
+                self.star = sys.maxsize
+                self.pound = sys.maxsize
+                self.under = sys.maxsize
+                self.option = sys.maxsize
 
 def sort_trigger_set(triggers, exclude_previous=True, say=None):
     """Sort a group of triggers in optimal sorting order.
