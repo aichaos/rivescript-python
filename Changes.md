@@ -2,6 +2,24 @@
 
 Revision history for the Python package RiveScript.
 
+## 1.14.7 - May 19 2017
+
+- Various fixes and improvements that catch RiveScript-Python up with the other
+  implementations, to pass the RiveScript Test Suite (PR #89):
+  - Implement arrays in replies -- so you could write a reply like
+    `My favorite color is (@colors)` and the array gets expanded to a random
+    item from the `!array` by the same name.
+  - Fix the regexp for `{weight}` tag removal so that it still works if you
+    include extra spaces on either end of the tag.
+  - Fix the `_` wildcard to allow matching Unicode letters.
+  - Fix division with the `<div>` tag to use integer division for Python 3.
+- Improvements to the trigger sorting algorithm:
+  - Add special handling so that a trigger of `[*]` gets sorted above the
+    usual catch-all trigger of `*` (PR #92)
+  - Fix a logic bug with bitwise operators for handling the case that a trigger
+    contains `*` wildcards but does not contain any optionals or wildcards of
+    different types (bug #90, PR #91)
+
 ## 1.14.6 - Mar 23 2017
 
 - Fix regexp for validating RiveScript syntax to use `re.search` instead of
