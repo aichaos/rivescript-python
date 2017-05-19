@@ -46,28 +46,43 @@ class SortingTriggersTest(RiveScriptTestCase):
 
             + hi [*]
             - 12
+
+            + [*] hi [*]
+            - 13
+
+            + [*] hi *
+            - 14
+
+            + [*]
+            - 15
         """)
         
         sorted_triggers =  {trig[0]:position for position, trig in enumerate(self.rs._brain.master._sorted["topics"]['random'])}
 
         # 1) Atomic is first matched. 
-        self.assertLess(sorted_triggers['hello'],sorted_triggers['hey [man]'])
+        self.assertLess(sorted_triggers['hello'], sorted_triggers['hey [man]'])
 
         # 2) Sorted by number of words 
-        self.assertLess(sorted_triggers['hel lo'],sorted_triggers['hello'])
-        self.assertLess(sorted_triggers['* hallo ween *'],sorted_triggers['* are *'])
+        self.assertLess(sorted_triggers['hel lo'], sorted_triggers['hello'])
+        self.assertLess(sorted_triggers['* hallo ween *'], sorted_triggers['* are *'])
 
         # 3) Sorted by length by characters 
-        self.assertLess(sorted_triggers['good morning'],sorted_triggers['hel lo'])
+        self.assertLess(sorted_triggers['good morning'], sorted_triggers['hel lo'])
 
         # 4) Sorted by alphabetical order
-        self.assertLess(sorted_triggers['* are *'],sorted_triggers['* you *'])
+        self.assertLess(sorted_triggers['* are *'], sorted_triggers['* you *'])
 
         # 5) Sorted by number of wildcard triggers 
-        self.assertLess(sorted_triggers['hi *'],sorted_triggers['* you *'])
+        self.assertLess(sorted_triggers['hi *'], sorted_triggers['* you *'])
 
         # 6) The `super catch all` (only single star `*`) should be least priority
-        self.assertEqual(sorted_triggers['*'],max(sorted_triggers.values()))
-        self.assertLess(sorted_triggers['hi [*]'],sorted_triggers['*']) # another check but will be covered by max check above
+        self.assertEqual(sorted_triggers['*'], max(sorted_triggers.values()))
+        self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['*']) # another check but will be covered by max check above
 
-
+        # 7) The cousin of `super catch all` (only single star with option `[*]`) should be second-last, following the
+        # `soft` sorting convention that trigger with more non-star characters goes first (more specific matches first)
+        self.assertLess(sorted_triggers['[*]'], sorted_triggers['*'])
+        self.assertEqual(sorted_triggers['[*]'], max(sorted_triggers.values())-1)
+        self.assertLess(sorted_triggers['[*] hi [*]'], sorted_triggers['[*]'])
+        self.assertLess(sorted_triggers['[*] hi *'], sorted_triggers['*'])
+        self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['[*]'])
