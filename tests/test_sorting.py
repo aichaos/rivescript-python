@@ -55,6 +55,18 @@ class SortingTriggersTest(RiveScriptTestCase):
 
             + [*]
             - 15
+
+            + hi _
+            - 16
+
+            + _ _
+            - 17
+
+            + ho _{weight=100}
+            - 18
+
+            + ho _
+            - 19
         """)
         
         sorted_triggers =  {trig[0]:position for position, trig in enumerate(self.rs._brain.master._sorted["topics"]['random'])}
@@ -75,14 +87,33 @@ class SortingTriggersTest(RiveScriptTestCase):
         # 5) Sorted by number of wildcard triggers 
         self.assertLess(sorted_triggers['hi *'], sorted_triggers['* you *'])
 
-        # 6) The `super catch all` (only single star `*`) should be least priority
-        self.assertEqual(sorted_triggers['*'], max(sorted_triggers.values()))
-        self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['*']) # another check but will be covered by max check above
-
-        # 7) The cousin of `super catch all` (only single star with option `[*]`) should be second-last, following the
-        # `soft` sorting convention that trigger with more non-star characters goes first (more specific matches first)
-        self.assertLess(sorted_triggers['[*]'], sorted_triggers['*'])
-        self.assertEqual(sorted_triggers['[*]'], max(sorted_triggers.values())-1)
+        # 6) The `super catch all` (only single star `*` or `[*]`) should be the last two
+        third_last_position = max(sorted_triggers.values())-2
+        self.assertLess(third_last_position, sorted_triggers['*'])
+        self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['*'])
+        self.assertLess(third_last_position, sorted_triggers['[*]'])
         self.assertLess(sorted_triggers['[*] hi [*]'], sorted_triggers['[*]'])
         self.assertLess(sorted_triggers['[*] hi *'], sorted_triggers['*'])
         self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['[*]'])
+
+        # 7) Trigger with no text should rank lower than trigger with some text, even with wildcards.
+        self.assertLess(sorted_triggers['hel lo'], sorted_triggers['_ _'])
+        self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['_ _'])
+        self.assertLess(sorted_triggers['hi *'], sorted_triggers['_ _'])
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['_ _'])
+
+        # 8) Among the triggers with no text, the order of wildcard priority still holds
+        self.assertLess(sorted_triggers['_ _'], sorted_triggers['[*]'])
+        self.assertLess(sorted_triggers['_ _'], sorted_triggers['*'])
+
+        # 9) Among the triggers with text, the order of wildcard priority still holds
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi *'])
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi [*]'])
+
+        # 10) Among the triggers with text, the order of wildcard priority still holds
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi *'])
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi [*]'])
+
+        # 11) Making sure that the weight tag is taken into account
+        self.assertLess(sorted_triggers['ho _{weight=100}'], sorted_triggers['hi _'])
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['ho _'])

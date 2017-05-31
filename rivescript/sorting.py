@@ -32,6 +32,7 @@ class TriggerObj(object):
             pound: Number of numeric wildcards (``#``)
             under: Number of alphabetical wildcards (``_``)
             option: Number of optional tags ("[man]" in "hey [man]"), assume that the template is properly formatted
+            is_empty: Boolean variable indicating whether the trigger has non-zero wordcount
         """
 
     def __init__(self, pattern, index, weight, inherit = sys.maxsize):
@@ -45,24 +46,8 @@ class TriggerObj(object):
         self.pound  = self.alphabet.count('#')  # Number of numeric wildcards 0 < 1
         self.under  = self.alphabet.count('_')  # Number of alphabetical wildcards 0 < 1
         self.option = self.alphabet.count('[') + self.alphabet.count('(')  # Number of option 0 < 1
+        self.is_empty = self.wordcount == 0  # Triggers with words precede triggers with no words, False < True
 
-        if self.star > 0:
-            if (self.pound == 0) & (self.under == 0) & (self.option == 0):  # Place single star last in the rank
-                self.pound = sys.maxsize
-                self.under = sys.maxsize
-                self.option = sys.maxsize
-                if self.wordcount == 0:  # The special case for single star "*", or a grey case "* *"
-                    self.wordcount = sys.maxsize  # Make sure template "hello *" > "*"
-                    # Without any words number of stars does not matter, they all mean match any.
-                    self.star = sys.maxsize  # Make sure "*" is last in the list, "* love *" > "*"
-
-            # Special handle for the case "[*]", since self.len is not re-set, self.len = -2 < 0. Thus, "[*]" > "*"
-            elif (self.option == 1) & (self.wordcount == -2):
-                self.wordcount = sys.maxsize
-                self.star = sys.maxsize
-                self.pound = sys.maxsize
-                self.under = sys.maxsize
-                self.option = sys.maxsize
 
 def sort_trigger_set(triggers, exclude_previous=True, say=None):
     """Sort a group of triggers in optimal sorting order.
@@ -125,9 +110,10 @@ def sort_trigger_set(triggers, exclude_previous=True, say=None):
 
         trigger_object_list.append(TriggerObj(pattern, index, weight, inherit))
 
-    # Priority order of sorting criteria: weight, inherit, star, pound, under, option, wordcount, len, alphabet
+    # Priority order of sorting criteria:
+    # weight, inherit, is_empty, star, pound, under, option, wordcount, len, alphabet
     sorted_list = sorted(trigger_object_list,
-                         key=attrgetter('weight', 'inherit', 'star', 'pound',
+                         key=attrgetter('weight', 'inherit', 'is_empty', 'star', 'pound',
                                         'under', 'option', 'wordcount', 'len', 'alphabet'))
     return [triggers[item.index] for item in sorted_list]
 

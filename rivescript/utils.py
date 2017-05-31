@@ -12,7 +12,7 @@ import re
 import string
 
 def word_count(trigger, all=False):
-    """Count the words that aren't wildcards in a trigger.
+    """Count the words that aren't wildcards or options in a trigger.
 
     :param str trigger: The trigger to count words for.
     :param bool all: Count purely based on whitespace separators, or
@@ -23,7 +23,7 @@ def word_count(trigger, all=False):
     if all:
         words = re.split(RE.ws, trigger)
     else:
-        words = re.split(RE.wilds, trigger)
+        words = re.split(RE.wilds_and_optionals, trigger)
 
     wc = 0  # Word count
     for word in words:

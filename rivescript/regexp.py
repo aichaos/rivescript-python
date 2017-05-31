@@ -17,7 +17,7 @@ class RE(object):
     objend      = re.compile('^\s*<\s*object')
     weight      = re.compile(r'\s*\{weight=(\d+)\}\s*')
     inherit     = re.compile('\{inherits=(\d+)\}')
-    wilds       = re.compile('[\s\*\#\_]+')
+    wilds_and_optionals = re.compile('[\s\*\#\_\[\]()]+')
     nasties     = re.compile('[^A-Za-z0-9 ]')
     crlf        = re.compile('<crlf>')
     literal_w   = re.compile(r'\\w')
