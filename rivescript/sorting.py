@@ -32,6 +32,7 @@ class TriggerObj(object):
             pound: Number of numeric wildcards (``#``)
             under: Number of alphabetical wildcards (``_``)
             option: Number of optional tags ("[man]" in "hey [man]"), assume that the template is properly formatted
+            is_empty: Boolean variable indicating whether the trigger has non-zero wordcount
         """
 
     def __init__(self, pattern, index, weight, inherit = sys.maxsize):
@@ -109,9 +110,10 @@ def sort_trigger_set(triggers, exclude_previous=True, say=None):
 
         trigger_object_list.append(TriggerObj(pattern, index, weight, inherit))
 
-    # Priority order of sorting criteria: weight, inherit, star, pound, under, option, wordcount, len, alphabet
+    # Priority order of sorting criteria:
+    # weight, inherit, is_empty, star, pound, under, option, wordcount, len, alphabet
     sorted_list = sorted(trigger_object_list,
-                         key=attrgetter('weight', 'inherit', "is_empty", 'star', 'pound',
+                         key=attrgetter('weight', 'inherit', 'is_empty', 'star', 'pound',
                                         'under', 'option', 'wordcount', 'len', 'alphabet'))
     return [triggers[item.index] for item in sorted_list]
 

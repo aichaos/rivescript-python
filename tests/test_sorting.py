@@ -61,6 +61,12 @@ class SortingTriggersTest(RiveScriptTestCase):
 
             + _ _
             - 17
+
+            + ho _{weight=100}
+            - 18
+
+            + ho _
+            - 19
         """)
         
         sorted_triggers =  {trig[0]:position for position, trig in enumerate(self.rs._brain.master._sorted["topics"]['random'])}
@@ -81,10 +87,11 @@ class SortingTriggersTest(RiveScriptTestCase):
         # 5) Sorted by number of wildcard triggers 
         self.assertLess(sorted_triggers['hi *'], sorted_triggers['* you *'])
 
-        # 6) The `super catch all` (only single star `*` or `[*]`) should be last
-        self.assertGreaterEqual(sorted_triggers['*'], max(sorted_triggers.values())-1)
+        # 6) The `super catch all` (only single star `*` or `[*]`) should be the last two
+        third_last_position = max(sorted_triggers.values())-2
+        self.assertLess(third_last_position, sorted_triggers['*'])
         self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['*'])
-        self.assertGreaterEqual(sorted_triggers['[*]'], max(sorted_triggers.values())-1)
+        self.assertLess(third_last_position, sorted_triggers['[*]'])
         self.assertLess(sorted_triggers['[*] hi [*]'], sorted_triggers['[*]'])
         self.assertLess(sorted_triggers['[*] hi *'], sorted_triggers['*'])
         self.assertLess(sorted_triggers['hi [*]'], sorted_triggers['[*]'])
@@ -102,3 +109,11 @@ class SortingTriggersTest(RiveScriptTestCase):
         # 9) Among the triggers with text, the order of wildcard priority still holds
         self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi *'])
         self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi [*]'])
+
+        # 10) Among the triggers with text, the order of wildcard priority still holds
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi *'])
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['hi [*]'])
+
+        # 11) Making sure that the weight tag is taken into account
+        self.assertLess(sorted_triggers['ho _{weight=100}'], sorted_triggers['hi _'])
+        self.assertLess(sorted_triggers['hi _'], sorted_triggers['ho _'])
