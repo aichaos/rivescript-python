@@ -81,14 +81,14 @@ def string_format(msg, method):
 def random_choice(bucket):
     """Safely get a random choice from a list.
 
-    If the list is zero-length, this just returns an is_empty string rather than
+    If the list is zero-length, this just returns an empty string rather than
     raise an exception.
 
     Parameters:
         bucket (list): A list to randomly choose from.
 
     Returns:
-        str: The random choice. Blank string if the list was is_empty.
+        str: The random choice. Blank string if the list was empty.
     """
     if len(bucket) == 0:
         return ""
