@@ -35,13 +35,10 @@ class MessageFormatTests(RiveScriptTestCase):
         empty_pipes = ["[a|b| ]", "[a|b|]", "[a| |c]", "[a||c]", "[ |b|c]", "[|b|c]"]
 
         for failing_trigger in mismatch_brackets+empty_pipes:
-            with self.assertRaises(Exception) as cm:
-                self.new("""
-                    + {}
-                    - hi
-                """.format(failing_trigger))
-            the_exception = cm.exception
-            self.assertTrue(the_exception.message.startswith("Syntax error"))
+            self.assertRaises(Exception, self.new, """
+                + {}
+                - hi
+            """.format(failing_trigger))
 
     def test_invalid_character_raise_exception(self):
         self.assertRaises(Exception, self.new, """
