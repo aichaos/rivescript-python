@@ -30,6 +30,16 @@ class MessageFormatTests(RiveScriptTestCase):
         self.reply("hi there", "hi there")
         self.reply("hi  here", "hi here")
 
+    def test_check_syntax(self):
+        mismatch_brackets = ["a (b", "a [b", "a {b", "a <b", "a b)", "a b]", "a b}", "a b>"]
+        empty_pipes = ["[a|b| ]", "[a|b|]", "[a| |c]", "[a||c]", "[ |b|c]", "[|b|c]"]
+
+        for failing_trigger in mismatch_brackets+empty_pipes:
+            self.assertRaises(Exception, self.new, """
+                + {}
+                - hi
+            """.format(failing_trigger))
+
     def test_invalid_character_raise_exception(self):
         self.assertRaises(Exception, self.new, """
             + $hello

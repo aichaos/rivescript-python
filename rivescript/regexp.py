@@ -48,3 +48,4 @@ class RE(object):
     placeholder = re.compile(r'\x00(\d+)\x00')
     zero_star   = re.compile(r'^\*$')
     optionals   = re.compile(r'\[(.+?)\]')
+    empty_pipe   = re.compile(r'\|\s*\||\[\s*\||\|\s*\]|\(\s*\||\|\s*\)')  # ||, [|, |], (|, |)
