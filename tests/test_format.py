@@ -42,7 +42,6 @@ class MessageFormatTests(RiveScriptTestCase):
                 """.format(failing_trigger))
             the_exception = cm.exception
             self.assertTrue(the_exception.message.startswith("Syntax error"))
-            print "the_exception.message",the_exception.message
 
     def test_invalid_character_raise_exception(self):
         self.assertRaises(Exception, self.new, """
