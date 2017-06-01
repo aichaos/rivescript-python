@@ -549,6 +549,7 @@ class Parser(object):
             #   - Entirely lowercase
             #   - No symbols except: ( | ) [ ] * _ # @ { } < > =
             #   - All brackets should be matched
+            #   - No empty option with pipe such as ||, [|, |], (|, |) and whitespace between
             parens = 0  # Open parenthesis
             square = 0  # Open square brackets
             curly  = 0  # Open curly brackets
@@ -582,6 +583,11 @@ class Parser(object):
                 return "Unmatched curly brackets"
             elif angle != 0:
                 return "Unmatched angle brackets"
+
+            # Check for empty pipe
+            search = re.search(RE.empty_pipe, line)
+            if search:
+                return "Piped arrays can't include blank entries"
 
             # In UTF-8 mode, most symbols are allowed.
             if self.utf8:
