@@ -189,10 +189,7 @@ class MemorySessionStorage(SessionManager):
         if not username in self._users:
             self._users[username] = self.default_session()
         for key, value in vars.items():
-            if value is None:
-                self._users[username].pop(key, None)
-            else:
-                self._users[username][key] = value
+            self._users[username][key] = value 
 
     def get(self, username, key, default="undefined"):
         if not username in self._users:
