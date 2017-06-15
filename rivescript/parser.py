@@ -215,6 +215,7 @@ class Parser(object):
                     continue
                 lookCmd = lookahead[0]
                 lookahead = lookahead[1:].strip()
+                lookahead = re.sub(RE.space, ' ', lookahead)  # Replace the `\s` in the message
 
                 # Only continue if the lookahead line has any data.
                 if len(lookahead) != 0:
