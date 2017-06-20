@@ -36,6 +36,24 @@ class ParserOptionTest(RiveScriptTestCase):
             - Hello
             ^ world!
 
+            ! local concat = none
+            + test concat
+            ^ in trigger
+            - Hello
+            ^ world!
+
+            ! local concat = none
+            + [test] concat
+            ^ \sin trigger with space and optional
+            - Hello
+            ^ \sworld!
+
+            ! local concat = space
+            + test concat space
+            ^ in trigger
+            - Hello
+            ^ world!
+
             // the option is file scoped so it can be left at
             // any setting and won't affect subsequent parses
             ! local concat = newline
@@ -53,3 +71,6 @@ class ParserOptionTest(RiveScriptTestCase):
         self.reply("test concat none", "Helloworld!")
         self.reply("test concat newline", "Hello\nworld!")
         self.reply("test concat second file", "Helloworld!")
+        self.reply("test concatin trigger", "Helloworld!")
+        self.reply("test concat in trigger with space and optional", "Hello world!")
+        self.reply("test concat space in trigger", "Hello world!")

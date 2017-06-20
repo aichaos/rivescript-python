@@ -14,6 +14,7 @@ import re
 class RE(object):
     equals      = re.compile('\s*=\s*')
     ws          = re.compile('\s+')
+    space       = re.compile('\\\\s')
     objend      = re.compile('^\s*<\s*object')
     weight      = re.compile(r'\s*\{weight=(\d+)\}\s*')
     inherit     = re.compile('\{inherits=(\d+)\}')
