@@ -67,3 +67,11 @@ class MessageFormatTests(RiveScriptTestCase):
                 my $method = shift @{$args};
             <object
         """) # No exception raised for uppercase character in object
+
+    def test_space_tolerance_with_pipe(self):
+        self.new("""
+                    + hey [ a | b|c ]
+                    - hi
+                """)
+        for message in ['hey a', 'hey b', 'hey c']:
+            self.reply(message, "hi")

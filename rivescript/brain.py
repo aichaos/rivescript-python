@@ -447,7 +447,7 @@ class Brain(object):
             parts = match.split("|")
             new = []
             for p in parts:
-                p = r'(?:\\s|\\b)+{}(?:\\s|\\b)+'.format(p)
+                p = r'(?:\\s|\\b)+{}(?:\\s|\\b)+'.format(p.strip())
                 new.append(p)
 
             # If this optional had a star or anything in it, make it
