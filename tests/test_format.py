@@ -33,8 +33,10 @@ class MessageFormatTests(RiveScriptTestCase):
     def test_check_syntax(self):
         mismatch_brackets = ["a (b", "a [b", "a {b", "a <b", "a b)", "a b]", "a b}", "a b>"]
         empty_pipes = ["[a|b| ]", "[a|b|]", "[a| |c]", "[a||c]", "[ |b|c]", "[|b|c]"]
+        advanced_brackets = [") a (", "] b [", "> c <", "} d {", "a (b [c) d]", "a (b <c) d>", "a (b [c|d] e)"]
+        pipe_outside_brackets = ["a|b", "a|", "|b", "(a|b) | (c|d)", "(a|b)|(c|d)"]
 
-        for failing_trigger in mismatch_brackets+empty_pipes:
+        for failing_trigger in mismatch_brackets + empty_pipes + advanced_brackets + pipe_outside_brackets:
             self.assertRaises(Exception, self.new, """
                 + {}
                 - hi
