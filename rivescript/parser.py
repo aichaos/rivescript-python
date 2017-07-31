@@ -574,6 +574,14 @@ class Parser(object):
                     angle += 1
                 elif char == '>':
                     angle -= 1
+                elif char == '|':
+                    if parens == 0 and square == 0:   # Pipe outside the alternative and option
+                        return "Pipe | must be within parenthesis brackets or square brackets"
+
+                sum = parens + square + curly + angle   # At each character, not more than 1 bracket opens
+                for special_char_count in [parens, square, curly, angle, sum]:
+                    if special_char_count not in (0, 1):
+                        return "Unbalanced brackets"
 
             # Any mismatches?
             if parens != 0:
