@@ -33,12 +33,28 @@ class MessageFormatTests(RiveScriptTestCase):
     def test_check_syntax(self):
         mismatch_brackets = ["a (b", "a [b", "a {b", "a <b", "a b)", "a b]", "a b}", "a b>"]
         empty_pipes = ["[a|b| ]", "[a|b|]", "[a| |c]", "[a||c]", "[ |b|c]", "[|b|c]"]
+        advanced_brackets = [") a (", "] b [", "> c <", "} d {", "a (b [c) d]", "a (b [c|d] e)"]
+        angle_brackets = ["(a <b) c>", "<a (b > c)", "[a <b ] c>", "< a [b > c]", "{ a < b } c >", "< a {b > c }"]
+        pipe_outside = ["a|b", "a|", "|b", "(a|b) | (c|d)", "(a|b)|(c|d)"]
 
-        for failing_trigger in mismatch_brackets+empty_pipes:
+        for failing_trigger in mismatch_brackets + empty_pipes + advanced_brackets + pipe_outside + angle_brackets:
             self.assertRaises(Exception, self.new, """
                 + {}
                 - hi
             """.format(failing_trigger))
+
+        self.new("""
+            ! version = 2.0
+
+            // Bot variables
+            ! var name = Tutorial
+            ! var nickname = tut
+
+            + [<bot name>|<nickname>] *
+            - You called?
+        """)
+        self.reply("Tutorial", "You called?")
+        self.reply("tut", "You called?")
 
     def test_invalid_character_raise_exception(self):
         self.assertRaises(Exception, self.new, """
