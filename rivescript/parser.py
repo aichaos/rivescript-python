@@ -578,7 +578,10 @@ class Parser(object):
                     if parens == 0 and square == 0:   # Pipe outside the alternative and option
                         return "Pipe | must be within parenthesis brackets or square brackets"
 
-                total = parens + square + curly + angle   # At each character, not more than 1 bracket opens
+                if (angle != 0) and (char in {"(", ")", "[", "]", "{", "}"}):
+                    return "Angle bracket must be closed before closing or opening other type of brackets"
+
+                total = parens + square + curly   # At each character, not more than 1 bracket opens, except <>
                 for special_char_count in [parens, square, curly, angle, total]:
                     if special_char_count not in (0, 1):
                         return "Unbalanced brackets"
