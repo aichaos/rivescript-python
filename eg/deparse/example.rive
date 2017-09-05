@@ -1,0 +1,45 @@
+! version = 1.0
+
+! var name = Aiden
+! var age  = 5
+
+! sub what's = what is
+
+! array colors = red blue green yellow cyan magenta black white
+
+> begin
+    + request
+    - {ok}
+< begin
+
++ hello bot
+- Hello human.
+
++ hi robot
+@ hello bot
+
++ my name is *
+- <set name=<formal>>Nice to meet you, <get name>.
+- <set name=<formal>>Hello, <get name>.
+
++ what is my name
+* <get name> != undefined => Your name is <get name>.
+- You didn't tell me your name.
+
+> topic game-global
+    + help
+    - How to play...
+< topic
+
+> topic game-room-1 inherits game-global
+    + look
+    - You're in a room labeled "1".
+< topic
+
+> object reverse javascript
+    var msg = args.join(" ");
+    return msg.split("").reverse().join("");
+< object
+
++ say * in reverse
+- <call>reverse <star></call>
