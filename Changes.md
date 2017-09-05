@@ -2,6 +2,24 @@
 
 Revision history for the Python package RiveScript.
 
+## 1.14.8 - Sept 5 2017
+
+This release focuses on bug fixes and backwards compatible improvements.
+
+- Improvements to the new trigger sorting algorithm:
+  - Triggers containing no text (wildcards only) are sorted nearer to the end
+    (bug #94)
+- Trigger components containing an empty string between pipes (e.g. `[|]`) now
+  raises a syntax error at parsing time (bug #87)
+- Fix the parsing of `^` when used on a `+Trigger` not being fully evaluated
+  before syntax checking for the trigger was done (bug #86)
+- Remove extra space characters inside optionals (bug #98)
+- Improve the syntax checker by having it raise errors when certain "tag
+  characters" are mismatched or opened and closed in the wrong order -- for
+  example `{<}>` (PR #103)
+- Fix the `deparse()` and `write()` functions so they work again with the
+  latest version of RiveScript (bug #76)
+
 ## 1.14.7 - May 19 2017
 
 - Various fixes and improvements that catch RiveScript-Python up with the other

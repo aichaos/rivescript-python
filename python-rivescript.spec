@@ -3,7 +3,7 @@
 %global desc A scripting language to make it easy to write responses for a chatterbot.
 
 Name:           python-%{srcname}
-Version:        1.14.7
+Version:        1.14.8
 Release:        1%{?dist}
 Summary:        %{sum}
 
