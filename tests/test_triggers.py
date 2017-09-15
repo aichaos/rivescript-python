@@ -111,6 +111,15 @@ class TriggerTests(RiveScriptTestCase):
         self.reply("I have a cyan car.", RS_ERR_MATCH)
         self.reply("I like apples.", RS_ERR_MATCH)
 
+    def test_trigger_arrays_with_underscore(self):
+        self.new("""
+            ! array colors_bright = white blue
+
+            + what color is my (@colors_bright) *
+            - Your <star2> is <star1>.
+        """)
+        self.reply("What color is my white shirt?", "Your shirt is white.")
+
     def test_nested_arrays(self):
         self.new("""
             ! array primary = red green blue

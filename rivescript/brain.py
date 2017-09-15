@@ -434,6 +434,14 @@ class Brain(object):
         # to match the blank string too.
         regexp = re.sub(RE.zero_star, r'<zerowidthstar>', regexp)
 
+        # Filter in arrays.
+        arrays = re.findall(RE.array, regexp)
+        for array in arrays:
+            rep = ''
+            if array in self.master._array:
+                rep = r'(?:' + '|'.join(self.expand_array(array)) + ')'
+            regexp = re.sub(r'\@' + re.escape(array) + r'\b', rep, regexp)
+
         # Simple replacements.
         regexp = regexp.replace('*', '(.+?)')   # Convert * into (.+?)
         regexp = regexp.replace('#', '(\d+?)')  # Convert # into (\d+?)
@@ -462,14 +470,6 @@ class Brain(object):
 
         # _ wildcards can't match numbers!
         regexp = re.sub(RE.literal_w, r'[^\\s\\d]', regexp)
-
-        # Filter in arrays.
-        arrays = re.findall(RE.array, regexp)
-        for array in arrays:
-            rep = ''
-            if array in self.master._array:
-                rep = r'(?:' + '|'.join(self.expand_array(array)) + ')'
-            regexp = re.sub(r'\@' + re.escape(array) + r'\b', rep, regexp)
 
         # Filter in bot variables.
         bvars = re.findall(RE.bot_tag, regexp)
