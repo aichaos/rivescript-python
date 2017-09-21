@@ -82,3 +82,19 @@ class UnicodeTest(RiveScriptTestCase):
         self.rs.unicode_punctuation = re.compile(r'xxx')
         self.reply("Hello bot", "Hello human!")
         self.reply("Hello, bot!", RS_ERR_MATCH)
+
+    def test_unicode_with_optionals(self):
+        templates = ["({})", "[{}]", "[*] ({}) [*]",  "[*] [{}] [*]"]  # Test both alternatives and optionals
+        trigger_text = "überrasch mich|empfiehl mir was|empfehl mir was|was gibts neues für mich|empfehlung"
+
+        for template in templates:
+            test_template = template.format(trigger_text)
+            self.new("""
+                + {}
+                - recommendation
+            """.format(test_template), utf8=True)
+
+            self.reply("überrasch mich", "recommendation")
+            self.reply("überrasch", '[ERR: No Reply Matched]')
+            self.reply("empfiehl mir was", "recommendation")
+            self.reply("was gibts neues für mich", "recommendation")
