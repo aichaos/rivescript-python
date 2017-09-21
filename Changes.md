@@ -2,6 +2,20 @@
 
 Revision history for the Python package RiveScript.
 
+## 1.14.9 - Sept 21 2017
+
+This release fixes some regular expressions and adds better Unicode
+compatibility for trigger matching.
+
+- Fix the regexp that matches `{weight}` tags in replies to use `re.search()`
+  instead of `re.match()`. This ensures that random replies are chosen with the
+  correct weighting applied (bug #102; PR #106)
+- Fix the way arrays are interpolated into triggers so that array names are
+  now allowed to contain underscores (bug #101; PR #107)
+- Fix Unicode handling in regular expressions by using the `re.UNICODE` flag.
+  This allows for a trigger containing optionals, like `[*]`, to match
+  correctly when adjacent to Unicode symbols such as umlauts (bug #37; PR #108)
+
 ## 1.14.8 - Sept 5 2017
 
 This release focuses on bug fixes and backwards compatible improvements.
