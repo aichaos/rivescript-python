@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'rivescript'
-copyright = '2016, Noah Petherbridge <root@kirsle.net>'
+copyright = '2017, Noah Petherbridge <root@kirsle.net>'
 author = 'Noah Petherbridge <root@kirsle.net>'
 
 # The version info for the project you're documenting, acts as replacement for
