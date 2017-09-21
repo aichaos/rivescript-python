@@ -84,7 +84,7 @@ class UnicodeTest(RiveScriptTestCase):
         self.reply("Hello, bot!", RS_ERR_MATCH)
 
     def test_unicode_with_optionals(self):
-        templates = ["({})", "[{}]", "[*] ({}) [*]",  "[*] [{}] [*]"]  # Test both alternatives and optionals
+        templates = ["({})", "[{}]"]  # Test both alternatives and optionals
         trigger_text = "überrasch mich|empfiehl mir was|empfehl mir was|was gibts neues für mich|empfehlung"
 
         for template in templates:
