@@ -376,7 +376,7 @@ class Brain(object):
                 bucket = []
                 for text in matched["reply"]:
                     weight = 1
-                    match  = re.match(RE.weight, text)
+                    match  = re.search(RE.weight, text)
                     if match:
                         weight = int(match.group(1))
                         if weight <= 0:
