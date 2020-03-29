@@ -1,9 +1,10 @@
 %global srcname rivescript
 %global sum A Chatterbot Scripting Language
 %global desc A scripting language to make it easy to write responses for a chatterbot.
+%global version 1.14.9
 
 Name:           python-%{srcname}
-Version:        1.14.9
+Version:        %{version}
 Release:        1%{?dist}
 Summary:        %{sum}
 
