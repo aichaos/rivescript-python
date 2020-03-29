@@ -1,2 +1,0 @@
-0000000000000000000000000000000000000000 2c6bd22165dd38b3d68e5ca1015ca25f53114a41 Joe Cool <snoopyjc@gmail.com> 1584847154 -0400	branch: Created from HEAD
-2c6bd22165dd38b3d68e5ca1015ca25f53114a41 884fcc8fd4a5a2c7bf6cc68d3ab6cfa47fdafcef Joe Cool <snoopyjc@gmail.com> 1585516043 -0400	commit: Proposed v1.15.0 - Big speedup in substitute, fixed enh 81 and bugs 120, 130, 132, 133, 138, 140, 142, 143, improved test coverage
