@@ -1,0 +1,27 @@
+# pack-refs with: peeled fully-peeled sorted 
+0ffb0e4dfb04c6d51307d178f0dd7e8e9b490b46 refs/remotes/origin/bug/python-macro-text-type
+aa8a3c579fb72776160303597ecdee84d08817ff refs/remotes/origin/dependabot/pip/eg/twilio/werkzeug-0.15.3
+c19e1157fe89cfe271d6bb3b0bdd7265a762a0a8 refs/remotes/origin/docker
+d15852347cba62fbdb75a98d87bda5f60db56196 refs/remotes/origin/feature/sessions
+2c6bd22165dd38b3d68e5ca1015ca25f53114a41 refs/remotes/origin/master
+aa4164a018e9639f6ba198e583b980a8ed2a903a refs/remotes/origin/protobuf
+0803d477d320175e6ccd961d8c0cd8e3ce40a586 refs/remotes/origin/revert-67-sort_revamp
+da32a2c27c41e6052e896b418f2e91df93891788 refs/tags/v1.06
+5dfe915f9cfdb70c3dfc1b730fe0172b737cf80f refs/tags/v1.10.0
+d6de5a4094596200543e186ad33ed213d992ca85 refs/tags/v1.12.0
+9bd1b6cb87d1afe5f733f57923816b8019a9cf4e refs/tags/v1.12.1
+aba2721a9f14233dfed9f5a3c62b653c6b39d315 refs/tags/v1.12.2
+1efde2d0130a5cc3d9e58a25196309054fac326e refs/tags/v1.12.3
+264cdad874d8ae62384744f8365f405e706b69fa refs/tags/v1.13.0
+6b5392d507241cff136e67877825b430aa151402 refs/tags/v1.14.0
+fff60394d34c2b6523ba4a23ee18bad168944011 refs/tags/v1.14.1
+4d865fd5a03ec0b1a6ca321d10d60582496573e0 refs/tags/v1.14.2
+6ac813ab25d138bfd8426eb01af6dae41b340864 refs/tags/v1.14.3
+7d4978aedaf7df8dcfcd848d4652ebb0753d4905 refs/tags/v1.14.4
+3a8ad975ee86f051ebea7eaf610b71ef854f3508 refs/tags/v1.14.5
+572e0e414c7f17ef1ca4673b320687c3eb8d26e0 refs/tags/v1.14.6
+20460992cedb91e0fecb189f53047c0f8687f905 refs/tags/v1.14.7
+303d6072cd70c2a2043ac7f5027a59009e466836 refs/tags/v1.14.8
+4c2284fe7f84c702e3ee3038a4b238c11aecba85 refs/tags/v1.14.9
+9f1bb744d02dab15a03edceac9b76751c62036f3 refs/tags/v1.8.0
+bd8eae6f2f156b19cc6d3023f677ffb5cbfdbd2d refs/tags/v1.8.1

@@ -33,7 +33,7 @@ class MessageFormatTests(RiveScriptTestCase):
     def test_check_syntax(self):
         mismatch_brackets = ["a (b", "a [b", "a {b", "a <b", "a b)", "a b]", "a b}", "a b>"]
         empty_pipes = ["[a|b| ]", "[a|b|]", "[a| |c]", "[a||c]", "[ |b|c]", "[|b|c]"]
-        advanced_brackets = [") a (", "] b [", "> c <", "} d {", "a (b [c) d]", "a (b [c|d] e)"]
+        advanced_brackets = [") a (", "] b [", "> c <", "} d {", "a (b [c) d]", "a (b [c|d) e]"]
         angle_brackets = ["(a <b) c>", "<a (b > c)", "[a <b ] c>", "< a [b > c]", "{ a < b } c >", "< a {b > c }"]
         pipe_outside = ["a|b", "a|", "|b", "(a|b) | (c|d)", "(a|b)|(c|d)"]
 

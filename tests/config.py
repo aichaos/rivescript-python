@@ -39,3 +39,22 @@ class RiveScriptTestCase(unittest.TestCase):
         """Test the value of a user variable."""
         value = self.rs.get_uservar(self.username, var)
         self.assertEqual(value, expected)
+
+    def assertContains(self, big, small):
+        """Ensure everything from "small" is in "big" """
+        self.assertIsInstance(small, big.__class__)
+        if isinstance(small, dict):
+            for k, v in small.items():
+                self.assertIn(k, big)
+                self.assertContains(big[k], v)
+        elif isinstance(small, str):        # Strings are iterable, but let's not!
+            self.assertEqual(big, small)
+        else:                               # pragma: no cover
+            try:
+                iterator = iter(small)
+                for it in iterator:
+                    self.assertIn(it, big)
+            except TypeError:
+                self.assertEqual(big, small)
+
+

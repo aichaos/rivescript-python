@@ -26,12 +26,14 @@ class TriggerObj(object):
             index: Unique positional index of the object in the original list
             weight: Pattern weight ``{weight}``
             inherit: Pattern inherit level, extracted from i.e. "{inherit=1}hi"
-            wordcount: Length of pattern by wordcount
-            len: Length of pattern by character count
-            star: Number of wildcards (``*``), excluding alphabetical wildcards, and numeric wildcards
-            pound: Number of numeric wildcards (``#``)
-            under: Number of alphabetical wildcards (``_``)
-            option: Number of optional tags ("[man]" in "hey [man]"), assume that the template is properly formatted
+
+        Computed:
+            wordcount: Negative length of pattern by wordcount
+            len: Negative length of pattern by character count
+            star: Boolean - has wildcards (``*``), excluding alphabetical wildcards, and numeric wildcards
+            pound: Boolean - has numeric wildcards (``#``)
+            under: Boolean - has alphabetical wildcards (``_``)
+            option: Boolean - has optional tags ("[man]" in "hey [man]"), assume that the template is properly formatted
             is_empty: Boolean variable indicating whether the trigger has non-zero wordcount
         """
 
@@ -42,10 +44,19 @@ class TriggerObj(object):
         self.inherit = inherit  # Low inherit takes precedence i.e. 0 < 1
         self.wordcount = - utils.word_count(pattern)  # Length -2 < -1. Use `utils` for counting choice of wildcards
         self.len    = -len(self.alphabet)  # Length -10 < -5
-        self.star   = self.alphabet.count('*')  # Number of wildcards 0 < 1
-        self.pound  = self.alphabet.count('#')  # Number of numeric wildcards 0 < 1
-        self.under  = self.alphabet.count('_')  # Number of alphabetical wildcards 0 < 1
-        self.option = self.alphabet.count('[') + self.alphabet.count('(')  # Number of option 0 < 1
+        pattern_set = set(pattern)
+        self.star   = '*' in pattern_set  # Has wildcards 0 < 1
+        self.pound  = '#' in pattern_set  # Has numeric wildcards 0 < 1
+        self.under  = '_' in pattern_set  # Has alpha wildcards 0 < 1
+        self.option = '[' in pattern_set  # Has optionals 0 < 1
+        #self.star   = self.alphabet.count('*')  # Number of wildcards 0 < 1
+        #self.star   = self.alphabet.startswith('* ') + self.alphabet.count(' * ') + self.alphabet.endswith(' *') + \
+                #self.alphabet.startswith('[*] ') + self.alphabet.endswith(' [*]') + \
+                #(self.alphabet == '*') + (self.alphabet == '[*]')  # Number of wildcards 0 < 1
+        #self.pound  = self.alphabet.count('#')  # Number of numeric wildcards 0 < 1
+        #self.under  = self.alphabet.count('_')  # Number of alphabetical wildcards 0 < 1
+        #self.option = self.alphabet.count('[') + self.alphabet.count('(')  # Number of option 0 < 1
+        #self.option = self.alphabet.count('[') - self.alphabet.count('[*') + self.alphabet.count('(')  # Number of option 0 < 1
         self.is_empty = self.wordcount == 0  # Triggers with words precede triggers with no words, False < True
 
 

@@ -1,0 +1,18 @@
+[run]
+#plugins = rivescript_coverage_plugin
+source = .
+omit = ./venv/*
+
+[report]
+exclude_lines =
+	pragma: no cover
+	raise NotImplementedError
+	if __name__ == .__main__.
+	def _dump\(self\):
+
+[rivescript_coverage_plugin]
+show_startup = False
+show_parsing = False
+show_tracing = False
+clean_rs_objects = True
+capture_streams = True
