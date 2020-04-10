@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 from .regexp import RE
 
 import re
+from collections import Counter, deque
 
 # Version of RiveScript we support.
 rs_version = 2.0
@@ -86,7 +87,15 @@ class Parser(object):
                                 "previous": None, # 'previous' reply
                             },
                             # ...
-                        ]
+                        ],
+                        "syntax": { # to quickly find filenames/line numbers of triggers for trigger_info
+                            "hello bot": {          # Trigger text
+                                "previous": None,   # %Previous trigger text (or None)
+                                "filename": "",     # filename the trigger was found in (or "stream()")
+                                "lineno": int       # line number the trigger was found in
+                            },
+                            # ...
+                        }
                     }
                 }
                 "objects": [ # parsed object macros
@@ -140,7 +149,8 @@ class Parser(object):
         for lp, line in enumerate(code):
             lineno += 1
 
-            self.say("Line: " + line + " (topic: " + topic + ") incomment: " + str(inobj))
+            self.say("Line: " + line + " (topic: " + topic + ") incomment: " + str(comment) + \
+                    ", inobj: " + str(inobj))
             if len(line.strip()) == 0:  # Skip blank lines
                 continue
 
@@ -256,7 +266,7 @@ class Parser(object):
             # Handle the types of RiveScript commands.
             if cmd == '!':
                 # ! DEFINE
-                halves = re.split(RE.equals, line, 2)
+                halves = re.split(RE.equals, line, 1)
                 left = re.split(RE.ws, halves[0].strip(), 2)
                 value, type, var = '', '', ''
                 if len(halves) == 2:
@@ -357,7 +367,7 @@ class Parser(object):
 
                     # Convert any remaining '\s' escape codes into spaces.
                     for f in fields:
-                        f = f.replace('\s', ' ')
+                        f = f.replace(r'\s', ' ')
 
                     ast["begin"]["array"][var] = fields
                 elif type == 'sub':
@@ -468,6 +478,8 @@ class Parser(object):
                     "previous": isThat,
                 }
                 ast["topics"][topic]["triggers"].append(curtrig)
+                ast["topics"][topic]["syntax"][line] = \
+                        dict(previous=isThat, filename=filename, lineno=lineno)
             elif cmd == '-':
                 # - REPLY
                 if curtrig is None:
@@ -551,50 +563,34 @@ class Parser(object):
             #   - No symbols except: ( | ) [ ] * _ # @ { } < > =
             #   - All brackets should be matched
             #   - No empty option with pipe such as ||, [|, |], (|, |) and whitespace between
-            parens = 0  # Open parenthesis
-            square = 0  # Open square brackets
-            curly  = 0  # Open curly brackets
-            angle  = 0  # Open angled brackets
 
-            # Count brackets.
+            pairs = {'[': ']', '{': '}', '(': ')', '<': '>'}
+            rpairs = {v: k for k, v in pairs.items()}
+            bnames = {'[': 'angle', '{': 'curly', '(': 'parenthesis', '<': 'angle'}
+            not_angle = set(pairs.keys())
+            not_angle.remove('<')
+
+            q = deque()
+            c = Counter()
+
             for char in line:
-                if char == '(':
-                    parens += 1
-                elif char == ')':
-                    parens -= 1
-                elif char == '[':
-                    square += 1
-                elif char == ']':
-                    square -= 1
-                elif char == '{':
-                    curly += 1
-                elif char == '}':
-                    curly -= 1
-                elif char == '<':
-                    angle += 1
-                elif char == '>':
-                    angle -= 1
-                elif char == '|':
-                    if parens == 0 and square == 0:   # Pipe outside the alternative and option
-                        return "Pipe | must be within parenthesis brackets or square brackets"
-
-                if (angle != 0) and (char in {"(", ")", "[", "]", "{", "}"}):
-                    return "Angle bracket must be closed before closing or opening other type of brackets"
-
-                total = parens + square + curly   # At each character, not more than 1 bracket opens, except <>
-                for special_char_count in [parens, square, curly, angle, total]:
-                    if special_char_count not in (0, 1):
+                if char in pairs:
+                    q.append(char)
+                    c[char] += 1
+                    if char in not_angle and c['<']:
+                        return "Angle bracket must be closed before closing or opening other type of brackets"
+                elif char in rpairs:
+                    p = rpairs[char]
+                    if len(q) == 0:
+                        return "Unmatched " + bnames[p] + " brackets"
+                    if q.pop() != p:
                         return "Unbalanced brackets"
-
-            # Any mismatches?
-            if parens != 0:
-                return "Unmatched parenthesis brackets"
-            elif square != 0:
-                return "Unmatched square brackets"
-            elif curly != 0:
-                return "Unmatched curly brackets"
-            elif angle != 0:
-                return "Unmatched angle brackets"
+                    c[rpairs[char]] -= 1
+                elif char == '|':
+                    if c['('] == 0 and c['['] == 0:   # Pipe outside the alternative and option
+                        return "Pipe | must be within parenthesis brackets or square brackets"
+            if len(q) != 0:
+                return "Unmatched " + bnames(q.pop()) + " brackets"
 
             # Check for empty pipe
             search = re.search(RE.empty_pipe, line)
@@ -642,4 +638,5 @@ class Parser(object):
                 "includes": {},
                 "inherits": {},
                 "triggers": [],
+                "syntax": {},
             }

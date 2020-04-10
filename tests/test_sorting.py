@@ -84,8 +84,8 @@ class SortingTriggersTest(RiveScriptTestCase):
         # 4) Sorted by alphabetical order
         self.assertLess(sorted_triggers['* are *'], sorted_triggers['* you *'])
 
-        # 5) Sorted by number of wildcard triggers 
-        self.assertLess(sorted_triggers['hi *'], sorted_triggers['* you *'])
+        # NOT!!  5) Sorted by number of wildcard triggers 
+        # NOT!!  self.assertLess(sorted_triggers['hi *'], sorted_triggers['* you *'])
 
         # 6) The `super catch all` (only single star `*` or `[*]`) should be the last two
         third_last_position = max(sorted_triggers.values())-2

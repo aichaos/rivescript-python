@@ -1,5 +1,13 @@
 __pycache__
+.coverage
 *.pyc
+*~
+*.swp
+htmlcov
+_rs_streams_
 build/
 dist/
+venv
 *.egg-info/
+rivescript.zip
+.gitold

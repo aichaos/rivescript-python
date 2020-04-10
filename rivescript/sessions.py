@@ -250,20 +250,20 @@ class NullSessionStorage(SessionManager):
     def get(self, *args, **kwargs):
         return "undefined"
 
-    def get_any(self, *args, **kwargs):
+    def get_any(self, *args, **kwargs):     # pragma: no cover
         return {}
 
-    def get_all(self, *args, **kwargs):
+    def get_all(self, *args, **kwargs):     # pragma: no cover
         return {}
 
-    def reset(self, *args, **kwargs):
+    def reset(self, *args, **kwargs):       # pragma: no cover
         pass
 
-    def reset_all(self, *args, **kwargs):
+    def reset_all(self, *args, **kwargs):   # pragma: no cover
         pass
 
-    def freeze(self, *args, **kwargs):
+    def freeze(self, *args, **kwargs):      # pragma: no cover
         pass
 
-    def thaw(self, *args, **kwargs):
+    def thaw(self, *args, **kwargs):        # pragma: no cover
         pass

@@ -2,6 +2,25 @@
 
 Revision history for the Python package RiveScript.
 
+## 1.15.0 - Mar 29 2020
+
+This release provides a major (~5x) speedup for RiveScripts that have
+a large number of substitutions, and also fixes the following issues:
+
+- Add a `prepare_brain_transplant` method to clear the RiveScript brain
+  in preparation to load in a new one, while optionally preserving
+  much of the current state (enh #81)
+- Implement the `trigger_info` method (bug #120)
+- Fix the issue of a "=" appearing in a variable value (bug #130)
+- Allow nested brackets (bug #132)
+- Fix trigger sorting to only count the existance of stars, optionals,
+  etc. instead of how many there are in a trigger (bug #133)
+- Fix the debug message for incomment (bug #138)
+- Fix substitutions if they occur more than 3 times on a line (bug #140)
+- Fix crash in `set_substitution` method (bug #142)
+- Fix issue in `set_person` method (bug #143)
+- Significantly improve code coverage of tests (add `test_coverage.py`)
+
 ## 1.14.9 - Sept 21 2017
 
 This release fixes some regular expressions and adds better Unicode

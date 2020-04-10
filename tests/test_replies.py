@@ -101,7 +101,7 @@ class ReplyTests(RiveScriptTestCase):
     def test_embedded_tags(self):
         self.new("""
             + my name is *
-            * <get name> != undefined => <set oldname=<get name>>I thought\s
+            * <get name> != undefined => <set oldname=<get name>>I thought\\s
               ^ your name was <get oldname>?
               ^ <set name=<formal>>
             - <set name=<formal>>OK.

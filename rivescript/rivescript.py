@@ -267,11 +267,16 @@ class RiveScript(object):
                 # Does this trigger have a %Previous? If so, make a pointer to
                 # this exact trigger in _thats.
                 if trigger["previous"] is not None:
+                    # Precompile the regexp for the previous too.
+                    self._precompile_regexp(trigger["previous"])
+
                     if not topic in self._thats:
                         self._thats[topic] = {}
                     if not trigger["trigger"] in self._thats[topic]:
                         self._thats[topic][trigger["trigger"]] = {}
                     self._thats[topic][trigger["trigger"]][trigger["previous"]] = trigger
+
+            self._syntax[topic] = data["syntax"]
 
         # Load all the parsed objects.
         for obj in ast["objects"]:
@@ -308,7 +313,7 @@ class RiveScript(object):
         if self._debug:
             result["begin"]["global"]["debug"] = self._debug
         if self._depth != 50:
-            result["begin"]["global"]["depth"] = 50
+            result["begin"]["global"]["depth"] = self._depth
 
         # Definitions
         result["begin"]["var"]    = self._var.copy()
@@ -508,7 +513,7 @@ class RiveScript(object):
         if len(lines):
             eol = ""
             if sep == " ":
-                eol = "\s"
+                eol = "\\s"
             for item in lines:
                 result += eol + "\n" + indent + "^ " + item
 
@@ -627,7 +632,8 @@ class RiveScript(object):
             # Unset the variable.
             if name in self._global:
                 del self._global[name]
-        self._global[name] = value
+        else:
+            self._global[name] = value
 
     def get_global(self, name):
         """Retrieve the current value of a global variable.
@@ -650,7 +656,8 @@ class RiveScript(object):
             # Unset the variable.
             if name in self._var:
                 del self._var[name]
-        self._var[name] = value
+        else:
+            self._var[name] = value
 
     def get_variable(self, name):
         """Retrieve the current value of a bot variable.
@@ -664,6 +671,7 @@ class RiveScript(object):
         """Set a substitution.
 
         Equivalent to ``! sub`` in RiveScript code.
+        Note: sort_replies() must be called after using set_substitution.
 
         :param str what: The original text to replace.
         :param str rep: The text to replace it with.
@@ -671,14 +679,17 @@ class RiveScript(object):
         """
         if rep is None:
             # Unset the variable.
-            if what in self._subs:
-                del self._subs[what]
-        self._subs[what] = rep
+            if what in self._sub:
+                del self._sub[what]
+        else:
+            self._sub[what] = rep
+        self._precompile_substitution('sub', what)
 
     def set_person(self, what, rep):
         """Set a person substitution.
 
         Equivalent to ``! person`` in RiveScript code.
+        Note: sort_replies() must be called after using set_person.
 
         :param str what: The original text to replace.
         :param str rep: The text to replace it with.
@@ -688,7 +699,9 @@ class RiveScript(object):
             # Unset the variable.
             if what in self._person:
                 del self._person[what]
-        self._person[what] = rep
+        else:
+            self._person[what] = rep
+        self._precompile_substitution('person', what)
 
     def set_uservar(self, user, name, value):
         """Set a variable for a user.
@@ -855,7 +868,7 @@ class RiveScript(object):
         """
         return self._session.get(user, "__lastmatch__", None) # Get directly to `get` function
 
-    def trigger_info(self, trigger=None, dump=False):
+    def trigger_info(self, topic=None, trigger=None, user=None, last_reply=None):
         """Get information about a trigger.
 
         Pass in a raw trigger to find out what file name and line number it
@@ -866,41 +879,64 @@ class RiveScript(object):
 
         The keys in the trigger info is as follows:
 
-        * ``category``: Either 'topic' (for normal) or 'thats'
-          (for %Previous triggers)
         * ``topic``: The topic name
         * ``trigger``: The raw trigger text
+        * ``previous``: The %Previous value specified, or None
         * ``filename``: The filename the trigger was found in.
         * ``lineno``: The line number the trigger was found on.
 
-        Pass in a true value for ``dump``, and the entire syntax tracking
-        tree is returned.
-
+        :param str topic: The topic to look up.  If none, then all topics are considered.
         :param str trigger: The raw trigger text to look up.
-        :param bool dump: Whether to dump the entire syntax tracking tree.
+        :param str user: The user ID to find the trigger for (or None).
+        :param str last_match: The prior reply to match with %Previous.  If not specified, all matching triggers are returned.
+
+        Note: If you pass no arguments, then a dump of all triggers is returned.
 
         :return: A list of matching triggers or ``None`` if no matches.
         """
-        if dump:
-            return self._syntax
 
         response = None
+        syntax   = None
 
-        # Search the syntax tree for the trigger.
-        for category in self._syntax:
-            for topic in self._syntax[category]:
-                if trigger in self._syntax[category][topic]:
-                    # We got a match!
-                    if response is None:
-                        response = list()
-                    fname, lineno = self._syntax[category][topic][trigger]['trigger']
-                    response.append(dict(
-                        category=category,
-                        topic=topic,
-                        trigger=trigger,
-                        filename=fname,
-                        line=lineno,
-                    ))
+        def reply_matches(prev, lr):
+            nonlocal user
+            botside = self._brain.reply_regexp(user, prev)
+            if re.match(botside, lr):
+                return True
+            return False
+
+        def append_if_match():
+            nonlocal response, last_reply, syntax
+            previous = syntax["previous"]
+            if last_reply is None or previous is None or reply_matches(previous, last_reply):
+                if response is None:
+                    response = []
+                response.append(dict(topic=topic, trigger=trigger, previous=previous,
+                  filename=syntax["filename"], lineno=syntax["lineno"]))
+
+        if topic is None and trigger is None:
+            response = []
+            for topic, triggers in self._syntax.items():
+                for trigger, syntax in triggers.items():
+                    append_if_match()
+        elif topic is not None:
+            if topic not in self._syntax:
+                return response
+            triggers = self._syntax[topic]
+            if trigger is None:
+                for trigger, syntax in triggers.items():
+                    append_if_match()
+            else:
+                if trigger not in triggers:
+                    return response
+                syntax = triggers[trigger]
+                append_if_match()
+        else:   # trigger is not None
+            for topic, triggers in self._syntax.items():
+                if trigger not in triggers:
+                    continue
+                syntax = triggers[trigger]
+                append_if_match()
 
         return response
 
@@ -945,6 +981,59 @@ class RiveScript(object):
             str: The reply output.
         """
         return self._brain.reply(user, msg, errors_as_replies)
+
+    def prepare_brain_transplant(self, preserve_globals=True, preserve_vars=True, preserve_uservars=True, 
+            preserve_substitutions=True, preserve_persons=True, preserve_handlers=True, preserve_subroutines=True, 
+            preserve_arrays=False):
+        """Clear the brain in preparation for a full reload, preserving some important and specified things.
+
+        Usage:
+            rs.prepare_brain_transplant()
+            rs.load_directory('new_brain')
+            rs.sort_replies()
+
+        Arguments:
+            preserve_globals (bool): If True, then we preserve the set_global variables (! global in RiveScript)
+            preserve_vars (bool): If True, then we preserve the set_variable variables (! var in RiveScript)
+            preserve_uservars (bool): If True, then we preserve the set_uservar variables (<set/get> in RiveScript)
+            preserve_substitutions (bool): If True, then we preserve the set_substitution subs (! sub in RiveScript)
+            preserve_persons (bool): If True, then we preserve the set_person subs (! person in RiveScript)
+            preserve_handlers (bool): If True, then we preserve the set_handler object handlers
+            preserve_subroutines (bool): If True, then we preserve the set_subroutine object handlers
+                (> object in RiveScript)
+            preserve_arrays (bool): If True, then we preserve any defined arrays (! array in RiveScript)
+
+        """
+
+        global_vars = self._global
+        handlers = self._handlers
+        objlangs = self._objlangs
+        subs = self._sub
+        subs_precompiled = self._regexc["sub"]
+        persons = self._person
+        persons_precompiled = self._regexc["person"]
+        array = self._array
+        var = self._var
+        self.__init__(debug=self._debug, strict=self._strict, depth=self._depth,
+                log=self._log, utf8=self._utf8, session_manager=self._session)
+        if preserve_globals:
+            self._global = global_vars
+        if preserve_handlers:
+            self._handlers = handlers
+        if preserve_subroutines:
+            self._objlangs = objlangs
+        if preserve_vars:
+            self._var = var
+        if preserve_substitutions:
+            self._sub = subs
+            self._regexc["sub"] = subs_precompiled
+        if preserve_persons:
+            self._person = persons
+            self._regexc["person"] = persons_precompiled
+        if not preserve_uservars:
+            self.clear_uservars()
+        if preserve_arrays:
+            self._array = array
 
     def _precompile_substitution(self, kind, pattern):
         """Pre-compile the regexp for a substitution pattern.

@@ -44,9 +44,9 @@ class ParserOptionTest(RiveScriptTestCase):
 
             ! local concat = none
             + [test] concat
-            ^ \sin trigger with space and optional
+            ^ \\sin trigger with space and optional
             - Hello
-            ^ \sworld!
+            ^ \\sworld!
 
             ! local concat = space
             + test concat space
