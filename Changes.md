@@ -21,6 +21,9 @@ a large number of substitutions, and also fixes the following issues:
 - Fix issue in `set_person` method (bug #143)
 - Significantly improve code coverage of tests (add `test_coverage.py`)
 
+Dropped support for Python 2.7 as it this language version has reached
+its end-of-life date. Minimum Python version supported is now 3.6+
+
 ## 1.14.9 - Sept 21 2017
 
 This release fixes some regular expressions and adds better Unicode

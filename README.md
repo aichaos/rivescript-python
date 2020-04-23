@@ -8,7 +8,21 @@ This is a RiveScript interpreter for the Python programming language. RiveScript
 is a scripting language for chatterbots, making it easy to write
 trigger/response pairs for building up a bot's intelligence.
 
-This library is compatible with both Python 2 and Python 3.
+### Python 2 EOL Notice
+
+Historically, this library supported both Python 2 and Python 3 until the
+day that Python 2 entered end-of-life status which happened on
+January 1, 2020.
+
+The final version with Python 2 support is **v1.14.9** which you may still
+install from PyPI if you need to support a Python2 environment. Going
+forward, RiveScript releases will target modern, supported releases of the
+Python 3 language. Today, this means Python 3.6 and newer.
+
+```bash
+# Python2 last supported version of RiveScript is 1.14.9
+pip install rivescript==1.14.9
+```
 
 ## Documentation
 
