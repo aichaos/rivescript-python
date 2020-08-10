@@ -502,9 +502,9 @@ class Brain(object):
                 # TODO: the Perl version doesn't do just <input>/<reply> in trigs!
 
         if self.utf8:
-            return re.compile(r'^' + regexp.lower() + r'$', re.UNICODE)
+            return re.compile(r'^' + regexp.lower() + r'$', re.UNICODE | re.MULTILINE)
         else:
-            return re.compile(r'^' + regexp.lower() + r'$')
+            return re.compile(r'^' + regexp.lower() + r'$', re.MULTILINE)
 
     def do_expand_array(self, array_name, depth=0):
         """Do recurrent array expansion, returning a set of keywords.
