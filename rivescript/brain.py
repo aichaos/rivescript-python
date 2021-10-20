@@ -441,13 +441,30 @@ class Brain(object):
             if array in self.master._array:
                 rep = r'(?:' + '|'.join(self.expand_array(array)) + ')'
             regexp = re.sub(r'\@' + re.escape(array) + r'\b', rep, regexp)
+            if '[' in regexp and ']' in regexp:
+                regexp = regexp.replace(' [', '(\s|)(').replace('[', '(')
+                regexp = regexp.replace('] ', '|)(\s|)').replace(']', '|)')
+
+        regexp = regexp.replace(' * ', '( * | )')
+        if regexp[-2:] == ' *':
+            regexp = regexp.replace(regexp[-2:], '( *|)')
+        if regexp[:2] == '* ':
+            regexp = regexp.replace(regexp[:2], '(| *)')
+        if '*' in regexp:
+            for i in range(len(regexp)):
+                if regexp[i] == '*':
+                    if (((regexp[i] == regexp[-1]) and regexp[-2].isalpha()) or
+                        (regexp[i] == regexp[0] and regexp[1].isalpha()) or
+                        (regexp[i+1].isalpha() or regexp[i-1].isalpha())):
+                        regexp = regexp[:i] + '(\w{0,})' + regexp[i+1:]
 
         # Simple replacements.
-        regexp = regexp.replace('*', '(.+?)')   # Convert * into (.+?)
+        regexp = regexp.replace('*', '(.*?)')   # Convert * into (.+?)
         regexp = regexp.replace('#', '(\d+?)')  # Convert # into (\d+?)
         regexp = regexp.replace('_', '(\w+?)')  # Convert _ into (\w+?)
         regexp = re.sub(RE.weight, '', regexp)  # Remove {weight} tags, allow spaces before the bracket
         regexp = regexp.replace('<zerowidthstar>', r'(.*?)')
+        regexp = regexp.replace('(.*?) (.*?)', '(.*?)(.*?)')
 
         # Optionals.
         optionals = re.findall(RE.optionals, regexp)
