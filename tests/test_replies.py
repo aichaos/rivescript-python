@@ -13,6 +13,10 @@ class ReplyTests(RiveScriptTestCase):
             ! sub who's  = who is
             ! sub it's   = it is
             ! sub didn't = did not
+            ! array hi = hi|[hello] hi|welcome
+            
+            + (@hi)
+            - Hi Hi!
 
             + knock knock
             - Who's there?
@@ -28,6 +32,8 @@ class ReplyTests(RiveScriptTestCase):
             + *
             - I don't know.
         """)
+        self.reply("welcome", "Hi Hi!")
+        self.reply("Hello, Hi", "Hi Hi!")
         self.reply("knock knock", "Who's there?")
         self.reply("Canoe", "Canoe who?")
         self.reply("Canoe help me with my homework?", "Haha! Canoe help me with my homework!")
@@ -111,9 +117,31 @@ class ReplyTests(RiveScriptTestCase):
 
             + html test
             - <set name=<b>Name</b>>This has some non-RS <em>tags</em> in it.
+            
+            + i am from rus*
+            - Are you from Russia?
+            
+            + i am from *lia
+            * <star> == brasi => Are you from Brasilia?
+            - Are you from big city?
+            
+            + hello my * *friend
+            - I love you, my <star>!
+            
+            + *
+            - Random reply
         """)
         self.reply("What is my name?", "Your name is undefined, right?")
         self.reply("My name is Alice", "OK.")
         self.reply("My name is Bob.", "I thought your name was Alice?")
         self.reply("What is my name?", "Your name is Bob, right?")
         self.reply("HTML Test", "This has some non-RS <em>tags</em> in it.")
+        self.reply("I am from Russia", "Are you from Russia?")
+        self.reply("I am from RussiaFederation", "Are you from Russia?")
+        self.reply("I am from Russia Federation", "Random reply")
+        self.reply("Hello my best friend", "I love you, my best!")
+        self.reply("Hello my best best friend", "I love you, my best best!")
+        self.reply("Hello my best little bestfriend", "I love you, my best little!")
+        self.reply("Hello my friend", "I love you, my !")
+        self.reply("I am from Brasilia", "Are you from Brasilia?")
+        self.reply("I am from Sicilia", "Are you from big city?")
